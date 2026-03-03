@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>투자자 - VC route</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/investors.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="fund.html">투자펀드</a></li>
+            <li><a href="investors.html" class="active">투자자</a></li>
+            <li><a href="startups.html">스타트업</a></li>
+            <li><a href="DCF.html">기업가치(DCF)</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <!-- Language Toggle -->
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active" onclick="selectLang('ko', '한국어(KOREA)')">한국어(KOREA)</button>
+              <button class="lang-dropdown-item" onclick="selectLang('en', 'English')">English</button>
+              <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
+            </div>
+          </div>
+          <!-- 로그인 상태에 따라 동적으로 변경됨 (auth.js) -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="investors-page">
+      <div class="page-header">
+        <h1>투자자 네트워크</h1>
+        <p>검증된 전문 투자자들과의 연결을 통해 비즈니스를 성장시키세요.</p>
+      </div>
+
+      <div class="investors-container">
+        <!-- Sidebar - Categories -->
+        <aside class="category-sidebar">
+          <div class="sidebar-header">
+            <h3>카테고리</h3>
+            <button class="reset-filter" onclick="resetFilters()">
+              초기화
+            </button>
+          </div>
+
+          <!-- 즐겨찾기 -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag"
+              data-special="bookmarked"
+              onclick="toggleSpecialFilter('bookmarked')"
+            >
+              <i
+                class="fa-solid fa-star"
+                style="color: #f59e0b; margin-right: 0.5rem; font-size: 0.9rem"
+              ></i>
+              <span>즐겨찾는 투자자</span>
+            </div>
+          </div>
+
+          <!-- 모든 투자자 -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag active"
+              data-special="all"
+              onclick="toggleSpecialFilter('all')"
+            >
+              <span>모든 투자자</span>
+            </div>
+          </div>
+
+          <!-- 투자유형별 -->
+          <div class="filter-section">
+            <h4>투자유형별</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="all-types"
+                  onchange="applyFilters()"
+                />
+                <span>전체</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="vc"
+                  onchange="applyFilters()"
+                />
+                <span>벤처캐피탈(VC)</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="llc"
+                  onchange="applyFilters()"
+                />
+                <span>벤처캐피탈(LLC)</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="tech-finance"
+                  onchange="applyFilters()"
+                />
+                <span>신기술금융회사</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="cvc"
+                  onchange="applyFilters()"
+                />
+                <span>기업형 벤처캐피탈(CVC)</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="accelerator"
+                  onchange="applyFilters()"
+                />
+                <span>엑셀러레이터(AC)</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="angel"
+                  onchange="applyFilters()"
+                />
+                <span>엔젤투자자</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="angel-club"
+                  onchange="applyFilters()"
+                />
+                <span>엔젤투자클럽</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="public"
+                  onchange="applyFilters()"
+                />
+                <span>공공</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="type"
+                  value="overseas"
+                  onchange="applyFilters()"
+                />
+                <span>해외</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 투자단계별 -->
+          <div class="filter-section">
+            <h4>투자단계별</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="stage"
+                  value="pre-seed"
+                  onchange="applyFilters()"
+                />
+                <span>PRE-SEED</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="stage"
+                  value="seed"
+                  onchange="applyFilters()"
+                />
+                <span>SEED</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="stage"
+                  value="pre-a"
+                  onchange="applyFilters()"
+                />
+                <span>PRE-A</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="stage"
+                  value="series-a"
+                  onchange="applyFilters()"
+                />
+                <span>SERIES A</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="stage"
+                  value="series-b"
+                  onchange="applyFilters()"
+                />
+                <span>SERIES B 이상</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- TPS -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag"
+              data-special="tps"
+              onclick="toggleSpecialFilter('tps')"
+            >
+              <span>TPS</span>
+            </div>
+          </div>
+
+          <!-- LIPS -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag"
+              data-special="lips"
+              onclick="toggleSpecialFilter('lips')"
+            >
+              <span>LIPS</span>
+            </div>
+          </div>
+
+          <!-- TOPS -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag"
+              data-special="tops"
+              onclick="toggleSpecialFilter('tops')"
+            >
+              <span>TOPS</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content - Investors Grid -->
+        <div class="investors-content">
+          <!-- Search Bar -->
+          <div class="search-section">
+            <div class="search-bar">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="text"
+                id="investorSearch"
+                placeholder="투자자명, 소속 회사, 투자 분야로 검색..."
+                oninput="handleSearch()"
+              />
+              <button class="search-clear" id="searchClear" onclick="clearSearch()">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div class="search-stats" id="searchStats" style="display: none;">
+              <i class="fa-solid fa-filter"></i>
+              <span>"<strong id="searchKeyword"></strong>" 검색 결과</span>
+            </div>
+          </div>
+
+          <div class="content-header">
+            <div class="results-info">
+              <span class="results-count"
+                >총 <strong id="totalCount">12</strong>명의 투자자</span
+              >
+            </div>
+            <div class="sort-options">
+              <select id="sortSelect" onchange="sortInvestors()">
+                <option value="recent">최신순</option>
+                <option value="name">이름순</option>
+                <option value="investments">투자건수순</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="investors-grid" id="investorsGrid">
+            <!-- 투자자 카드들이 JavaScript로 동적 생성됨 -->
+          </div>
+
+          <div class="no-results" id="noResults" style="display: none">
+            <div class="no-results-icon">🔍</div>
+            <h3>검색 결과가 없습니다</h3>
+            <p>다른 필터 조건을 선택해보세요</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Investor Detail Modal -->
+    <div id="investorModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" onclick="closeInvestorModal()">&times;</span>
+        <div id="modalBody">
+          <!-- 동적으로 채워짐 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>
+              초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭
+              플랫폼입니다.
+            </p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li>
+                <a href="https://ventureplatform.biz/about.html" target="_blank"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/service.html"
+                  target="_blank"
+                  >Service</a
+                >
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/news.html" target="_blank"
+                  >News</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/contact.html"
+                  target="_blank"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li>
+                <a href="mailto:venture@ventureplatform.co.kr">광고문의</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p>
+              <i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구
+              동백5로 22, 215호 (주식회사 벤처플랫폼)
+            </p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="#">이용약관</a>
+              <a href="#" style="font-weight: 700; color: white"
+                >개인정보처리방침</a
+              >
+              <a href="#">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/investors.js"></script>
+  </body>
+</html>

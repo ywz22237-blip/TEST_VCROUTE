@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VC route - 관리자 페이지</title>
+    <link rel="icon" type="image/png" href="../image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Internal:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div class="admin-container">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <a href="#" class="logo">
+            VC route <span class="badge">ADMIN</span>
+          </a>
+        </div>
+        <nav class="sidebar-nav">
+          <ul>
+            <li>
+              <a href="#" class="nav-item active" data-menu="home">
+                <i class="fa-solid fa-house"></i>
+                <span>홈</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="dashboard">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>대시보드</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="funds">
+                <i class="fa-solid fa-coins"></i>
+                <span>투자펀드 관리</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="investors">
+                <i class="fa-solid fa-user-tie"></i>
+                <span>투자자 관리</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="startups">
+                <i class="fa-solid fa-rocket"></i>
+                <span>스타트업 관리</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="valuation">
+                <i class="fa-solid fa-calculator"></i>
+                <span>기업가치(DCF)</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="notice">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span>공지사항</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-menu="bulk-upload">
+                <i class="fa-solid fa-file-import"></i>
+                <span>일괄 업로드</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="admin-profile">
+            <div class="avatar">A</div>
+            <div class="info">
+              <div class="name">관리자</div>
+              <div class="role">Super Admin</div>
+            </div>
+          </div>
+          <button class="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="admin-main">
+        <header class="main-header">
+          <div class="header-left">
+            <h2 id="pageTitle">홈</h2>
+            <p id="currentDate">2026년 1월 21일 수요일</p>
+          </div>
+          <div class="header-right">
+            <div class="search-bar">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" placeholder="검색어를 입력하세요..." />
+            </div>
+            <button class="noti-btn">
+              <i class="fa-solid fa-bell"></i>
+              <span class="dot"></span>
+            </button>
+          </div>
+        </header>
+
+        <div class="content-wrapper" id="mainContent">
+          <!-- Dynamic Content Loaded Here -->
+
+          <!-- Default Dashboard Content -->
+          <div class="dashboard-grid">
+            <div class="stats-card">
+              <div class="icon-box blue"><i class="fa-solid fa-users"></i></div>
+              <div class="stats-info">
+                <h3>총 회원수</h3>
+                <div class="value">1,234</div>
+                <div class="trend positive">
+                  <i class="fa-solid fa-arrow-up"></i> 12% 증가
+                </div>
+              </div>
+            </div>
+            <div class="stats-card purple">
+              <div class="icon-box purple">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+              </div>
+              <div class="stats-info">
+                <h3>등록된 투자자</h3>
+                <div class="value">56</div>
+                <div class="trend positive">
+                  <i class="fa-solid fa-arrow-up"></i> 5명 신규
+                </div>
+              </div>
+            </div>
+            <div class="stats-card orange">
+              <div class="icon-box orange">
+                <i class="fa-solid fa-rocket"></i>
+              </div>
+              <div class="stats-info">
+                <h3>등록된 스타트업</h3>
+                <div class="value">89</div>
+                <div class="trend positive">
+                  <i class="fa-solid fa-arrow-up"></i> 8개 신규
+                </div>
+              </div>
+            </div>
+            <div class="stats-card green">
+              <div class="icon-box green">
+                <i class="fa-solid fa-calculator"></i>
+              </div>
+              <div class="stats-info">
+                <h3>누적 DCF 평가</h3>
+                <div class="value">245</div>
+                <div class="trend">이번 달</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="recent-section">
+            <h3>최근 활동</h3>
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="dot blue"></div>
+                <div class="content">
+                  <span class="user">김태현 (VC)</span>님이 새로운
+                  <span class="highlight">투자 포트폴리오</span>를 등록했습니다.
+                </div>
+                <div class="time">10분 전</div>
+              </div>
+              <div class="activity-item">
+                <div class="dot orange"></div>
+                <div class="content">
+                  <span class="user">스타트업A</span>님이
+                  <span class="highlight">기업가치 평가</span>를 요청했습니다.
+                </div>
+                <div class="time">1시간 전</div>
+              </div>
+              <div class="activity-item">
+                <div class="dot purple"></div>
+                <div class="content">
+                  <span class="user">관리자</span>님이
+                  <span class="highlight">공지사항</span>을 업데이트했습니다.
+                </div>
+                <div class="time">3시간 전</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Investor Upload Modal -->
+    <div id="investorUploadModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>투자자 등록</h3>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="investorUploadForm">
+            <!-- 0. ID -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>ID (자동생성)</label>
+                <input
+                  type="text"
+                  id="investorId"
+                  value="Auto-generated"
+                  disabled
+                />
+              </div>
+            </div>
+            <!-- 1. 이름 -->
+            <div class="form-group">
+              <label class="required">이름 (회사명)</label>
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="예: 김태현 (벤처캐피탈 A)"
+              />
+            </div>
+            <!-- 2. 유형 -->
+            <div class="form-group">
+              <label class="required">투자자 유형</label>
+              <select name="type" required>
+                <option value="">유형 선택</option>
+                <option value="vc">벤처캐피탈(VC)</option>
+                <option value="llc">벤처캐피탈(LLC)</option>
+                <option value="tech-finance">신기술금융회사</option>
+                <option value="cvc">기업형 벤처캐피탈(CVC)</option>
+                <option value="accelerator">엑셀러레이터(AC)</option>
+                <option value="angel">엔젤투자자</option>
+                <option value="angel-club">엔젤투자클럽</option>
+                <option value="public">공공</option>
+                <option value="overseas">해외</option>
+              </select>
+            </div>
+            <!-- 3. 이메일 -->
+            <div class="form-group">
+              <label class="required">이메일</label>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="example@company.com"
+              />
+            </div>
+            <!-- 4. 통계 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>졸업 횟수</label>
+                <input type="number" name="exitCount" placeholder="0" />
+              </div>
+            </div>
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-cancel close-modal-btn">
+                취소
+              </button>
+              <button type="submit" class="btn-submit">등록하기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Startup Upload Modal -->
+    <div id="startupUploadModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>스타트업 등록</h3>
+          <span class="close-modal close-startup-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="startupUploadForm">
+            <!-- 0. ID -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>ID (자동생성)</label>
+                <input
+                  type="text"
+                  id="startupId"
+                  value="Auto-generated"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <!-- 1. 회사명 -->
+            <div class="form-group">
+              <label class="required">회사명</label>
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="예: (주)스타트업"
+              />
+            </div>
+
+            <!-- 2. 업종 -->
+            <div class="form-group">
+              <label class="required">업종</label>
+              <input
+                type="text"
+                name="industry"
+                required
+                placeholder="예: AI 솔루션, 이커머스 등"
+              />
+            </div>
+
+            <!-- 3. 설립일 & 소재지 (수정) -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">설립일 (YYYY-MM-DD)</label>
+                <input type="date" name="foundedDate" required />
+              </div>
+              <div class="form-group">
+                <label class="required">소재지</label>
+                <input
+                  type="text"
+                  name="location"
+                  required
+                  placeholder="예: 서울 강남구"
+                />
+              </div>
+            </div>
+
+            <!-- 연락처 정보 -->
+            <div class="form-group">
+              <label>홈페이지 URL</label>
+              <input
+                type="url"
+                name="website"
+                placeholder="https://example.com"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">이메일</label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="contact@company.com"
+                />
+              </div>
+              <div class="form-group">
+                <label>연락처</label>
+                <input type="text" name="contact" placeholder="010-1234-5678" />
+              </div>
+            </div>
+
+            <!-- 4. 대표자 정보 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>대표자 나이</label>
+                <input type="number" name="ceoAge" placeholder="만 나이 입력" />
+              </div>
+              <div class="form-group">
+                <label>대표자 성별</label>
+                <select name="ceoGender">
+                  <option value="male">남성</option>
+                  <option value="female">여성</option>
+                  <option value="other">기타</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 5. 인증현황 -->
+            <div class="form-group">
+              <label>인증현황</label>
+              <input
+                type="text"
+                name="certification"
+                placeholder="예: 벤처기업, 이노비즈 (쉼표로 구분)"
+              />
+            </div>
+
+            <!-- 6. 파일 업로드 (NEW) -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>IM 업로드 (PDF)</label>
+                <input type="file" name="imFile" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>IR 업로드 (PDF/PPT)</label>
+                <input type="file" name="irFile" accept=".pdf,.ppt,.pptx" />
+              </div>
+            </div>
+
+            <!-- 7. 기업소개 (라벨 변경) -->
+            <div class="form-group">
+              <label>기업소개</label>
+              <textarea
+                name="description"
+                rows="4"
+                placeholder="기업에 대한 소개글을 입력하세요"
+              ></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-cancel close-startup-btn">
+                취소
+              </button>
+              <button type="submit" class="btn-submit">등록하기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fund Upload Modal -->
+    <div id="fundUploadModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="fundModalTitle">투자펀드 등록</h3>
+          <span class="close-modal close-fund-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="fundUploadForm">
+            <input type="hidden" id="fundId" name="id" />
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">투자자(회사명)</label>
+                <input
+                  type="text"
+                  name="companyName"
+                  required
+                  placeholder="예: 벤처캐피탈 A"
+                />
+              </div>
+              <div class="form-group">
+                <label class="required">펀드 유형</label>
+                <select name="type" required>
+                  <option value="투자조합">투자조합</option>
+                  <option value="개인투자조합">개인투자조합</option>
+                  <option value="PEF">PEF</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="required">조합명</label>
+              <input
+                type="text"
+                name="fundName"
+                required
+                placeholder="예: 제1호 혁신성장 투자조합"
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">등록일</label>
+                <input type="date" name="registeredAt" required />
+              </div>
+              <div class="form-group">
+                <label class="required">만기일</label>
+                <input type="date" name="expiredAt" required />
+              </div>
+              <div class="form-group">
+                <label class="required">결산월</label>
+                <input
+                  type="number"
+                  name="settlementMonth"
+                  min="1"
+                  max="12"
+                  placeholder="12"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">대표펀드매니저</label>
+                <input
+                  type="text"
+                  name="manager"
+                  required
+                  placeholder="홍길동"
+                />
+              </div>
+              <div class="form-group">
+                <label>지원(LP 등)</label>
+                <input
+                  type="text"
+                  name="support"
+                  placeholder="예: 모태펀드, 성장금융"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>투자 목적</label>
+              <input
+                type="text"
+                name="purpose"
+                placeholder="예: 초기 창업기업 투자"
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">투자분야</label>
+                <input
+                  type="text"
+                  name="industry"
+                  required
+                  placeholder="예: AI, 바이오"
+                />
+              </div>
+              <div class="form-group">
+                <label class="required">기준수익율(%)</label>
+                <input
+                  type="number"
+                  name="baseRate"
+                  step="0.1"
+                  placeholder="8.0"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="required">결성약정총액(원)</label>
+              <input
+                type="number"
+                name="totalAmount"
+                placeholder="10000000000"
+                required
+              />
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-cancel close-fund-btn">
+                취소
+              </button>
+              <button type="submit" class="btn-submit">등록하기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div id="bulkUploadModal" class="modal">
+      <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3 id="bulkUploadTitle">CSV/엑셀 일괄 업로드</h3>
+          <span class="close-modal close-bulk-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="upload-info" style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: #1e293b;">📁 지원 파일 형식</p>
+            <p style="margin: 0; color: #64748b; font-size: 0.9rem;">CSV (.csv), Excel (.xlsx, .xls) - 최대 10MB</p>
+          </div>
+
+          <form id="bulkUploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+              <label class="required">업로드 대상</label>
+              <select name="uploadType" id="uploadType" required>
+                <option value="">선택하세요</option>
+                <option value="investors">투자자</option>
+                <option value="startups">스타트업</option>
+                <option value="funds">투자펀드</option>
+                <option value="notices">공지사항</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="required">파일 선택</label>
+              <div class="file-drop-area" id="fileDropArea" style="border: 2px dashed #e2e8f0; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+                <p style="margin: 0 0 0.5rem 0; font-weight: 600;">파일을 드래그하거나 클릭하여 선택</p>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.85rem;" id="selectedFileName">CSV 또는 엑셀 파일</p>
+                <input type="file" name="file" id="bulkFile" accept=".csv,.xlsx,.xls" style="display: none;" required />
+              </div>
+            </div>
+
+            <div class="template-links" style="margin-bottom: 1.5rem;">
+              <p style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 0.9rem;">📋 템플릿 다운로드</p>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="#" onclick="downloadTemplate('investors')" style="font-size: 0.85rem; color: #2563eb;">투자자</a>
+                <a href="#" onclick="downloadTemplate('startups')" style="font-size: 0.85rem; color: #2563eb;">스타트업</a>
+                <a href="#" onclick="downloadTemplate('funds')" style="font-size: 0.85rem; color: #2563eb;">펀드</a>
+                <a href="#" onclick="downloadTemplate('notices')" style="font-size: 0.85rem; color: #2563eb;">공지사항</a>
+              </div>
+            </div>
+
+            <div id="uploadResult" style="display: none; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;"></div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-cancel close-bulk-btn">취소</button>
+              <button type="submit" class="btn-submit" id="uploadSubmitBtn">
+                <i class="fa-solid fa-upload"></i> 업로드
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notice Upload Modal -->
+    <div id="noticeUploadModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="noticeModalTitle">공지사항 등록</h3>
+          <span class="close-modal close-notice-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="noticeUploadForm">
+            <input type="hidden" id="noticeId" name="id" />
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">카테고리</label>
+                <select name="category" required>
+                  <option value="notice">공지</option>
+                  <option value="update">업데이트</option>
+                  <option value="event">이벤트</option>
+                  <option value="demoday">데모데이</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="required">태그</label>
+                <input
+                  type="text"
+                  name="tag"
+                  required
+                  placeholder="예: # 공지, # 신규기능"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="required">제목</label>
+              <input
+                type="text"
+                name="title"
+                required
+                placeholder="공지사항 제목을 입력하세요"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="required">요약</label>
+              <input
+                type="text"
+                name="summary"
+                required
+                placeholder="공지사항 요약 (목록에 표시됨)"
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">작성자</label>
+                <input
+                  type="text"
+                  name="author"
+                  required
+                  placeholder="예: 관리자"
+                />
+              </div>
+              <div class="form-group">
+                <label>작성자 역할</label>
+                <input
+                  type="text"
+                  name="authorRole"
+                  placeholder="예: VC route Team"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="required">내용</label>
+              <textarea
+                name="content"
+                rows="10"
+                required
+                placeholder="공지사항 내용을 입력하세요"
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-cancel close-notice-btn">
+                취소
+              </button>
+              <button type="submit" class="btn-submit">등록하기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="./js/admin.js"></script>
+    <script>
+      // Simple date script
+      const dateOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+      };
+      document.getElementById("currentDate").textContent =
+        new Date().toLocaleDateString("ko-KR", dateOptions);
+    </script>
+  </body>
+</html>

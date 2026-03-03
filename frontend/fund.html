@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>투자펀드 - VC route</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/investors.css" />
+    <style>
+      .fund-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .fund-card .card-footer {
+        margin-top: auto;
+      }
+      .fund-info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+      }
+      .fund-info-label {
+        color: var(--text-secondary);
+      }
+      .fund-info-value {
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+      .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      .modal-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .modal-item label {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+        margin-bottom: 0.3rem;
+        font-weight: 600;
+      }
+      .modal-item span {
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+      .modal-item.full-width {
+        grid-column: span 2;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="fund.html" class="active">투자펀드</a></li>
+            <li><a href="investors.html">투자자</a></li>
+            <li><a href="startups.html">스타트업</a></li>
+            <li><a href="DCF.html">기업가치(DCF)</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <!-- Language Toggle -->
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active" onclick="selectLang('ko', '한국어(KOREA)')">한국어(KOREA)</button>
+              <button class="lang-dropdown-item" onclick="selectLang('en', 'English')">English</button>
+              <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="investors-page">
+      <div class="page-header">
+        <h1>투자펀드 탐색</h1>
+        <p>당신의 스타트업과 가장 잘 맞는 투자펀드를 찾아보세요.</p>
+      </div>
+
+      <div class="investors-container">
+        <!-- Sidebar - Categories -->
+        <aside class="category-sidebar">
+          <div class="sidebar-header">
+            <h3>카테고리</h3>
+            <button class="reset-filter" onclick="resetFilters()">
+              초기화
+            </button>
+          </div>
+
+          <!-- 즐겨찾기 -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag"
+              data-special="bookmarked"
+              onclick="toggleSpecialFilter('bookmarked')"
+            >
+              <i
+                class="fa-solid fa-star"
+                style="color: #f59e0b; margin-right: 0.5rem; font-size: 0.9rem"
+              ></i>
+              <span>즐겨찾는 펀드</span>
+            </div>
+          </div>
+
+          <!-- 모든 펀드 -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag active"
+              data-special="all"
+              onclick="toggleSpecialFilter('all')"
+            >
+              <span>모든 펀드</span>
+            </div>
+          </div>
+
+          <!-- 펀드유형별 -->
+          <div class="filter-section">
+            <h4>펀드유형</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="fundType"
+                  value="all"
+                  checked
+                  onchange="filterFunds()"
+                />
+                <span>전체</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="fundType"
+                  value="투자조합"
+                  onchange="filterFunds()"
+                />
+                <span>투자조합</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="fundType"
+                  value="개인투자조합"
+                  onchange="filterFunds()"
+                />
+                <span>개인투자조합</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="fundType"
+                  value="PEF"
+                  onchange="filterFunds()"
+                />
+                <span>PEF</span>
+              </label>
+            </div>
+          </div>
+        </aside>
+
+        <div class="investors-content">
+          <!-- Search Bar -->
+          <div class="search-section">
+            <div class="search-bar">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="text"
+                id="fundSearch"
+                placeholder="펀드명, 운용사, 투자 분야로 검색..."
+                oninput="filterFunds()"
+              />
+              <button class="search-clear" id="searchClear" onclick="clearFundSearch()">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div class="search-stats" id="searchStats" style="display: none;">
+              <i class="fa-solid fa-filter"></i>
+              <span>"<strong id="searchKeyword"></strong>" 검색 결과</span>
+            </div>
+          </div>
+
+          <div class="content-header">
+            <div class="results-info">
+              <span class="results-count"
+                >총 <strong id="totalCount">0</strong>개의 투자펀드</span
+              >
+            </div>
+            <div class="sort-options">
+              <select id="sortSelect" onchange="sortFunds()">
+                <option value="name">펀드명(조합명) 순</option>
+                <option value="regDate" selected>등록일자 순</option>
+                <option value="expDate">만기일자 순</option>
+                <option value="amount">결성총액 순</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="investors-grid" id="fundsGrid">
+            <!-- 펀드 카드들이 JavaScript로 동적 생성됨 -->
+          </div>
+
+          <div class="no-results" id="noResults" style="display: none">
+            <div class="no-results-icon">🔍</div>
+            <h3>검색 결과가 없습니다</h3>
+            <p>다른 검색어를 입력해보세요</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Fund Detail Modal -->
+    <div id="fundModal" class="modal">
+      <div class="modal-content" style="max-width: 800px">
+        <span class="modal-close" onclick="closeFundModal()">&times;</span>
+        <div id="modalBody">
+          <!-- 동적으로 채워짐 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>
+              초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭
+              플랫폼입니다.
+            </p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li>
+                <a href="https://ventureplatform.biz/about.html" target="_blank"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/service.html"
+                  target="_blank"
+                  >Service</a
+                >
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/news.html" target="_blank"
+                  >News</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/contact.html"
+                  target="_blank"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li>
+                <a href="mailto:venture@ventureplatform.co.kr">광고문의</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p>
+              <i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구
+              동백5로 22, 215호 (주식회사 벤처플랫폼)
+            </p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="legal.html?tab=terms">이용약관</a>
+              <a href="legal.html?tab=privacy">개인정보처리방침</a>
+              <a href="legal.html?tab=policy">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/funds.js"></script>
+  </body>
+</html>

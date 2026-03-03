@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회원가입 - VC route</title>
+    <link rel="icon" type="image/png" href="../image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/register.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="../index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="../index.html">홈</a></li>
+            <li><a href="../dashboard.html">대시보드</a></li>
+            <li><a href="../fund.html">투자펀드</a></li>
+            <li><a href="../investors.html">투자자</a></li>
+            <li><a href="../startups.html">스타트업</a></li>
+            <li><a href="../DCF.html">기업가치(DCF)</a></li>
+            <li><a href="../notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <a href="login.html" class="btn-login">로그인</a>
+          <a href="register.html" class="btn-register">회원가입</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Register Section -->
+    <section class="register-section">
+      <div class="register-container">
+        <!-- Left: Branding -->
+        <div class="register-branding">
+          <div class="branding-content">
+            <h1>VC route<br />회원가입</h1>
+            <p>스타트업 투자 생태계의<br />새로운 여정을 시작하세요</p>
+            <div class="branding-features">
+              <div class="branding-feature">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>실시간 투자 펀드 매칭</span>
+              </div>
+              <div class="branding-feature">
+                <i class="fa-solid fa-handshake"></i>
+                <span>검증된 투자자 네트워크</span>
+              </div>
+              <div class="branding-feature">
+                <i class="fa-solid fa-calculator"></i>
+                <span>DCF 기업가치 평가</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Form -->
+        <div class="register-form-wrapper">
+          <div class="register-form-inner">
+            <div class="form-header">
+              <h2>회원가입</h2>
+              <p>이미 계정이 있으신가요? <a href="login.html">로그인</a></p>
+            </div>
+
+            <!-- Social Login -->
+            <div class="social-login">
+              <button type="button" class="social-btn kakao" onclick="socialLogin('kakao')">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="#000" d="M12 3C6.48 3 2 6.34 2 10.5c0 2.64 1.74 4.96 4.36 6.3l-1.12 4.1c-.08.3.26.54.52.36l4.82-3.22c.46.04.93.06 1.42.06 5.52 0 10-3.34 10-7.5S17.52 3 12 3z"/>
+                </svg>
+                <span>카카오 로그인</span>
+              </button>
+              <button type="button" class="social-btn naver" onclick="socialLogin('naver')">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="#fff" d="M16.27 10.92L7.44 3H3v18h4.73V13.08L16.56 21H21V3h-4.73z"/>
+                </svg>
+                <span>네이버 로그인</span>
+              </button>
+              <button type="button" class="social-btn google" onclick="socialLogin('google')">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.02 11.02 0 0 0 1 12c0 1.78.42 3.46 1.18 4.93l3.66-2.84z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>구글 로그인</span>
+              </button>
+            </div>
+
+            <div class="divider">
+              <span>또는 이메일로 가입</span>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registerForm" onsubmit="handleRegisterSubmit(event)">
+              <!-- Step Indicator -->
+              <div class="step-indicator">
+                <div class="step active" data-step="1">
+                  <div class="step-circle">1</div>
+                  <span>구분 선택</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="2">
+                  <div class="step-circle">2</div>
+                  <span>기본 정보</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">
+                  <div class="step-circle">3</div>
+                  <span>추가 정보</span>
+                </div>
+              </div>
+
+              <!-- Step 1: User Type -->
+              <div class="form-step active" id="step1">
+                <h3>어떤 유형으로 가입하시겠습니까?</h3>
+                <div class="user-type-select">
+                  <label class="type-card" for="typeStartup">
+                    <input type="radio" name="userType" id="typeStartup" value="startup" required />
+                    <div class="type-card-inner">
+                      <div class="type-icon">
+                        <i class="fa-solid fa-rocket"></i>
+                      </div>
+                      <div class="type-info">
+                        <strong>스타트업</strong>
+                        <p>투자 유치를 원하는 스타트업</p>
+                      </div>
+                      <div class="type-check">
+                        <i class="fa-solid fa-circle-check"></i>
+                      </div>
+                    </div>
+                  </label>
+                  <label class="type-card" for="typeInvestor">
+                    <input type="radio" name="userType" id="typeInvestor" value="investor" />
+                    <div class="type-card-inner">
+                      <div class="type-icon investor-icon">
+                        <i class="fa-solid fa-coins"></i>
+                      </div>
+                      <div class="type-info">
+                        <strong>투자자</strong>
+                        <p>유망 스타트업에 투자하고 싶은 투자자</p>
+                      </div>
+                      <div class="type-check">
+                        <i class="fa-solid fa-circle-check"></i>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                <div class="form-actions">
+                  <button type="button" class="btn-next" onclick="goToStep(2)" disabled id="btnStep1Next">
+                    다음 단계 <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 2: Required Info -->
+              <div class="form-step" id="step2">
+                <h3>기본 정보 입력</h3>
+                <p class="step-desc"><span class="required-mark">*</span> 표시는 필수 입력 항목입니다</p>
+
+                <!-- ID -->
+                <div class="form-group">
+                  <label for="userId">아이디 <span class="required-mark">*</span></label>
+                  <div class="input-with-btn">
+                    <input type="text" id="userId" name="userId" placeholder="영문, 숫자 4~20자" required minlength="4" maxlength="20" pattern="^[a-zA-Z0-9_]+$" />
+                    <button type="button" class="btn-check" onclick="checkDuplicateId()">중복확인</button>
+                  </div>
+                  <span class="field-msg" id="userIdMsg"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                  <label for="password">비밀번호 <span class="required-mark">*</span></label>
+                  <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" required minlength="8" />
+                    <button type="button" class="toggle-pw" onclick="togglePassword('password')">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                  </div>
+                  <div class="pw-strength" id="pwStrength">
+                    <div class="pw-bar"><div class="pw-bar-fill"></div></div>
+                    <span class="pw-text"></span>
+                  </div>
+                </div>
+
+                <!-- Password Confirm -->
+                <div class="form-group">
+                  <label for="passwordConfirm">비밀번호 확인 <span class="required-mark">*</span></label>
+                  <div class="input-wrapper">
+                    <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="비밀번호를 다시 입력하세요" required />
+                    <button type="button" class="toggle-pw" onclick="togglePassword('passwordConfirm')">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                  </div>
+                  <span class="field-msg" id="passwordConfirmMsg"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                  <label for="email">이메일 <span class="required-mark">*</span></label>
+                  <div class="input-with-btn">
+                    <input type="email" id="email" name="email" placeholder="example@email.com" required />
+                    <button type="button" class="btn-check" onclick="sendEmailVerification()">인증요청</button>
+                  </div>
+                  <span class="field-msg" id="emailMsg"></span>
+                </div>
+
+                <!-- Email Verification Code -->
+                <div class="form-group verify-group" id="emailVerifyGroup" style="display:none;">
+                  <label for="emailCode">이메일 인증코드 <span class="required-mark">*</span></label>
+                  <div class="input-with-btn">
+                    <input type="text" id="emailCode" name="emailCode" placeholder="인증코드 6자리" maxlength="6" />
+                    <button type="button" class="btn-verify" onclick="verifyEmailCode()">인증확인</button>
+                  </div>
+                  <span class="field-msg" id="emailCodeMsg">
+                    <span class="timer" id="emailTimer"></span>
+                  </span>
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                  <label for="phone">연락처 <span class="required-mark">*</span></label>
+                  <div class="input-with-btn">
+                    <input type="tel" id="phone" name="phone" placeholder="010-0000-0000" required />
+                    <button type="button" class="btn-check" onclick="sendPhoneVerification()">인증요청</button>
+                  </div>
+                  <span class="field-msg" id="phoneMsg"></span>
+                </div>
+
+                <!-- Phone Verification Code -->
+                <div class="form-group verify-group" id="phoneVerifyGroup" style="display:none;">
+                  <label for="phoneCode">연락처 인증코드 <span class="required-mark">*</span></label>
+                  <div class="input-with-btn">
+                    <input type="text" id="phoneCode" name="phoneCode" placeholder="인증코드 6자리" maxlength="6" />
+                    <button type="button" class="btn-verify" onclick="verifyPhoneCode()">인증확인</button>
+                  </div>
+                  <span class="field-msg" id="phoneCodeMsg">
+                    <span class="timer" id="phoneTimer"></span>
+                  </span>
+                </div>
+
+                <div class="form-actions two-btn">
+                  <button type="button" class="btn-prev" onclick="goToStep(1)">
+                    <i class="fa-solid fa-arrow-left"></i> 이전
+                  </button>
+                  <button type="button" class="btn-next" onclick="goToStep(3)" id="btnStep2Next">
+                    다음 단계 <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 3: Optional Info -->
+              <div class="form-step" id="step3">
+                <h3>추가 정보 <span class="optional-badge">선택사항</span></h3>
+                <p class="step-desc">나중에 프로필에서 수정할 수 있습니다</p>
+
+                <!-- Company -->
+                <div class="form-group">
+                  <label for="company">회사명</label>
+                  <input type="text" id="company" name="company" placeholder="소속 회사명을 입력하세요" />
+                </div>
+
+                <!-- Portfolio -->
+                <div class="form-group">
+                  <label for="portfolio">포트폴리오 URL</label>
+                  <input type="url" id="portfolio" name="portfolio" placeholder="https://portfolio.com" />
+                </div>
+
+                <!-- Bio -->
+                <div class="form-group">
+                  <label for="bio">소개</label>
+                  <textarea id="bio" name="bio" rows="4" placeholder="간단한 자기소개를 입력하세요" maxlength="500"></textarea>
+                  <span class="char-count"><span id="bioCount">0</span>/500</span>
+                </div>
+
+                <!-- Terms Agreement -->
+                <div class="terms-section">
+                  <label class="checkbox-label all-agree">
+                    <input type="checkbox" id="agreeAll" onchange="toggleAllAgree()" />
+                    <span class="checkmark"></span>
+                    <span>전체 동의</span>
+                  </label>
+                  <div class="terms-list">
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="terms" class="term-check" value="service" required />
+                      <span class="checkmark"></span>
+                      <span><span class="required-tag">[필수]</span> 서비스 이용약관 동의</span>
+                      <a href="../legal.html" target="_blank" class="terms-link">보기</a>
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="terms" class="term-check" value="privacy" required />
+                      <span class="checkmark"></span>
+                      <span><span class="required-tag">[필수]</span> 개인정보 처리방침 동의</span>
+                      <a href="../legal.html" target="_blank" class="terms-link">보기</a>
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="terms" class="term-check" value="marketing" />
+                      <span class="checkmark"></span>
+                      <span><span class="optional-tag">[선택]</span> 마케팅 정보 수신 동의</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-actions two-btn">
+                  <button type="button" class="btn-prev" onclick="goToStep(2)">
+                    <i class="fa-solid fa-arrow-left"></i> 이전
+                  </button>
+                  <button type="submit" class="btn-submit" id="btnSubmit">
+                    <i class="fa-solid fa-user-plus"></i> 회원가입 완료
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/register.js"></script>
+  </body>
+</html>

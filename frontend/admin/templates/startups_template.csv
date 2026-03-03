@@ -1,0 +1,4 @@
+name,industry,industryLabel,foundedDate,location,employees,fundingStage,fundingAmount,description,ceo,website
+테크노바,ai,AI/ML,2023-03-15,서울 강남구,12,시드,500000000,자연어 처리 기반 기업용 AI 어시스턴트 개발,김민준,https://technova.ai
+그린에너지텍,energy,에너지/환경,2022-07-20,대전 유성구,28,시리즈A,3000000000,차세대 태양광 패널 및 에너지 저장 시스템 개발,이서연,https://greenenergy.tech
+헬스커넥트,healthcare,헬스케어,2021-11-10,서울 서초구,45,시리즈B,15000000000,AI 기반 원격 의료 진단 플랫폼,박지훈,https://healthconnect.kr

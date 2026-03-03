@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>서비스 정책 - VC route</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/legal.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="fund.html">투자펀드</a></li>
+            <li><a href="investors.html">투자자</a></li>
+            <li><a href="startups.html">스타트업</a></li>
+            <li><a href="DCF.html">기업가치(DCF)</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active" onclick="selectLang('ko', '한국어(KOREA)')">한국어(KOREA)</button>
+              <button class="lang-dropdown-item" onclick="selectLang('en', 'English')">English</button>
+              <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Legal Page Content -->
+    <main class="legal-page">
+      <div class="legal-container">
+        <div class="legal-header">
+          <h1>VC route 서비스 정책</h1>
+          <p>주식회사 벤처플랫폼의 서비스 이용에 관한 정책입니다.</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="legal-tabs">
+          <button class="legal-tab active" data-tab="terms">이용약관</button>
+          <button class="legal-tab" data-tab="privacy">개인정보처리방침</button>
+          <button class="legal-tab" data-tab="policy">운영정책</button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="legal-content">
+          <!-- 이용약관 -->
+          <div class="legal-panel active" id="terms">
+            <h2>이용약관</h2>
+
+            <section class="legal-section">
+              <h3>제1조 (목적)</h3>
+              <p>이 약관은 주식회사 벤처플랫폼(이하 "회사")이 운영하는 VC route 플랫폼(이하 "서비스")의 이용조건 및 절차, 회사와 이용자의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+            </section>
+
+            <section class="legal-section">
+              <h3>제2조 (정의)</h3>
+              <p>이 약관에서 사용하는 용어의 정의는 다음과 같습니다.</p>
+              <ol>
+                <li>"서비스"라 함은 회사가 제공하는 스타트업 투자 매칭, 기업가치 평가, 투자자 네트워킹 등의 모든 서비스를 의미합니다.</li>
+                <li>"이용자"라 함은 이 약관에 따라 회사가 제공하는 서비스를 받는 회원 및 비회원을 말합니다.</li>
+                <li>"회원"이라 함은 회사에 개인정보를 제공하여 회원등록을 한 자로서, 회사의 정보를 지속적으로 제공받으며 회사가 제공하는 서비스를 계속적으로 이용할 수 있는 자를 말합니다.</li>
+                <li>"스타트업"이라 함은 서비스를 통해 투자유치를 목적으로 하는 초기 창업기업을 말합니다.</li>
+                <li>"투자자"라 함은 서비스를 통해 스타트업 투자를 목적으로 하는 개인 또는 법인을 말합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제3조 (약관의 효력 및 변경)</h3>
+              <ol>
+                <li>이 약관은 서비스 화면에 게시하거나 기타의 방법으로 이용자에게 공지함으로써 효력을 발생합니다.</li>
+                <li>회사는 필요하다고 인정하는 경우 이 약관을 변경할 수 있으며, 변경된 약관은 제1항과 같은 방법으로 공지 또는 통지함으로써 효력을 발생합니다.</li>
+                <li>변경된 약관에 동의하지 않는 이용자는 서비스 이용을 중단하고 탈퇴할 수 있습니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제4조 (회원가입)</h3>
+              <ol>
+                <li>이용자가 되고자 하는 자는 회사가 정한 가입 양식에 따라 회원정보를 기입한 후 이 약관에 동의한다는 의사표시를 함으로써 회원가입을 신청합니다.</li>
+                <li>회사는 제1항과 같이 회원으로 가입할 것을 신청한 자가 다음 각호에 해당하지 않는 한 회원으로 등록합니다.
+                  <ul>
+                    <li>가입신청자가 이 약관에 의하여 이전에 회원자격을 상실한 적이 있는 경우</li>
+                    <li>등록 내용에 허위, 기재누락, 오기가 있는 경우</li>
+                    <li>기타 회원으로 등록하는 것이 회사의 기술상 현저히 지장이 있다고 판단되는 경우</li>
+                  </ul>
+                </li>
+                <li>회원가입계약의 성립시기는 회사의 승낙이 회원에게 도달한 시점으로 합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제5조 (서비스의 제공)</h3>
+              <ol>
+                <li>회사가 제공하는 서비스의 내용은 다음과 같습니다.
+                  <ul>
+                    <li>스타트업 투자펀드 매칭 서비스</li>
+                    <li>기업가치 평가(DCF) 서비스</li>
+                    <li>투자자 네트워킹 서비스</li>
+                    <li>투자동향 분석 및 정보 제공 서비스</li>
+                    <li>데모데이 및 피칭 기회 제공 서비스</li>
+                    <li>맞춤형 대시보드 제공 서비스</li>
+                    <li>기타 회사가 추가로 개발하거나 제휴계약 등을 통해 회원들에게 제공하는 일체의 서비스</li>
+                  </ul>
+                </li>
+                <li>회사는 서비스의 품질향상을 위해 서비스의 내용을 변경할 수 있습니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제6조 (서비스 이용료)</h3>
+              <ol>
+                <li>회사가 제공하는 기본 서비스는 무료로 이용할 수 있습니다.</li>
+                <li>유료 서비스의 경우 해당 서비스 이용 전 요금을 명시하며, 이용자의 사전 동의를 받습니다.</li>
+                <li>투자 유치 성공 시 성과에 따른 수수료가 발생할 수 있으며, 이는 별도 계약을 통해 정합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제7조 (회원의 의무)</h3>
+              <p>회원은 다음 행위를 하여서는 안됩니다.</p>
+              <ul>
+                <li>신청 또는 변경시 허위내용의 등록</li>
+                <li>타인의 정보 도용</li>
+                <li>회사가 게시한 정보의 변경</li>
+                <li>회사가 정한 정보 이외의 정보(컴퓨터 프로그램 등) 등의 송신 또는 게시</li>
+                <li>회사 기타 제3자의 저작권 등 지적재산권에 대한 침해</li>
+                <li>회사 기타 제3자의 명예를 손상시키거나 업무를 방해하는 행위</li>
+                <li>외설 또는 폭력적인 메시지, 화상, 음성 기타 공서양속에 반하는 정보를 회사에 공개 또는 게시하는 행위</li>
+                <li>허위정보나 과장된 정보를 제공하여 투자자를 기만하는 행위</li>
+              </ul>
+            </section>
+
+            <section class="legal-section">
+              <h3>제8조 (서비스의 중단)</h3>
+              <p>회사는 다음의 경우에 서비스 제공을 중단할 수 있습니다.</p>
+              <ul>
+                <li>서비스용 설비의 보수 등 공사로 인한 부득이한 경우</li>
+                <li>전기통신사업법에 규정된 기간통신사업자가 전기통신 서비스를 중지했을 경우</li>
+                <li>국가비상사태, 서비스 설비의 장애 또는 서비스 이용의 폭주 등으로 서비스 이용에 지장이 있는 때</li>
+                <li>기타 중대한 사유로 인하여 회사가 서비스 제공을 지속하는 것이 부적당하다고 인정하는 경우</li>
+              </ul>
+            </section>
+
+            <section class="legal-section">
+              <h3>제9조 (계약해지 및 이용제한)</h3>
+              <ol>
+                <li>회원이 이용계약을 해지하고자 하는 때에는 회원 본인이 온라인을 통해 회사에 해지신청을 하여야 합니다.</li>
+                <li>회사는 회원이 제7조의 규정을 위반하거나 다음의 각호에 해당하는 행위를 하였을 때는 사전통지 없이 이용계약을 해지하거나 또는 기간을 정하여 서비스 이용을 중단할 수 있습니다.
+                  <ul>
+                    <li>타인의 서비스 이용을 방해하거나 그 정보를 도용하는 등의 행위</li>
+                    <li>서비스를 이용하여 법령과 이 약관이 금지하는 행위를 하는 경우</li>
+                  </ul>
+                </li>
+                <li>회사가 회원 자격을 제한·정지시킨 후, 동일한 행위가 2회 이상 반복되거나 30일 이내에 그 사유가 시정되지 아니하는 경우 회사는 회원자격을 상실시킬 수 있습니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제10조 (손해배상)</h3>
+              <p>회사는 무료로 제공되는 서비스와 관련하여 회원에게 어떠한 손해가 발생하더라도 동 손해가 회사의 고의 또는 중대한 과실에 기인하지 아니하는 한 이에 대하여 책임을 부담하지 아니합니다.</p>
+            </section>
+
+            <section class="legal-section">
+              <h3>제11조 (면책조항)</h3>
+              <ol>
+                <li>회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.</li>
+                <li>회사는 회원의 귀책사유로 인한 서비스 이용의 장애에 대하여 책임을 지지 않습니다.</li>
+                <li>회사는 회원이 서비스를 이용하여 기대하는 수익을 상실한 것에 대하여 책임을 지지 않으며, 그 밖의 서비스를 통하여 얻은 자료로 인한 손해에 관하여 책임을 지지 않습니다.</li>
+                <li>회사는 회원과 투자자 간의 투자 계약 및 그로 인한 분쟁에 대해 책임을 지지 않습니다.</li>
+              </ol>
+            </section>
+          </div>
+
+          <!-- 개인정보처리방침 -->
+          <div class="legal-panel" id="privacy">
+            <h2>개인정보처리방침</h2>
+            <p class="legal-intro">주식회사 벤처플랫폼(이하 "회사")은 개인정보보호법에 따라 이용자의 개인정보 보호 및 권익을 보호하고 개인정보와 관련한 이용자의 고충을 원활하게 처리할 수 있도록 다음과 같은 처리방침을 두고 있습니다.</p>
+
+            <section class="legal-section">
+              <h3>제1조 (개인정보의 처리 목적)</h3>
+              <p>회사는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며 이용 목적이 변경되는 경우에는 개인정보보호법 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</p>
+              <ul>
+                <li><strong>회원가입 및 관리:</strong> 회원 가입의사 확인, 회원제 서비스 제공에 따른 본인 식별·인증</li>
+                <li><strong>서비스 제공:</strong> 스타트업 투자매칭, 기업가치 평가, 투자자 네트워킹 서비스 제공</li>
+                <li><strong>고객 상담:</strong> 민원사무 처리, 공지사항 전달</li>
+                <li><strong>마케팅 활용:</strong> 신규 서비스 개발 및 맞춤 서비스 제공, 이벤트 및 광고성 정보 제공 및 참여기회 제공</li>
+              </ul>
+            </section>
+
+            <section class="legal-section">
+              <h3>제2조 (개인정보의 처리 및 보유 기간)</h3>
+              <ol>
+                <li>회사는 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.</li>
+                <li>각각의 개인정보 처리 및 보유 기간은 다음과 같습니다.
+                  <ul>
+                    <li>회원가입 및 관리: 회원 탈퇴시까지</li>
+                    <li>서비스 제공: 서비스 이용계약 종료시까지</li>
+                    <li>관련 법령에 의한 보유: 전자상거래 등에서의 소비자보호에 관한 법률 등에 따라 5년간 보관</li>
+                  </ul>
+                </li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제3조 (처리하는 개인정보의 항목)</h3>
+              <p>회사는 다음의 개인정보 항목을 처리하고 있습니다.</p>
+              <ol>
+                <li><strong>필수항목:</strong> 성명, 이메일, 전화번호, 회사명, 직책</li>
+                <li><strong>선택항목:</strong> 프로필 사진, 회사 소개, 사업 분야</li>
+                <li><strong>자동 수집 항목:</strong> 접속 IP 정보, 쿠키, 서비스 이용 기록</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제4조 (개인정보의 제3자 제공)</h3>
+              <ol>
+                <li>회사는 정보주체의 동의, 법률의 특별한 규정 등 개인정보보호법 제17조 및 제18조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.</li>
+                <li>투자매칭 서비스 제공을 위해 스타트업과 투자자 간 필요 최소한의 정보를 상호 제공할 수 있으며, 이는 사전에 동의를 받습니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제5조 (개인정보의 파기)</h3>
+              <ol>
+                <li>회사는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체 없이 해당 개인정보를 파기합니다.</li>
+                <li>파기방법은 다음과 같습니다.
+                  <ul>
+                    <li>전자적 파일 형태의 정보: 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제</li>
+                    <li>종이에 출력된 개인정보: 분쇄기로 분쇄하거나 소각</li>
+                  </ul>
+                </li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제6조 (정보주체의 권리·의무 및 그 행사방법)</h3>
+              <p>정보주체는 회사에 대해 언제든지 다음 각 호의 개인정보 보호 관련 권리를 행사할 수 있습니다.</p>
+              <ul>
+                <li>개인정보 처리현황 통지요구</li>
+                <li>개인정보 열람요구</li>
+                <li>개인정보 정정·삭제요구</li>
+                <li>개인정보 처리정지요구</li>
+              </ul>
+            </section>
+
+            <section class="legal-section">
+              <h3>제7조 (개인정보 보호책임자)</h3>
+              <p>회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
+              <div class="contact-info">
+                <p><strong>개인정보보호책임자:</strong> 박준호</p>
+                <p><strong>연락처:</strong> 0502-1923-4562</p>
+                <p><strong>이메일:</strong> venture@ventureplatform.co.kr</p>
+              </div>
+            </section>
+          </div>
+
+          <!-- 운영정책 -->
+          <div class="legal-panel" id="policy">
+            <h2>운영정책</h2>
+            <p class="legal-intro">VC route는 건전하고 신뢰할 수 있는 투자 생태계 조성을 위해 다음과 같은 운영정책을 시행합니다.</p>
+
+            <section class="legal-section">
+              <h3>제1조 (스타트업 등록 기준)</h3>
+              <p>플랫폼에 등록하는 스타트업은 다음 기준을 충족해야 합니다.</p>
+              <ul>
+                <li>법인 설립일로부터 7년 이내의 초기 기업</li>
+                <li>명확한 사업모델과 성장 가능성을 보유한 기업</li>
+                <li>법적 분쟁이나 부정행위 이력이 없는 기업</li>
+                <li>투자유치 의지가 명확하고 필요 서류를 성실히 제출하는 기업</li>
+              </ul>
+            </section>
+
+            <section class="legal-section">
+              <h3>제2조 (투자자 인증 절차)</h3>
+              <ol>
+                <li>투자자는 다음 절차를 통해 인증을 받아야 합니다.
+                  <ul>
+                    <li>신원 확인 서류 제출 (개인: 신분증, 법인: 사업자등록증 등)</li>
+                    <li>투자 능력 증빙 서류 제출 (재산증명서, 소득증명서 등)</li>
+                    <li>투자 경험 및 이력 확인</li>
+                  </ul>
+                </li>
+                <li>인증 완료 후 투자자 전용 서비스를 이용할 수 있습니다.</li>
+                <li>허위 정보 제출 시 즉시 이용이 제한됩니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제3조 (콘텐츠 게시 규정)</h3>
+              <p>플랫폼 내 게시되는 모든 콘텐츠는 다음 규정을 준수해야 합니다.</p>
+              <ul>
+                <li>사실에 기반한 정확한 정보 제공</li>
+                <li>타인의 지적재산권을 침해하지 않는 콘텐츠</li>
+                <li>공서양속에 반하지 않는 건전한 내용</li>
+                <li>과도한 광고성 내용 금지</li>
+                <li>경쟁사 비방이나 허위 사실 유포 금지</li>
+              </ul>
+            </section>
+
+            <section class="legal-section">
+              <h3>제4조 (투자 정보 공개 원칙)</h3>
+              <ol>
+                <li>스타트업은 투자 유치를 위해 다음 정보를 성실히 공개해야 합니다.
+                  <ul>
+                    <li>사업개요 및 비즈니스 모델</li>
+                    <li>재무 현황 및 실적</li>
+                    <li>주요 임원진 정보</li>
+                    <li>투자 계획 및 용도</li>
+                  </ul>
+                </li>
+                <li>허위정보 제공 시 플랫폼 이용이 제한되며, 관련 피해에 대한 책임을 집니다.</li>
+                <li>중요한 정보 변경 시 즉시 업데이트해야 합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제5조 (분쟁 조정 및 해결)</h3>
+              <ol>
+                <li>회사는 이용자 간 분쟁에 대해 조정 역할을 하되, 법적 책임을 지지 않습니다.</li>
+                <li>투자 계약은 당사자 간 직접 체결하며, 회사는 중개 역할만 수행합니다.</li>
+                <li>분쟁 발생 시 우선 당사자 간 협의를 통해 해결하도록 권장합니다.</li>
+                <li>해결이 어려운 경우 관련 기관의 중재나 법적 절차를 안내합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제6조 (데이터 보안 및 기밀유지)</h3>
+              <ol>
+                <li>회사는 이용자의 중요 정보 보호를 위해 최고 수준의 보안 시스템을 운영합니다.</li>
+                <li>투자 관련 기밀정보는 당사자 동의 없이 제3자에게 공개하지 않습니다.</li>
+                <li>이용자는 타인의 기밀정보를 무단으로 사용하거나 공개해서는 안 됩니다.</li>
+                <li>데이터 유출이나 보안 사고 발생 시 즉시 관련 이용자에게 통지합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제7조 (서비스 품질 관리)</h3>
+              <ol>
+                <li>회사는 지속적인 서비스 개선을 위해 이용자 피드백을 적극 수렴합니다.</li>
+                <li>정기적인 시스템 점검을 통해 서비스 안정성을 확보합니다.</li>
+                <li>신규 기능 도입 전 충분한 테스트를 실시합니다.</li>
+                <li>서비스 장애 발생 시 신속한 복구와 재발 방지 대책을 마련합니다.</li>
+              </ol>
+            </section>
+
+            <section class="legal-section">
+              <h3>제8조 (정책 개정 및 시행)</h3>
+              <ol>
+                <li>본 운영정책은 관련 법령의 변경이나 서비스 개선을 위해 개정될 수 있습니다.</li>
+                <li>정책 개정 시 사전에 공지하며, 중요한 변경사항은 개별 통지합니다.</li>
+                <li>본 정책은 2026년 1월 28일부터 시행됩니다.</li>
+              </ol>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>
+              초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭
+              플랫폼입니다.
+            </p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li>
+                <a href="https://ventureplatform.biz/about.html" target="_blank">About</a>
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/service.html" target="_blank">Service</a>
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/news.html" target="_blank">News</a>
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/contact.html" target="_blank">Contact</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li>
+                <a href="mailto:venture@ventureplatform.co.kr">광고문의</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p>
+              <i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구
+              동백5로 22, 215호 (주식회사 벤처플랫폼)
+            </p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="legal.html?tab=terms">이용약관</a>
+              <a href="legal.html?tab=privacy">개인정보처리방침</a>
+              <a href="legal.html?tab=policy">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+      // Tab functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.legal-tab');
+        const panels = document.querySelectorAll('.legal-panel');
+
+        // Check URL parameter for initial tab
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+
+        if (tabParam) {
+          // Activate tab from URL parameter
+          tabs.forEach(tab => tab.classList.remove('active'));
+          panels.forEach(panel => panel.classList.remove('active'));
+
+          const targetTab = document.querySelector(`.legal-tab[data-tab="${tabParam}"]`);
+          const targetPanel = document.getElementById(tabParam);
+
+          if (targetTab && targetPanel) {
+            targetTab.classList.add('active');
+            targetPanel.classList.add('active');
+          }
+        }
+
+        // Tab click handler
+        tabs.forEach(tab => {
+          tab.addEventListener('click', function() {
+            const targetId = this.dataset.tab;
+
+            // Update active states
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+
+            this.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+
+            // Update URL without reload
+            const newUrl = `${window.location.pathname}?tab=${targetId}`;
+            window.history.pushState({}, '', newUrl);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

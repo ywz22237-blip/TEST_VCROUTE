@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>기업가치(DCF) - VC route</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/investors.css" />
+    <link rel="stylesheet" href="css/dcf.css" />
+    <style>
+      /* DCF Calculator Styles (admin.css style) */
+      .calc-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+      .calc-input-section {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      }
+      .calc-result-section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+      .input-group {
+        margin-bottom: 1.2rem;
+      }
+      .input-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #1e293b;
+      }
+      .input-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+      }
+      .input-group input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+      .input-hint {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 0.3rem;
+      }
+      .btn-calculate {
+        width: 100%;
+        padding: 1rem;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 1rem;
+      }
+      .btn-calculate:hover {
+        background: #1d4ed8;
+      }
+      .result-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2563eb;
+        margin: 1rem 0;
+      }
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+      }
+      .result-row:last-child {
+        border-bottom: none;
+      }
+      .result-label {
+        color: #64748b;
+      }
+      @media (max-width: 900px) {
+        .calc-container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* New Valuation Concepts Styles */
+      .concept-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      .concept-card {
+        padding: 1.5rem;
+        border-radius: 12px;
+        transition: transform 0.2s;
+      }
+      .concept-card:hover {
+        transform: translateY(-3px);
+      }
+      .concept-card.pre {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+      }
+      .concept-card.post {
+        background: #ecfdf5;
+        border: 1px solid #6ee7b7;
+      }
+      .concept-card h4 {
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+      }
+      .concept-card.pre h4 {
+        color: #b45309;
+      }
+      .concept-card.post h4 {
+        color: #047857;
+      }
+
+      .concept-desc {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+      }
+      .concept-card.pre .concept-desc {
+        color: #92400e;
+      }
+      .concept-card.post .concept-desc {
+        color: #065f46;
+      }
+
+      .concept-list {
+        padding-left: 1.2rem;
+        margin-bottom: 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+      .concept-card.pre .concept-list {
+        color: #78350f;
+      }
+      .concept-card.post .concept-list {
+        color: #064e3b;
+      }
+
+      .method-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .method-item {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+      .method-item strong {
+        display: block;
+        color: #2563eb;
+        margin-bottom: 0.4rem;
+      }
+      .method-item p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="fund.html">투자펀드</a></li>
+            <li><a href="investors.html">투자자</a></li>
+            <li><a href="startups.html">스타트업</a></li>
+            <li><a href="DCF.html" class="active">기업가치(DCF)</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <!-- Language Toggle -->
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active" onclick="selectLang('ko', '한국어(KOREA)')">한국어(KOREA)</button>
+              <button class="lang-dropdown-item" onclick="selectLang('en', 'English')">English</button>
+              <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
+            </div>
+          </div>
+          <!-- auth.js -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="investors-page">
+      <div class="page-header">
+        <h1>기업가치 평가 (Valuation)</h1>
+        <p>체계적인 방법론을 통해 기업의 내재 가치를 합리적으로 산출합니다</p>
+      </div>
+
+      <div class="investors-container">
+        <!-- Sidebar -->
+        <aside class="category-sidebar">
+          <div class="sidebar-header">
+            <h3>카테고리</h3>
+          </div>
+          <div class="dcf-menu">
+            <button class="dcf-menu-item active" data-tab="overview">
+              <i class="fa-solid fa-book-open"></i> 기업가치 개요
+            </button>
+            <button class="dcf-menu-item" data-tab="dcf-theory">
+              <i class="fa-solid fa-graduation-cap"></i> DCF 이론
+            </button>
+            <button class="dcf-menu-item" data-tab="calculator">
+              <i class="fa-solid fa-calculator"></i> DCF 계산기
+            </button>
+          </div>
+
+          <div
+            class="sidebar-info-box"
+            style="
+              margin-top: 2rem;
+              background: #f0f9ff;
+              padding: 1.5rem;
+              border-radius: 12px;
+              border: 1px solid #bae6fd;
+            "
+          >
+            <h4 style="color: #0369a1; margin-top: 0; font-size: 0.95rem">
+              💡 Tip
+            </h4>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: #0c4a6e;
+                line-height: 1.5;
+                margin-bottom: 0;
+              "
+            >
+              가치평가는 정답이 없는 예술과 과학의 영역입니다. 여러 가지 방법을
+              교차 검증해보세요.
+            </p>
+          </div>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="investors-content dcf-content-area">
+          <!-- Tab 1: 기업가치 개요 -->
+          <div id="overview" class="dcf-section active">
+            <h2>기업가치평가(Valuation)란?</h2>
+            <div class="content-box">
+              <p>
+                기업가치평가는 기업의 유무형 자산, 수익 창출 능력, 시장 상황
+                등을 종합적으로 고려하여 특정 시점에서의
+                <strong>기업의 공정 가치(Fair Value)</strong>를 금액으로
+                환산하는 과정입니다.
+              </p>
+            </div>
+
+            <h3>평가의 목적</h3>
+            <div class="grid-cards">
+              <div class="info-card">
+                <div class="icon">
+                  <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+                <h4>투자 유치</h4>
+                <p>
+                  VC 등 투자자로부터 자금을 조달할 때 지분율 산정의 기준이
+                  됩니다.
+                </p>
+              </div>
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-handshake"></i></div>
+                <h4>M&A</h4>
+                <p>
+                  기업 인수 합병 시 적정 인수가격을 결정하는 핵심 지표입니다.
+                </p>
+              </div>
+              <div class="info-card">
+                <div class="icon">
+                  <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+                <h4>IPO</h4>
+                <p>주식 시장 상장 시 공모가를 산정하기 위해 수행합니다.</p>
+              </div>
+            </div>
+
+            <!-- Pre vs Post Valuation -->
+            <h3 style="margin-top: 3rem; border-left-color: #f59e0b">
+              Pre vs Post Valuation
+            </h3>
+            <div class="concept-grid">
+              <div class="concept-card pre">
+                <h4>
+                  <i class="fa-solid fa-chart-simple"></i> Pre-valuation
+                  (프리벨류)
+                </h4>
+                <div class="concept-desc">투자 전 기업의 기본 가치</div>
+                <p
+                  style="
+                    font-size: 0.85rem;
+                    color: #92400e;
+                    margin-bottom: 0.5rem;
+                  "
+                >
+                  창업자와 기존 주주들이 보유한 지분의 가치입니다.
+                </p>
+                <ul class="concept-list">
+                  <li>현재 사업 성과 기반 평가</li>
+                  <li>시장 잠재력과 경쟁력 분석</li>
+                  <li>재무 건전성 검토</li>
+                  <li>팀과 기술력 평가</li>
+                </ul>
+              </div>
+              <div class="concept-card post">
+                <h4>
+                  <i class="fa-solid fa-rocket"></i> Post-valuation (포스트벨류)
+                </h4>
+                <div class="concept-desc">투자금이 유입된 후의 기업 가치</div>
+                <p
+                  style="
+                    font-size: 0.85rem;
+                    color: #065f46;
+                    margin-bottom: 0.5rem;
+                  "
+                >
+                  새로운 투자자가 포함된 전체 기업의 가치입니다.
+                </p>
+                <ul class="concept-list">
+                  <li>Pre-valuation + 투자금액</li>
+                  <li>지분율 계산의 기준</li>
+                  <li>다음 라운드 투자 기준점</li>
+                  <li>Exit 전략 수립 근거</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Methodology -->
+            <h3 style="margin-top: 3rem; border-left-color: #2563eb">
+              💡 가치평가 방법론
+            </h3>
+            <p style="color: #475569; margin-bottom: 1rem">
+              VC route에서는 다음과 같은 검증된 밸류에이션 방법을 제공합니다:
+            </p>
+
+            <div class="method-grid">
+              <div class="method-item">
+                <strong>DCF (현금흐름할인법)</strong>
+                <p>미래 현금흐름을 현재가치로 할인하여 내재가치 산출</p>
+              </div>
+              <div class="method-item">
+                <strong>Comparable Analysis</strong>
+                <p>유사 기업들의 밸류에이션 배수 비교 분석</p>
+              </div>
+              <div class="method-item">
+                <strong>Market Multiple</strong>
+                <p>거래 사례 기반 시장 배수 적용</p>
+              </div>
+              <div class="method-item">
+                <strong>Risk-Adjusted NPV</strong>
+                <p>위험 요소를 반영한 순현재가치 계산</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: DCF Theory -->
+          <div id="dcf-theory" class="dcf-section">
+            <h2>DCF (현금흐름할인법)</h2>
+            <div class="tag-line">Discounted Cash Flow Analysis</div>
+
+            <div class="content-box highlight">
+              <p>
+                <strong>"오늘의 1억원은 10년 뒤의 1억원보다 가치있다."</strong
+                ><br />
+                기업이 미래에 벌어들일 현금흐름을 할인율(WACC)을 적용하여 현재
+                가치로 환산하는 가장 정교한 수익 가치 평가 방법입니다.
+              </p>
+            </div>
+
+            <h3>핵심 구성 요소</h3>
+            <div class="formula-box">
+              <div class="formula">Sum of PV = ∑ [ FCF / (1 + r)^n ]</div>
+            </div>
+
+            <div class="process-steps">
+              <div class="step">
+                <span class="step-num">1</span>
+                <h4>FCF (잉여현금흐름)</h4>
+                <p>
+                  기업이 영업활동을 통해 벌어들인 현금 중 투자비용 등을 제외하고
+                  실제 자유롭게 사용할 수 있는 현금
+                </p>
+              </div>
+              <div class="step">
+                <span class="step-num">2</span>
+                <h4>WACC (가중평균자본비용)</h4>
+                <p>
+                  주주자본비용과 타인자본비용(부채)을 가중 평균한 값으로, 미래
+                  현금흐름의 리스크를 반영한 할인율
+                </p>
+              </div>
+              <div class="step">
+                <span class="step-num">3</span>
+                <h4>Terminal Value (영구가치)</h4>
+                <p>
+                  추정 기간 이후 기업이 영구적으로 존속한다고 가정했을 때의 가치
+                </p>
+              </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem">
+              <button
+                class="btn-calculate"
+                onclick="switchTab('calculator')"
+                style="max-width: 300px"
+              >
+                DCF 계산기 바로가기 <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab 3: DCF Calculator -->
+          <div id="calculator" class="dcf-section">
+            <h2>DCF 계산기</h2>
+            <p style="color: #64748b; margin-bottom: 2rem">
+              간단한 재무 정보를 입력하여 기업가치를 추정해보세요.
+            </p>
+
+            <div class="calc-container">
+              <!-- Input Section -->
+              <div class="calc-input-section">
+                <h3
+                  style="
+                    margin-top: 0;
+                    border: none;
+                    padding: 0;
+                    font-size: 1.1rem;
+                    margin-bottom: 1.5rem;
+                  "
+                >
+                  변수 입력
+                </h3>
+
+                <!-- FCF Components -->
+                <div
+                  style="
+                    background: white;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    border: 1px solid #e2e8f0;
+                    margin-bottom: 1.5rem;
+                  "
+                >
+                  <h4
+                    style="
+                      margin-top: 0;
+                      margin-bottom: 1rem;
+                      font-size: 0.95rem;
+                      color: #475569;
+                    "
+                  >
+                    1. 초기 FCF 산출 (단위: 원)
+                  </h4>
+
+                  <div class="input-group">
+                    <label>영업이익 (Operating Profit)</label>
+                    <input
+                      type="number"
+                      id="operatingProfit"
+                      placeholder="예: 100,000,000"
+                      oninput="updateFCF()"
+                    />
+                  </div>
+
+                  <div class="input-group">
+                    <label>감가상각비</label>
+                    <input
+                      type="number"
+                      id="depreciation"
+                      placeholder="예: 10,000,000"
+                      oninput="updateFCF()"
+                    />
+                  </div>
+
+                  <div class="input-group">
+                    <label>법인세율 (Tax Rate %)</label>
+                    <input
+                      type="number"
+                      id="taxRate"
+                      placeholder="예: 19"
+                      value="19"
+                      oninput="updateFCF()"
+                    />
+                    <div class="input-hint">영업이익에 적용될 예상 세율</div>
+                  </div>
+
+                  <div
+                    style="
+                      text-align: right;
+                      font-size: 0.9rem;
+                      color: #2563eb;
+                      font-weight: 600;
+                    "
+                  >
+                    추정 FCF: <span id="calculatedFCF">0</span> 원
+                  </div>
+                </div>
+
+                <div class="input-group">
+                  <label>향후 5년 연평균 성장률 (%)</label>
+                  <input
+                    type="number"
+                    id="growthRate"
+                    placeholder="예: 15"
+                    value="15"
+                  />
+                  <div class="input-hint">초기 고속 성장 단계의 성장률</div>
+                </div>
+
+                <div class="input-group">
+                  <label>영구 성장률 (%)</label>
+                  <input
+                    type="number"
+                    id="terminalGrowthRate"
+                    placeholder="예: 2"
+                    value="2"
+                    step="0.1"
+                  />
+                  <div class="input-hint">
+                    안정기 이후의 물가상승률 수준 (보통 1~2%)
+                  </div>
+                </div>
+
+                <div class="input-group">
+                  <label>할인율 (WACC) (%)</label>
+                  <input
+                    type="number"
+                    id="discountRate"
+                    placeholder="예: 10"
+                    value="10"
+                    step="0.1"
+                  />
+                  <div class="input-hint">
+                    스타트업의 경우 리스크를 고려하여 15~25% 적용 권장
+                  </div>
+                </div>
+
+                <div class="input-group">
+                  <label>총 발행 주식수 (주)</label>
+                  <input
+                    type="number"
+                    id="totalShares"
+                    placeholder="예: 100,000"
+                    value="20000"
+                  />
+                  <div class="input-hint">
+                    주당 가치 계산을 위해 필요합니다.
+                  </div>
+                </div>
+
+                <button class="btn-calculate" onclick="calculateDCF()">
+                  <i class="fa-solid fa-calculator"></i> 계산하기
+                </button>
+              </div>
+
+              <!-- Result Section -->
+              <div class="calc-result-section">
+                <h3
+                  style="
+                    margin-top: 0;
+                    border: none;
+                    padding: 0;
+                    font-size: 1.1rem;
+                    margin-bottom: 1.5rem;
+                  "
+                >
+                  계산 결과
+                </h3>
+
+                <div style="text-align: center; margin-bottom: 2rem">
+                  <div class="result-label">
+                    추정 기업가치 (Enterprise Value)
+                  </div>
+                  <div class="result-value" id="finalEV">- 원</div>
+                  <div
+                    style="
+                      font-size: 0.9rem;
+                      color: #64748b;
+                      margin-top: 0.5rem;
+                    "
+                  >
+                    주당 가치:
+                    <strong id="perShareValue" style="color: #0f172a"
+                      >- 원</strong
+                    >
+                  </div>
+                </div>
+
+                <div class="result-row">
+                  <span class="result-label"
+                    >향후 5년 현금흐름 현가합 (PV of FCF)</span
+                  >
+                  <span id="pvSum">- 원</span>
+                </div>
+                <div class="result-row">
+                  <span class="result-label"
+                    >영구가치 현가 (PV of Terminal Value)</span
+                  >
+                  <span id="pvTV">- 원</span>
+                </div>
+
+                <div
+                  style="
+                    margin-top: 2rem;
+                    padding-top: 1rem;
+                    border-top: 1px dashed #e2e8f0;
+                  "
+                >
+                  <h4 style="font-size: 0.95rem; margin-bottom: 1rem">
+                    연도별 추정 (원)
+                  </h4>
+                  <div style="overflow-x: auto">
+                    <table
+                      style="
+                        width: 100%;
+                        font-size: 0.85rem;
+                        border-collapse: collapse;
+                        text-align: center;
+                      "
+                    >
+                      <thead>
+                        <tr style="background: #f8fafc; color: #64748b">
+                          <th style="padding: 8px">Year 1</th>
+                          <th style="padding: 8px">Year 2</th>
+                          <th style="padding: 8px">Year 3</th>
+                          <th style="padding: 8px">Year 4</th>
+                          <th style="padding: 8px">Year 5</th>
+                        </tr>
+                      </thead>
+                      <tbody id="forecastTableBody">
+                        <tr>
+                          <td colspan="5" style="padding: 1rem; color: #94a3b8">
+                            계산 버튼을 눌러주세요
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>
+              초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭
+              플랫폼입니다.
+            </p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li>
+                <a href="https://ventureplatform.biz/about.html" target="_blank"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/service.html"
+                  target="_blank"
+                  >Service</a
+                >
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/news.html" target="_blank"
+                  >News</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/contact.html"
+                  target="_blank"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li>
+                <a href="mailto:venture@ventureplatform.co.kr">광고문의</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p>
+              <i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구
+              동백5로 22, 215호 (주식회사 벤처플랫폼)
+            </p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="#">이용약관</a>
+              <a href="#" style="font-weight: 700; color: white"
+                >개인정보처리방침</a
+              >
+              <a href="#">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dcf.js"></script>
+  </body>
+</html>

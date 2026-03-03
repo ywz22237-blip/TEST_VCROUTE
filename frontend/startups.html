@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>스타트업 찾기 - VC route</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- 재사용 가능한 investors.css 스타일 사용 (GRID 등 레이아웃 호환) -->
+    <link rel="stylesheet" href="css/investors.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="fund.html">투자펀드</a></li>
+            <li><a href="investors.html">투자자</a></li>
+            <li><a href="startups.html" class="active">스타트업</a></li>
+            <li><a href="DCF.html">기업가치(DCF)</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <!-- Language Toggle -->
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active" onclick="selectLang('ko', '한국어(KOREA)')">한국어(KOREA)</button>
+              <button class="lang-dropdown-item" onclick="selectLang('en', 'English')">English</button>
+              <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
+            </div>
+          </div>
+          <!-- 로그인 상태에 따라 동적으로 변경됨 (auth.js) -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="investors-page">
+      <div class="page-header">
+        <h1>유망 스타트업 탐색</h1>
+        <p>
+          혁신을 선도하는 스타트업들의 정보를 확인하고 새로운 기회를 찾으세요.
+        </p>
+      </div>
+
+      <div class="investors-container">
+        <!-- Sidebar - Categories -->
+        <aside class="category-sidebar">
+          <div class="sidebar-header">
+            <h3>카테고리</h3>
+            <button class="reset-filter" onclick="resetFilters()">
+              초기화
+            </button>
+          </div>
+
+          <!-- 즐겨찾기 -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag"
+              data-special="bookmarked"
+              onclick="toggleSpecialFilter('bookmarked')"
+            >
+              <i
+                class="fa-solid fa-star"
+                style="color: #f59e0b; margin-right: 0.5rem; font-size: 0.9rem"
+              ></i>
+              <span>즐겨찾는 스타트업</span>
+            </div>
+          </div>
+
+          <!-- 모든 스타트업 -->
+          <div class="filter-section">
+            <div
+              class="filter-item special-tag active"
+              data-special="all"
+              onclick="toggleSpecialFilter('all')"
+            >
+              <span>모든 스타트업</span>
+            </div>
+          </div>
+
+          <!-- 1. 업종 -->
+          <div class="filter-section">
+            <h4>업종</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="all"
+                  checked
+                  onchange="applyFilters()"
+                />
+                <span>전체 업종</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="ai"
+                  onchange="applyFilters()"
+                />
+                <span>AI/빅데이터</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="platform"
+                  onchange="applyFilters()"
+                />
+                <span>플랫폼/서비스</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="manufacturing"
+                  onchange="applyFilters()"
+                />
+                <span>제조/하드웨어</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="bio"
+                  onchange="applyFilters()"
+                />
+                <span>바이오/헬스케어</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="fintech"
+                  onchange="applyFilters()"
+                />
+                <span>핀테크</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="industry"
+                  value="contents"
+                  onchange="applyFilters()"
+                />
+                <span>콘텐츠/미디어</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. 설립년도 -->
+          <div class="filter-section">
+            <h4>설립년도</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="year"
+                  value="1y"
+                  onchange="applyFilters()"
+                />
+                <span>1년 미만</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="year"
+                  value="1-3y"
+                  onchange="applyFilters()"
+                />
+                <span>1~3년 미만</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="year"
+                  value="3-7y"
+                  onchange="applyFilters()"
+                />
+                <span>3~7년 미만</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="year"
+                  value="7y+"
+                  onchange="applyFilters()"
+                />
+                <span>7년 이상</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3. 소재지 (15개 지역) -->
+          <div class="filter-section">
+            <h4>소재지</h4>
+            <div class="filter-group location-grid">
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="서울"
+                  onchange="applyFilters()"
+                /><span>서울</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="경기"
+                  onchange="applyFilters()"
+                /><span>경기</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="강원"
+                  onchange="applyFilters()"
+                /><span>강원</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="충북"
+                  onchange="applyFilters()"
+                /><span>충북</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="충남"
+                  onchange="applyFilters()"
+                /><span>충남</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="전북"
+                  onchange="applyFilters()"
+                /><span>전북</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="전남"
+                  onchange="applyFilters()"
+                /><span>전남</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="경북"
+                  onchange="applyFilters()"
+                /><span>경북</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="경남"
+                  onchange="applyFilters()"
+                /><span>경남</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="대전"
+                  onchange="applyFilters()"
+                /><span>대전</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="대구"
+                  onchange="applyFilters()"
+                /><span>대구</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="부산"
+                  onchange="applyFilters()"
+                /><span>부산</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="울산"
+                  onchange="applyFilters()"
+                /><span>울산</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="광주"
+                  onchange="applyFilters()"
+                /><span>광주</span></label
+              >
+              <label class="filter-item"
+                ><input
+                  type="checkbox"
+                  name="location"
+                  value="제주"
+                  onchange="applyFilters()"
+                /><span>제주</span></label
+              >
+            </div>
+            <style>
+              .location-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+              }
+              .location-grid .filter-item {
+                margin: 0;
+              }
+              .location-grid .filter-item span {
+                font-size: 0.8rem;
+              }
+            </style>
+          </div>
+
+          <!-- 4. 대표자 나이 -->
+          <div class="filter-section">
+            <h4>대표자 나이</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="age"
+                  value="under39"
+                  onchange="applyFilters()"
+                />
+                <span>39세 미만(청년)</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="age"
+                  value="over39"
+                  onchange="applyFilters()"
+                />
+                <span>39세 이상</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 5. 성별 -->
+          <div class="filter-section">
+            <h4>성별</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="gender"
+                  value="male"
+                  onchange="applyFilters()"
+                />
+                <span>남성</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="gender"
+                  value="female"
+                  onchange="applyFilters()"
+                />
+                <span>여성</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 6. 인증현황 -->
+          <div class="filter-section">
+            <h4>인증현황</h4>
+            <div class="filter-group">
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="certification"
+                  value="venture"
+                  onchange="applyFilters()"
+                />
+                <span>벤처인증</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="certification"
+                  value="innobiz"
+                  onchange="applyFilters()"
+                />
+                <span>이노비즈</span>
+              </label>
+              <label class="filter-item">
+                <input
+                  type="checkbox"
+                  name="certification"
+                  value="mainbiz"
+                  onchange="applyFilters()"
+                />
+                <span>메인비즈</span>
+              </label>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content - Startups Grid -->
+        <div class="investors-content">
+          <!-- Search Bar -->
+          <div class="search-section">
+            <div class="search-bar">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="text"
+                id="startupSearch"
+                placeholder="스타트업명, 대표자, 사업 분야로 검색..."
+                oninput="handleSearch()"
+              />
+              <button class="search-clear" id="searchClear" onclick="clearSearch()">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div class="search-stats" id="searchStats" style="display: none;">
+              <i class="fa-solid fa-filter"></i>
+              <span>"<strong id="searchKeyword"></strong>" 검색 결과</span>
+            </div>
+          </div>
+
+          <div class="content-header">
+            <div class="results-info">
+              <span class="results-count"
+                >총 <strong id="totalCount">0</strong>개의 스타트업</span
+              >
+            </div>
+            <div class="sort-options">
+              <select id="sortSelect" onchange="sortData()">
+                <option value="recent">최신순</option>
+                <option value="name">이름순</option>
+                <option value="founded">설립일순</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="investors-grid" id="dataGrid">
+            <!-- 스타트업 카드들이 JavaScript로 동적 생성됨 -->
+          </div>
+
+          <div class="no-results" id="noResults" style="display: none">
+            <div class="no-results-icon">🔍</div>
+            <h3>검색 결과가 없습니다</h3>
+            <p>다른 필터 조건을 선택해보세요</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Startup Detail Modal -->
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <div id="modalBody">
+          <!-- 동적으로 채워짐 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>
+              초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭
+              플랫폼입니다.
+            </p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li>
+                <a href="https://ventureplatform.biz/about.html" target="_blank"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/service.html"
+                  target="_blank"
+                  >Service</a
+                >
+              </li>
+              <li>
+                <a href="https://ventureplatform.biz/news.html" target="_blank"
+                  >News</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://ventureplatform.biz/contact.html"
+                  target="_blank"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li>
+                <a href="mailto:venture@ventureplatform.co.kr">광고문의</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p>
+              <i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구
+              동백5로 22, 215호 (주식회사 벤처플랫폼)
+            </p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="#">이용약관</a>
+              <a href="#" style="font-weight: 700; color: white"
+                >개인정보처리방침</a
+              >
+              <a href="#">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/startups.js"></script>
+  </body>
+</html>
