@@ -64,8 +64,31 @@
       .faq-a { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; padding-bottom: 1.2rem; display: none; }
       .faq-a.open { display: block; }
 
+      /* 투자자 플랜 그리드 */
+      .inv-plans-grid { grid-template-columns: repeat(2, 1fr); max-width: 800px; margin: 0 auto; }
+
+      /* 문의하기 */
+      .inquiry-wrap { margin-top: 2.5rem; }
+      .inquiry-box { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; background: white; border: 1.5px solid var(--border-color); border-radius: 20px; padding: 2.5rem; }
+      .inquiry-left { display: flex; flex-direction: column; gap: 1rem; }
+      .inquiry-icon { width: 52px; height: 52px; background: #eff6ff; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--primary-color); }
+      .inquiry-left h3 { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+      .inquiry-left p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin: 0; }
+      .inquiry-highlights { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+      .inquiry-highlights li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; color: var(--text-secondary); }
+      .inquiry-highlights li i { color: var(--primary-color); font-size: 0.85rem; }
+      .inquiry-form { display: flex; flex-direction: column; gap: 1.1rem; }
+      .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+      .form-group label { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); }
+      .form-group input, .form-group textarea { padding: 0.75rem 1rem; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; font-family: inherit; color: var(--text-primary); background: #f8fafc; transition: border-color 0.2s; resize: none; }
+      .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-color); background: white; }
+      .inquiry-submit { padding: 0.85rem; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+      .inquiry-submit:hover { background: #1d4ed8; }
+
       @media (max-width: 768px) {
         .plans-grid { grid-template-columns: 1fr; }
+        .inv-plans-grid { grid-template-columns: 1fr; }
+        .inquiry-box { grid-template-columns: 1fr; gap: 2rem; }
         .pricing-header h1 { font-size: 1.6rem; }
       }
     </style>
@@ -175,28 +198,83 @@
         </div>
 
         <!-- 투자자 플랜 -->
-        <div class="plans-grid" id="plansInvestor" style="display:none; grid-template-columns: repeat(1, minmax(0, 400px)); justify-content: center;">
+        <div id="plansInvestor" style="display:none;">
+          <div class="plans-grid inv-plans-grid">
 
-          <!-- 투자자 Free -->
-          <div class="plan-card">
-            <div class="plan-name">Free</div>
-            <div class="plan-desc">투자자를 위한 기본 무료 플랜</div>
-            <div class="plan-price">
-              <div class="amount">₩0<span>/월</span></div>
-              <div class="period">영구 무료</div>
+            <!-- Plan A: Free -->
+            <div class="plan-card">
+              <div class="plan-name">Free</div>
+              <div class="plan-desc">승인된 전문 투자자(VC/AC/엔젤) 대상 기본 기능 제공</div>
+              <div class="plan-price">
+                <div class="amount">₩0<span>/월</span></div>
+                <div class="period">영구 무료</div>
+              </div>
+              <a href="pages/register.html" class="plan-btn plan-btn-outline">무료로 시작</a>
+              <ul class="plan-features">
+                <li><i class="fa-solid fa-check"></i> 등록된 스타트업 DB 검색 및 필터링</li>
+                <li><i class="fa-solid fa-check"></i> 기본 IR 자료 열람</li>
+                <li><i class="fa-solid fa-check"></i> 관심 기업 즐겨찾기 및 알림 설정</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> AI 딜 스캐닝</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> 심사역 간 검토 의견 공유</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> 대량 데이터 Export</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> API 연동</li>
+              </ul>
             </div>
-            <a href="pages/register.html" class="plan-btn plan-btn-outline">무료로 시작</a>
-            <ul class="plan-features">
-              <li><i class="fa-solid fa-check"></i> 투자펀드 전체 목록 조회</li>
-              <li><i class="fa-solid fa-check"></i> 스타트업 정보 기본 조회</li>
-              <li><i class="fa-solid fa-check"></i> 공지사항 및 뉴스 열람</li>
-              <li><i class="fa-solid fa-check"></i> TIPS·LIPS·TOPS 프로그램 정보</li>
-              <li class="disabled"><i class="fa-solid fa-xmark"></i> 포트폴리오 분석 리포트</li>
-              <li class="disabled"><i class="fa-solid fa-xmark"></i> 투자 성과 데이터</li>
-              <li class="disabled"><i class="fa-solid fa-xmark"></i> API 연동</li>
-            </ul>
+
+            <!-- Plan B: Enterprise -->
+            <div class="plan-card featured">
+              <div class="plan-badge">맞춤 도입</div>
+              <div class="plan-name">Enterprise</div>
+              <div class="plan-desc">대형 VC·CVC·공공기관 엑셀러레이터를 위한 맞춤형 플랜</div>
+              <div class="plan-price">
+                <div class="amount" style="font-size:1.8rem;">맞춤 견적</div>
+                <div class="period">규모에 따라 협의</div>
+              </div>
+              <button class="plan-btn plan-btn-fill" onclick="document.getElementById('inquiryForm').scrollIntoView({behavior:'smooth'})">문의하기 →</button>
+              <ul class="plan-features">
+                <li><i class="fa-solid fa-check"></i> Free 플랜 전체 포함</li>
+                <li><i class="fa-solid fa-check"></i> AI 딜 스캐닝 (조건 맞는 기업 자동 발굴)</li>
+                <li><i class="fa-solid fa-check"></i> 심사역 간 검토 의견 공유 및 히스토리 관리</li>
+                <li><i class="fa-solid fa-check"></i> 대량 데이터 Export</li>
+                <li><i class="fa-solid fa-check"></i> API 연동 지원</li>
+                <li><i class="fa-solid fa-check"></i> 팀 계정 관리</li>
+                <li><i class="fa-solid fa-check"></i> 전담 고객 지원</li>
+              </ul>
+            </div>
+
           </div>
 
+          <!-- 문의하기 폼 -->
+          <div class="inquiry-wrap" id="inquiryForm">
+            <div class="inquiry-box">
+              <div class="inquiry-left">
+                <div class="inquiry-icon"><i class="fa-solid fa-building-columns"></i></div>
+                <h3>Enterprise 도입 문의</h3>
+                <p>더 깊은 데이터 분석이나 팀 단위 관리가 필요한 투자사를 위한 창구입니다.<br>3영업일 내 담당자가 연락드립니다.</p>
+                <ul class="inquiry-highlights">
+                  <li><i class="fa-solid fa-circle-check"></i> 소속 기관 규모에 맞는 커스텀 견적</li>
+                  <li><i class="fa-solid fa-circle-check"></i> 기존 시스템 API 연동 지원</li>
+                  <li><i class="fa-solid fa-circle-check"></i> 전담 온보딩 & 교육 제공</li>
+                </ul>
+              </div>
+              <form class="inquiry-form" onsubmit="submitInquiry(event)">
+                <div class="form-group">
+                  <label>이름</label>
+                  <input type="text" id="inqName" placeholder="담당자 성함" required />
+                </div>
+                <div class="form-group">
+                  <label>이메일</label>
+                  <input type="email" id="inqEmail" placeholder="업무용 이메일 주소" required />
+                </div>
+                <div class="form-group">
+                  <label>내용</label>
+                  <textarea id="inqMessage" rows="4" placeholder="소속 기관명, 필요한 커스텀 기능, 도입 규모 등을 자유롭게 적어주세요." required></textarea>
+                </div>
+                <button type="submit" class="inquiry-submit">보내기 <i class="fa-solid fa-paper-plane"></i></button>
+                <p class="inquiry-note" id="inqResult" style="display:none; color:#10b981; font-size:0.88rem; margin-top:0.75rem;"><i class="fa-solid fa-circle-check"></i> 문의가 접수되었습니다. 빠르게 연락드리겠습니다.</p>
+              </form>
+            </div>
+          </div>
         </div>
 
         <hr class="divider" />
@@ -340,6 +418,15 @@
           proPrice.innerHTML = '₩29,000<span>/월</span>';
           proPeriod.textContent = '월 29,000원 청구';
         }
+      }
+
+      function submitInquiry(e) {
+        e.preventDefault();
+        const result = document.getElementById('inqResult');
+        result.style.display = 'block';
+        document.getElementById('inqName').value = '';
+        document.getElementById('inqEmail').value = '';
+        document.getElementById('inqMessage').value = '';
       }
 
       function toggleFaq(btn) {
