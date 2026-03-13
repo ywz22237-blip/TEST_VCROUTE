@@ -421,10 +421,53 @@ function selectFund(fundId) {
   document.querySelectorAll(".fund-card").forEach(c => c.classList.remove("selected"));
   document.getElementById(`fund-card-${fundId}`)?.classList.add("selected");
 
-  // GP 매칭으로 이동
-  document.getElementById("menu-gp").disabled = false;
-  switchIrTab("gp-match");
-  renderGP();
+  // 같은 탭 안에 투자자 렌더링
+  renderInvestorInFundTab();
+}
+
+function renderInvestorInFundTab() {
+  if (!selectedFund) return;
+
+  const investors = (typeof investorsData !== "undefined" ? investorsData : []);
+  selectedGP = investors.find(inv => inv.name === selectedFund.manager);
+  if (!selectedGP) {
+    selectedGP = investors[Math.floor(Math.random() * Math.min(investors.length, 20))];
+  }
+
+  document.getElementById("selectedFundInfoInline").innerHTML =
+    `<i class="fa-solid fa-building-columns"></i>&nbsp; 선택 펀드: <strong>${selectedFund.fundName}</strong> · ${selectedFund.companyName}`;
+
+  const stageLabels = { "seed": "시드", "series-a": "시리즈A", "series-b": "시리즈B", "growth": "성장", "pre-ipo": "Pre-IPO" };
+  const stages = (selectedGP.stages || []).map(s => stageLabels[s] || s);
+
+  document.getElementById("fundGpCard").innerHTML = `
+    <div class="gp-card">
+      <div class="gp-header">
+        <div class="gp-avatar">${selectedGP.avatar || selectedGP.name[0]}</div>
+        <div class="gp-info">
+          <h3>${selectedGP.name} 심사역</h3>
+          <p>${selectedGP.company}</p>
+        </div>
+      </div>
+      <div class="gp-tags">
+        ${stages.map(s => `<span>${s}</span>`).join("")}
+        ${selectedGP.tps ? '<span style="background:#fef9c3;color:#854d0e;">초기전문</span>' : ""}
+      </div>
+      <div class="gp-stats">
+        <div class="gp-stat"><div class="val">${selectedGP.investments}</div><div class="lbl">투자 건수</div></div>
+        <div class="gp-stat"><div class="val">${selectedGP.successRate}%</div><div class="lbl">성공률</div></div>
+        <div class="gp-stat"><div class="val">${selectedGP.exitCount || "-"}</div><div class="lbl">엑싯</div></div>
+      </div>
+      <p style="font-size:0.85rem;color:#475569;line-height:1.6;margin-bottom:0.5rem;">${selectedGP.description}</p>
+      <div style="font-size:0.82rem;color:#64748b;">
+        <span><i class="fa-solid fa-envelope"></i> ${selectedGP.email}</span>
+      </div>
+    </div>`;
+
+  const section = document.getElementById("investor-section");
+  section.style.display = "block";
+  document.getElementById("fundGoMailBtn").disabled = false;
+  setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
 }
 
 // ─── GP 매칭 (Option C: manager 이름으로 연결) ──────────────────

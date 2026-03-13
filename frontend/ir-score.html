@@ -198,10 +198,7 @@
                 <i class="fa-solid fa-comments"></i> 가상 VC Q&A
               </button>
               <button class="ir-menu-item" data-tab="fund-match" id="menu-fund" disabled>
-                <i class="fa-solid fa-building-columns"></i> 펀드 추천
-              </button>
-              <button class="ir-menu-item" data-tab="gp-match" id="menu-gp" disabled>
-                <i class="fa-solid fa-user-tie"></i> GP 매칭
+                <i class="fa-solid fa-building-columns"></i> 펀드 & 투자자 추천
               </button>
               <button class="ir-menu-item" data-tab="cold-mail" id="menu-mail" disabled>
                 <i class="fa-solid fa-envelope-open-text"></i> 콜드 메일
@@ -315,10 +312,10 @@
               </div>
             </div>
 
-            <!-- Tab 4: 펀드 추천 -->
+            <!-- Tab 4: 펀드 & 투자자 추천 -->
             <div id="fund-match" class="ir-section">
-              <h2>펀드 추천</h2>
-              <div class="tag-line">IR 스코어 기반 최적 펀드 Top 3 매칭</div>
+              <h2>펀드 &amp; 투자자 추천</h2>
+              <div class="tag-line">IR 스코어 기반 최적 펀드 Top 3 매칭 → 담당 투자자 연결</div>
 
               <div id="fund-step-indicator" class="step-indicator">
                 <div class="step done"><span class="num">✓</span><span class="label">IR 분석</span></div>
@@ -339,6 +336,22 @@
               <div id="fund-stage-badge" style="margin-bottom:1rem;"></div>
               <div class="fund-cards" id="fundCards">
                 <div style="text-align:center;padding:3rem;color:#94a3b8;">펀드를 불러오는 중...</div>
+              </div>
+
+              <!-- 투자자 매칭 (펀드 선택 후 표시) -->
+              <div id="investor-section" style="display:none;margin-top:2rem;">
+                <hr style="border:none;border-top:2px solid #e2e8f0;margin-bottom:1.5rem;" />
+                <h3 style="font-size:1.1rem;color:#1e293b;margin:0 0 0.3rem;">
+                  <i class="fa-solid fa-user-tie" style="color:#2563eb;"></i>&nbsp; 매칭 투자자
+                </h3>
+                <div class="tag-line" style="margin-bottom:1.2rem;">선택한 펀드의 담당 심사역</div>
+                <div id="selectedFundInfoInline" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.8rem 1.2rem;margin-bottom:1.2rem;font-size:0.88rem;color:#1e40af;"></div>
+                <div id="fundGpCard"></div>
+                <div style="text-align:center;margin-top:1.5rem;">
+                  <button class="btn-primary" id="fundGoMailBtn" onclick="goToColdMail()" disabled>
+                    <i class="fa-solid fa-envelope-open-text"></i>&nbsp; 콜드 메일 초안 생성
+                  </button>
+                </div>
               </div>
             </div>
 
