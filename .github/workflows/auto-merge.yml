@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout
@@ -19,82 +18,31 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create PR and Merge
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const branch = context.ref.replace('refs/heads/', '');
+      - name: Merge to main
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "브랜치: $BRANCH"
 
-            // main과 diff 확인 (변경사항 없으면 스킵)
-            const { data: compare } = await github.rest.repos.compareCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              base: 'main',
-              head: branch
-            });
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
 
-            if (compare.ahead_by === 0) {
-              console.log('변경사항 없음, 스킵');
-              return;
-            }
+          # main 최신화
+          git fetch origin main
+          git checkout main
+          git pull origin main
 
-            // PR mergeable 여부 확인 (충돌 시 rebase 후 재시도)
-            // 기존 PR 확인 (open + closed 최근 것 포함)
-            const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: `${context.repo.owner}:${branch}`,
-              base: 'main',
-              state: 'open'
-            });
+          # 변경사항 확인
+          AHEAD=$(git rev-list main..origin/$BRANCH --count)
+          echo "main 대비 $AHEAD 커밋 앞섬"
 
-            let pr;
-            if (prs.length === 0) {
-              const { data: newPr } = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `Auto: ${branch}`,
-                head: branch,
-                base: 'main',
-                body: 'Claude Code에서 자동 생성된 PR입니다.'
-              });
-              pr = newPr;
-              console.log(`PR 생성: #${pr.number}`);
-            } else {
-              pr = prs[0];
-              console.log(`기존 PR 사용: #${pr.number}`);
-            }
+          if [ "$AHEAD" = "0" ]; then
+            echo "변경사항 없음, 스킵"
+            exit 0
+          fi
 
-            // mergeable 상태 대기 (최대 30초)
-            let mergeable = null;
-            for (let i = 0; i < 6; i++) {
-              const { data: prDetail } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number
-              });
-              mergeable = prDetail.mergeable;
-              if (mergeable !== null) break;
-              await new Promise(r => setTimeout(r, 5000));
-            }
+          # 브랜치를 main에 머지 (충돌 시 브랜치 내용 우선)
+          git merge origin/$BRANCH --no-ff -m "Auto merge: $BRANCH" \
+            || git merge origin/$BRANCH -X theirs --no-ff -m "Auto merge (theirs): $BRANCH"
 
-            if (mergeable === false) {
-              console.log('머지 충돌 발생 - checkout rebase로 해결 시도');
-              // rebase를 통한 충돌 해결은 Actions에서 별도 step 필요
-              // 일단 merge 강제 시도 (GitHub이 자동 rebase)
-            }
-
-            // PR 머지 (merge 방식: 히스토리 보존으로 squash 충돌 방지)
-            try {
-              await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                merge_method: 'merge'
-              });
-              console.log(`PR #${pr.number} 머지 완료 → Vercel 자동 배포 시작`);
-            } catch (mergeErr) {
-              console.log(`머지 실패: ${mergeErr.message}`);
-              core.setFailed(mergeErr.message);
-            }
+          git push origin main
+          echo "main 머지 완료 → Vercel 자동 배포 시작"
