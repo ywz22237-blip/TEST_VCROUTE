@@ -317,3 +317,229 @@ function addMsg(type, text) {
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
+
+// ─── 펀드 추천 ─────────────────────────────────────────────────
+let selectedFund = null;
+let selectedGP   = null;
+
+function goToFundMatch() {
+  document.getElementById("menu-fund").disabled = false;
+  switchIrTab("fund-match");
+  renderFundMatches();
+}
+
+function getStageFromScore(total) {
+  if (total >= 76) return { label: "시리즈 B+", stages: ["series-b", "growth", "pre-ipo"] };
+  if (total >= 56) return { label: "시리즈 A", stages: ["series-a", "series-b"] };
+  return { label: "시드 / Pre-A", stages: ["seed", "series-a"] };
+}
+
+function getIndustryKeywords(text) {
+  const map = {
+    "ICT":    ["IT", "소프트웨어", "SaaS", "플랫폼", "앱", "tech", "디지털", "AI", "인공지능"],
+    "바이오":  ["바이오", "헬스케어", "의료", "제약", "bio", "health"],
+    "콘텐츠":  ["콘텐츠", "미디어", "게임", "엔터", "크리에이터"],
+    "제조":   ["제조", "하드웨어", "소재", "부품"],
+    "ESG":    ["ESG", "친환경", "탄소", "그린", "클린"],
+  };
+  const found = [];
+  Object.entries(map).forEach(([cat, keywords]) => {
+    if (keywords.some(k => text.toLowerCase().includes(k.toLowerCase()))) found.push(cat);
+  });
+  return found.length ? found : ["ICT", "플랫폼"];
+}
+
+function scoreFund(fund, stageObj, industryKeywords, irScores) {
+  let score = 0;
+  // 단계 매칭
+  const fundIndustry = (fund.industry || "").toLowerCase();
+  const fundPurpose  = (fund.purpose  || "").toLowerCase();
+  // 산업 키워드 매칭
+  industryKeywords.forEach(kw => {
+    if (fundIndustry.includes(kw.toLowerCase()) || fundPurpose.includes(kw.toLowerCase())) score += 20;
+  });
+  // 펀드 규모 (큰 펀드 선호)
+  if (fund.totalAmount >= 50000000000) score += 15;
+  else if (fund.totalAmount >= 20000000000) score += 10;
+  else score += 5;
+  // baseRate 보정
+  score += Math.min(10, Math.round(fund.baseRate));
+  return Math.min(99, score);
+}
+
+function renderFundMatches() {
+  if (!irAnalysis) return;
+  const total = Object.values(irAnalysis.scores).reduce((a, b) => a + b, 0);
+  const stageObj = getStageFromScore(total);
+  const desc = (document.getElementById("companyDesc")?.value || "") + " " + (irText || "");
+  const industryKeywords = getIndustryKeywords(desc);
+
+  // 배지
+  document.getElementById("fund-stage-badge").innerHTML =
+    `<div style="display:inline-flex;align-items:center;gap:0.5rem;background:#eff6ff;border:1px solid #bfdbfe;padding:0.4rem 0.9rem;border-radius:20px;font-size:0.85rem;color:#1d4ed8;font-weight:600;margin-bottom:0.5rem;">
+      <i class="fa-solid fa-layer-group"></i> 추천 투자 단계: ${stageObj.label}
+      &nbsp;·&nbsp; <i class="fa-solid fa-tag"></i> 매칭 분야: ${industryKeywords.slice(0, 2).join(", ")}
+    </div>`;
+
+  const funds = (typeof SAMPLE_FUNDS !== "undefined" ? SAMPLE_FUNDS : []);
+  const scored = funds
+    .map(f => ({ ...f, matchScore: scoreFund(f, stageObj, industryKeywords, irAnalysis.scores) }))
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 3);
+
+  if (!scored.length) {
+    document.getElementById("fundCards").innerHTML = "<p style='color:#94a3b8;'>매칭 가능한 펀드가 없습니다.</p>";
+    return;
+  }
+
+  document.getElementById("fundCards").innerHTML = scored.map((f, i) => `
+    <div class="fund-card" id="fund-card-${f.id}" onclick="selectFund(${f.id})">
+      <div class="fund-header">
+        <div class="fund-name">${f.fundName}</div>
+        <div class="match-badge">매칭 ${f.matchScore}%</div>
+      </div>
+      <div class="fund-meta">
+        <span>🏢 ${f.companyName}</span>
+        <span>📊 ${f.industry}</span>
+        <span>💰 ${Math.round(f.totalAmount / 100000000).toLocaleString()}억원</span>
+        <span>👤 ${f.manager}</span>
+      </div>
+      <div class="match-reason">
+        ${i === 0 ? "✅" : i === 1 ? "🔵" : "🟡"} ${f.purpose.slice(0, 60)}...
+      </div>
+      <button class="select-btn">이 펀드 선택 → GP 매칭</button>
+    </div>
+  `).join("");
+}
+
+function selectFund(fundId) {
+  const funds = (typeof SAMPLE_FUNDS !== "undefined" ? SAMPLE_FUNDS : []);
+  selectedFund = funds.find(f => f.id === fundId);
+  if (!selectedFund) return;
+
+  // 선택 표시
+  document.querySelectorAll(".fund-card").forEach(c => c.classList.remove("selected"));
+  document.getElementById(`fund-card-${fundId}`)?.classList.add("selected");
+
+  // GP 매칭으로 이동
+  document.getElementById("menu-gp").disabled = false;
+  switchIrTab("gp-match");
+  renderGP();
+}
+
+// ─── GP 매칭 (Option C: manager 이름으로 연결) ──────────────────
+function renderGP() {
+  if (!selectedFund) return;
+
+  document.getElementById("selectedFundInfo").innerHTML =
+    `<i class="fa-solid fa-building-columns"></i> &nbsp;선택 펀드: <strong>${selectedFund.fundName}</strong> · ${selectedFund.companyName}`;
+
+  const investors = (typeof investorsData !== "undefined" ? investorsData : []);
+  selectedGP = investors.find(inv => inv.name === selectedFund.manager);
+
+  const gpEl = document.getElementById("gpCard");
+  if (!selectedGP) {
+    // fallback: stages 기반 임의 매칭
+    selectedGP = investors[Math.floor(Math.random() * Math.min(investors.length, 20))];
+  }
+
+  const stageLabels = { "seed": "시드", "series-a": "시리즈A", "series-b": "시리즈B", "growth": "성장", "pre-ipo": "Pre-IPO" };
+  const stages = (selectedGP.stages || []).map(s => stageLabels[s] || s);
+
+  gpEl.innerHTML = `
+    <div class="gp-card">
+      <div class="gp-header">
+        <div class="gp-avatar">${selectedGP.avatar || selectedGP.name[0]}</div>
+        <div class="gp-info">
+          <h3>${selectedGP.name} 심사역</h3>
+          <p>${selectedGP.company}</p>
+        </div>
+      </div>
+      <div class="gp-tags">
+        ${stages.map(s => `<span>${s}</span>`).join("")}
+        ${selectedGP.tps ? '<span style="background:#fef9c3;color:#854d0e;">초기전문</span>' : ""}
+      </div>
+      <div class="gp-stats">
+        <div class="gp-stat"><div class="val">${selectedGP.investments}</div><div class="lbl">투자 건수</div></div>
+        <div class="gp-stat"><div class="val">${selectedGP.successRate}%</div><div class="lbl">성공률</div></div>
+        <div class="gp-stat"><div class="val">${selectedGP.exitCount || "-"}</div><div class="lbl">엑싯</div></div>
+      </div>
+      <p style="font-size:0.85rem;color:#475569;line-height:1.6;margin-bottom:0.5rem;">${selectedGP.description}</p>
+      <div style="display:flex;gap:0.5rem;font-size:0.82rem;color:#64748b;">
+        <span><i class="fa-solid fa-envelope"></i> ${selectedGP.email}</span>
+      </div>
+    </div>`;
+
+  document.getElementById("goMailBtn").disabled = false;
+}
+
+// ─── 콜드 메일 생성 ────────────────────────────────────────────
+function goToColdMail() {
+  document.getElementById("menu-mail").disabled = false;
+  switchIrTab("cold-mail");
+  generateMail();
+}
+
+function generateMail() {
+  document.getElementById("mailGenerating").style.display = "block";
+  document.getElementById("mailContent").style.display = "none";
+
+  setTimeout(() => {
+    const mail = buildMailTemplate();
+    document.getElementById("mailSubject").value = mail.subject;
+    document.getElementById("mailBody").value    = mail.body;
+    document.getElementById("mailGenerating").style.display = "none";
+    document.getElementById("mailContent").style.display = "block";
+  }, 1200);
+}
+
+function buildMailTemplate() {
+  const gp   = selectedGP   || { name: "담당자", company: "귀사" };
+  const fund = selectedFund || { fundName: "펀드", companyName: "운용사" };
+  const desc = document.getElementById("companyDesc")?.value || "저희 스타트업";
+  const total = irAnalysis ? Object.values(irAnalysis.scores).reduce((a, b) => a + b, 0) : 0;
+  const stage = getStageFromScore(total).label;
+
+  const subject = `[IR 제안] ${desc} — ${stage} 투자 검토 요청`;
+
+  const body = `안녕하세요, ${gp.company} ${gp.name} 심사역님.
+
+${fund.companyName}의 ${fund.fundName}을 통해 귀사의 투자 철학과 포트폴리오를 주의 깊게 살펴보았습니다.
+
+저희는 ${desc}를 개발하고 있는 팀입니다. 현재 ${stage} 단계의 투자 유치를 진행 중이며, 심사역님의 투자 방향성과 저희 비즈니스 모델이 잘 부합한다고 판단하여 연락드립니다.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📌 핵심 지표 요약
+• 서비스: ${desc}
+• 투자 단계: ${stage}
+• 투자 유치 목표: [투자 금액 입력]
+• 현재 MRR / 성장률: [수치 입력]
+• 팀: [창업자 경력 한 줄 요약]
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+첨부된 IR 덱을 검토해 주신다면 감사하겠습니다.
+30분 내외의 미팅을 요청드리고 싶습니다.
+
+편하신 일정을 알려주시면 맞추겠습니다.
+
+감사합니다.
+
+[이름]
+[직함] | [회사명]
+[연락처] | [이메일]
+[웹사이트]`;
+
+  return { subject, body };
+}
+
+function copyMail() {
+  const subject = document.getElementById("mailSubject").value;
+  const body    = document.getElementById("mailBody").value;
+  navigator.clipboard.writeText(`제목: ${subject}\n\n${body}`).then(() => {
+    const done = document.getElementById("copyDone");
+    done.style.display = "inline";
+    setTimeout(() => done.style.display = "none", 2000);
+  });
+}
