@@ -1,6 +1,8 @@
 // 투자펀드 데이터 (API에서 로드)
 let fundsData = [];
 let filteredFunds = [];
+const PAGE_SIZE = 12;
+let currentPage = 1;
 
 // 샘플 데이터 (한국벤처투자 모태펀드 자조합 운용사정보 기반)
 const SAMPLE_FUNDS = [
@@ -1472,6 +1474,39 @@ document.addEventListener("DOMContentLoaded", () => {
   loadFundsFromAPI();
 });
 
+// 페이지네이션 렌더링
+function renderPaginationFunds(total) {
+  const container = document.getElementById("pagination");
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) { container.innerHTML = ""; return; }
+
+  const range = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+      range.push(i);
+    } else if (range[range.length - 1] !== "…") {
+      range.push("…");
+    }
+  }
+
+  container.innerHTML = `
+    <button class="page-btn" onclick="goPageFunds(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}><i class="fa-solid fa-chevron-left"></i></button>
+    ${range.map(p => p === "…"
+      ? `<span class="page-ellipsis">…</span>`
+      : `<button class="page-btn ${p === currentPage ? "active" : ""}" onclick="goPageFunds(${p})">${p}</button>`
+    ).join("")}
+    <button class="page-btn" onclick="goPageFunds(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}><i class="fa-solid fa-chevron-right"></i></button>
+  `;
+}
+
+function goPageFunds(page) {
+  const totalPages = Math.ceil(filteredFunds.length / PAGE_SIZE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderFunds(filteredFunds);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 // 펀드 카드 렌더링
 function renderFunds(funds) {
   const grid = document.getElementById("fundsGrid");
@@ -1480,13 +1515,18 @@ function renderFunds(funds) {
   if (funds.length === 0) {
     grid.style.display = "none";
     noResults.style.display = "block";
+    document.getElementById("pagination").innerHTML = "";
     return;
   }
 
   grid.style.display = "grid";
   noResults.style.display = "none";
 
-  grid.innerHTML = funds
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = funds.slice(start, start + PAGE_SIZE);
+  renderPaginationFunds(funds.length);
+
+  grid.innerHTML = pageItems
     .map(
       (fund) => `
     <div class="u-card" data-id="${fund.id}" onclick="openFundModal(${fund.id})">
@@ -1614,6 +1654,7 @@ function filterFunds() {
     searchStats.style.display = "none";
   }
 
+  currentPage = 1;
   filteredFunds = fundsData.filter((fund) => {
     // 0. 특수 필터
     let matchSpecial = true;
@@ -1658,6 +1699,7 @@ function getCheckedValues(name) {
 // 정렬
 function sortFunds() {
   const sortValue = document.getElementById("sortSelect").value;
+  currentPage = 1;
   let sorted = [...filteredFunds];
 
   switch (sortValue) {
@@ -1679,8 +1721,9 @@ function sortFunds() {
       break;
   }
 
-  renderFunds(sorted);
-  updateResultsCount(sorted.length);
+  filteredFunds = sorted;
+  renderFunds(filteredFunds);
+  updateResultsCount(filteredFunds.length);
 }
 
 // 모달 열기

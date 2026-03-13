@@ -659,6 +659,8 @@ const investorsData = [
 
 let filteredInvestors = [...investorsData];
 let searchQuery = "";
+const PAGE_SIZE = 12;
+let currentPage = 1;
 
 // 페이지 로드 시 투자자 카드 렌더링
 document.addEventListener("DOMContentLoaded", () => {
@@ -716,6 +718,38 @@ function clearSearch() {
 }
 
 // 투자자 카드 렌더링
+function renderPaginationInvestors(total) {
+  const container = document.getElementById("pagination");
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) { container.innerHTML = ""; return; }
+
+  const range = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+      range.push(i);
+    } else if (range[range.length - 1] !== "…") {
+      range.push("…");
+    }
+  }
+
+  container.innerHTML = `
+    <button class="page-btn" onclick="goPageInvestors(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}><i class="fa-solid fa-chevron-left"></i></button>
+    ${range.map(p => p === "…"
+      ? `<span class="page-ellipsis">…</span>`
+      : `<button class="page-btn ${p === currentPage ? "active" : ""}" onclick="goPageInvestors(${p})">${p}</button>`
+    ).join("")}
+    <button class="page-btn" onclick="goPageInvestors(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}><i class="fa-solid fa-chevron-right"></i></button>
+  `;
+}
+
+function goPageInvestors(page) {
+  const totalPages = Math.ceil(filteredInvestors.length / PAGE_SIZE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderInvestors(filteredInvestors);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function renderInvestors(investors) {
   const grid = document.getElementById("investorsGrid");
   const noResults = document.getElementById("noResults");
@@ -723,13 +757,18 @@ function renderInvestors(investors) {
   if (investors.length === 0) {
     grid.style.display = "none";
     noResults.style.display = "block";
+    document.getElementById("pagination").innerHTML = "";
     return;
   }
 
   grid.style.display = "grid";
   noResults.style.display = "none";
 
-  grid.innerHTML = investors
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = investors.slice(start, start + PAGE_SIZE);
+  renderPaginationInvestors(investors.length);
+
+  grid.innerHTML = pageItems
     .map(
       (investor) => `
     <div class="u-card" data-id="${investor.id}" onclick="openInvestorModal(${investor.id})">
@@ -916,6 +955,7 @@ function applyFilters() {
   const typeFilters = getCheckedValues("type");
   const stageFilters = getCheckedValues("stage");
 
+  currentPage = 1;
   filteredInvestors = investorsData.filter((investor) => {
     // 검색어 필터
     let matchSearch = true;
@@ -991,6 +1031,7 @@ function resetFilters() {
   const allTag = document.querySelector('.special-tag[data-special="all"]');
   if (allTag) allTag.classList.add("active");
 
+  currentPage = 1;
   filteredInvestors = [...investorsData];
   renderInvestors(filteredInvestors);
   updateResultsCount(filteredInvestors.length);
@@ -999,6 +1040,7 @@ function resetFilters() {
 // 정렬
 function sortInvestors() {
   const sortValue = document.getElementById("sortSelect").value;
+  currentPage = 1;
 
   let sorted = [...filteredInvestors];
 
@@ -1015,7 +1057,8 @@ function sortInvestors() {
       break;
   }
 
-  renderInvestors(sorted);
+  filteredInvestors = sorted;
+  renderInvestors(filteredInvestors);
 }
 
 // 결과 수 업데이트
