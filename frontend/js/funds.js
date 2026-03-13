@@ -1429,6 +1429,7 @@ async function loadFundsFromAPI() {
       filteredFunds = [...fundsData];
       renderFunds(fundsData);
       updateResultsCount(fundsData.length);
+      openFundFromURL();
     } else {
       console.error("펀드 데이터 로드 실패:", response.status);
       useSampleFunds();
@@ -1446,6 +1447,16 @@ function useSampleFunds() {
   filteredFunds = [...fundsData];
   renderFunds(fundsData);
   updateResultsCount(fundsData.length);
+  openFundFromURL();
+}
+
+// URL ?id= 파라미터로 진입 시 해당 펀드 모달 자동 오픈
+function openFundFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const targetId = parseInt(params.get("id"));
+  if (targetId) {
+    openFundModal(targetId);
+  }
 }
 
 function showNoDataMessage() {
