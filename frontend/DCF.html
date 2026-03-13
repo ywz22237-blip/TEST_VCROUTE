@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>기업가치(DCF) - VC route</title>
+    <title>데이터 시뮬레이션 - VC route</title>
     <link rel="icon" type="image/png" href="image/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -207,7 +207,7 @@
             <li><a href="fund.html">투자펀드</a></li>
             <li><a href="investors.html">투자자</a></li>
             <li><a href="startups.html">스타트업</a></li>
-            <li><a href="DCF.html" class="active">기업가치(DCF)</a></li>
+            <li><a href="DCF.html" class="active">데이터 시뮬레이션</a></li>
             <li><a href="notice.html">공지사항</a></li>
           </ul>
         </nav>
@@ -246,11 +246,17 @@
             <button class="dcf-menu-item active" data-tab="overview">
               <i class="fa-solid fa-book-open"></i> 기업가치 개요
             </button>
-            <button class="dcf-menu-item" data-tab="dcf-theory">
-              <i class="fa-solid fa-graduation-cap"></i> DCF 이론
-            </button>
             <button class="dcf-menu-item" data-tab="calculator">
               <i class="fa-solid fa-calculator"></i> DCF 계산기
+            </button>
+            <button class="dcf-menu-item" data-tab="ltv-cac">
+              <i class="fa-solid fa-chart-line"></i> LTV/CAC
+            </button>
+            <button class="dcf-menu-item" data-tab="burn-rate">
+              <i class="fa-solid fa-fire"></i> 현금 흐름 (Burn-rate)
+            </button>
+            <button class="dcf-menu-item" data-tab="cap-table">
+              <i class="fa-solid fa-table"></i> 지분 구조 (Cap table)
             </button>
           </div>
 
@@ -401,59 +407,184 @@
             </div>
           </div>
 
-          <!-- Tab 2: DCF Theory -->
-          <div id="dcf-theory" class="dcf-section">
-            <h2>DCF (현금흐름할인법)</h2>
-            <div class="tag-line">Discounted Cash Flow Analysis</div>
+          <!-- Tab 3: LTV/CAC -->
+          <div id="ltv-cac" class="dcf-section">
+            <h2>LTV / CAC 분석</h2>
+            <div class="tag-line">Customer Lifetime Value &amp; Customer Acquisition Cost</div>
 
             <div class="content-box highlight">
               <p>
-                <strong>"오늘의 1억원은 10년 뒤의 1억원보다 가치있다."</strong
-                ><br />
-                기업이 미래에 벌어들일 현금흐름을 할인율(WACC)을 적용하여 현재
-                가치로 환산하는 가장 정교한 수익 가치 평가 방법입니다.
+                <strong>LTV/CAC 비율은 비즈니스 성장성의 핵심 지표입니다.</strong><br />
+                고객 1명을 유치하는 데 드는 비용(CAC) 대비 해당 고객이 평생 창출하는 가치(LTV)를
+                비교하여 수익 구조의 건전성을 평가합니다.
               </p>
             </div>
 
-            <h3>핵심 구성 요소</h3>
-            <div class="formula-box">
-              <div class="formula">Sum of PV = ∑ [ FCF / (1 + r)^n ]</div>
+            <h3>핵심 지표 정의</h3>
+            <div class="grid-cards">
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-user-plus"></i></div>
+                <h4>CAC (고객획득비용)</h4>
+                <p>신규 고객 1명을 유치하는 데 투입된 마케팅·영업 비용의 총합</p>
+                <div class="formula-box" style="margin-top: 1rem;">
+                  <div class="formula" style="font-size: 0.85rem;">CAC = 총 마케팅 비용 ÷ 신규 획득 고객 수</div>
+                </div>
+              </div>
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-coins"></i></div>
+                <h4>LTV (고객 생애 가치)</h4>
+                <p>고객이 이탈하기 전까지 창출하는 누적 수익의 현재 가치</p>
+                <div class="formula-box" style="margin-top: 1rem;">
+                  <div class="formula" style="font-size: 0.85rem;">LTV = ARPU × 평균 유지 기간 × 마진율</div>
+                </div>
+              </div>
             </div>
 
+            <h3>벤치마크 기준</h3>
+            <div class="process-steps">
+              <div class="step">
+                <span class="step-num" style="background: #ef4444;">✕</span>
+                <h4>LTV/CAC &lt; 1</h4>
+                <p>고객 유치 비용이 창출 가치보다 높아 비즈니스 지속 불가</p>
+              </div>
+              <div class="step">
+                <span class="step-num" style="background: #f59e0b;">△</span>
+                <h4>LTV/CAC 1~3</h4>
+                <p>손익분기점 수준. 성장에는 추가 개선이 필요한 상태</p>
+              </div>
+              <div class="step">
+                <span class="step-num" style="background: #22c55e;">○</span>
+                <h4>LTV/CAC ≥ 3</h4>
+                <p>건전한 수익 구조. VC가 선호하는 성장 가능 비즈니스</p>
+              </div>
+            </div>
+
+            <div class="content-box" style="margin-top: 2rem;">
+              <h4 style="margin-top: 0;">💡 투자자 관점 포인트</h4>
+              <ul style="color: #475569; line-height: 1.8;">
+                <li>CAC 회수 기간(Payback Period)이 12개월 이내인 경우 우수</li>
+                <li>LTV/CAC 개선 추이가 투자 매력도에 직결됨</li>
+                <li>채널별 CAC 분리 분석으로 효율적 마케팅 채널 파악 가능</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Tab 4: Burn-rate -->
+          <div id="burn-rate" class="dcf-section">
+            <h2>현금 흐름 (Burn-rate)</h2>
+            <div class="tag-line">Cash Flow &amp; Runway Analysis</div>
+
+            <div class="content-box highlight">
+              <p>
+                <strong>런웨이(Runway)는 스타트업의 생존 시계입니다.</strong><br />
+                현재 보유 현금을 월별 순 지출(Net Burn)로 나누어 회사가 버틸 수 있는
+                기간을 산출하고, 다음 펀딩 전략을 수립하는 핵심 지표입니다.
+              </p>
+            </div>
+
+            <h3>핵심 개념</h3>
+            <div class="grid-cards">
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                <h4>Gross Burn</h4>
+                <p>매월 지출되는 총 비용 (인건비, 인프라, 마케팅 등 모든 지출 합산)</p>
+              </div>
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-fire"></i></div>
+                <h4>Net Burn</h4>
+                <p>Gross Burn에서 월 수익을 차감한 실질 순 현금 소진액</p>
+              </div>
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <h4>Runway</h4>
+                <p>현재 보유 현금을 Net Burn으로 나눈 생존 가능 개월 수</p>
+              </div>
+            </div>
+
+            <h3>계산 공식</h3>
+            <div class="formula-box">
+              <div class="formula">Runway (개월) = 보유 현금 ÷ Net Burn/월</div>
+            </div>
+
+            <h3>관리 전략</h3>
             <div class="process-steps">
               <div class="step">
                 <span class="step-num">1</span>
-                <h4>FCF (잉여현금흐름)</h4>
-                <p>
-                  기업이 영업활동을 통해 벌어들인 현금 중 투자비용 등을 제외하고
-                  실제 자유롭게 사용할 수 있는 현금
-                </p>
+                <h4>18개월 이상 확보</h4>
+                <p>다음 라운드 펀딩까지 충분한 시간 확보를 위해 최소 18개월 런웨이 권장</p>
               </div>
               <div class="step">
                 <span class="step-num">2</span>
-                <h4>WACC (가중평균자본비용)</h4>
-                <p>
-                  주주자본비용과 타인자본비용(부채)을 가중 평균한 값으로, 미래
-                  현금흐름의 리스크를 반영한 할인율
-                </p>
+                <h4>12개월 시점 경고</h4>
+                <p>런웨이 12개월 도달 시 즉각 펀딩 활동 또는 비용 구조 재검토 필요</p>
               </div>
               <div class="step">
                 <span class="step-num">3</span>
-                <h4>Terminal Value (영구가치)</h4>
-                <p>
-                  추정 기간 이후 기업이 영구적으로 존속한다고 가정했을 때의 가치
-                </p>
+                <h4>수익화 시점 교차</h4>
+                <p>번-레이트가 0이 되는 손익분기점(BEP)까지의 로드맵 수립이 핵심</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 5: Cap Table -->
+          <div id="cap-table" class="dcf-section">
+            <h2>지분 구조 (Cap Table)</h2>
+            <div class="tag-line">Capitalization Table</div>
+
+            <div class="content-box highlight">
+              <p>
+                <strong>Cap Table은 회사의 소유권 현황을 한눈에 보여주는 지도입니다.</strong><br />
+                창업자, 투자자, 임직원 옵션 풀 등 모든 주주의 지분율과 투자 조건을
+                관리하는 스타트업 필수 문서입니다.
+              </p>
+            </div>
+
+            <h3>Cap Table 구성 요소</h3>
+            <div class="grid-cards">
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-user-tie"></i></div>
+                <h4>창업자 지분</h4>
+                <p>공동 창업자 간 지분율 설계. 베스팅(Vesting) 조건 포함 여부가 중요</p>
+              </div>
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-building-columns"></i></div>
+                <h4>투자자 지분</h4>
+                <p>시드, 시리즈 A/B/C 등 라운드별 투자자의 우선주 구조와 지분율</p>
+              </div>
+              <div class="info-card">
+                <div class="icon"><i class="fa-solid fa-people-group"></i></div>
+                <h4>옵션 풀 (ESOP)</h4>
+                <p>핵심 인재 유치를 위한 주식매수선택권 풀. 보통 10~20% 수준</p>
               </div>
             </div>
 
-            <div style="text-align: center; margin-top: 3rem">
-              <button
-                class="btn-calculate"
-                onclick="switchTab('calculator')"
-                style="max-width: 300px"
-              >
-                DCF 계산기 바로가기 <i class="fa-solid fa-arrow-right"></i>
-              </button>
+            <h3>라운드별 지분 희석 예시</h3>
+            <div class="process-steps">
+              <div class="step">
+                <span class="step-num">1</span>
+                <h4>설립 초기</h4>
+                <p>창업자 100% → 옵션 풀 설정 후 창업자 80~90%, ESOP 10~20%</p>
+              </div>
+              <div class="step">
+                <span class="step-num">2</span>
+                <h4>시드 라운드</h4>
+                <p>엔젤·시드 투자 후 창업자 60~75%, 투자자 15~25%, ESOP 10~15%</p>
+              </div>
+              <div class="step">
+                <span class="step-num">3</span>
+                <h4>시리즈 A 이후</h4>
+                <p>라운드마다 약 20~30% 희석. 창업자 지분율 관리가 장기 동기 부여의 핵심</p>
+              </div>
+            </div>
+
+            <div class="content-box" style="margin-top: 2rem;">
+              <h4 style="margin-top: 0;">⚠️ 투자자가 주목하는 Cap Table 리스크</h4>
+              <ul style="color: #475569; line-height: 1.8;">
+                <li>창업자 지분이 지나치게 희석되어 동기 부여가 약화된 구조</li>
+                <li>과도한 청산우선권(Liquidation Preference)이 있는 우선주</li>
+                <li>Vesting 없이 창업자에게 집중된 초기 지분 구조</li>
+                <li>복잡한 전환사채(CB) 미전환 물량으로 인한 잠재적 희석 리스크</li>
+              </ul>
             </div>
           </div>
 
