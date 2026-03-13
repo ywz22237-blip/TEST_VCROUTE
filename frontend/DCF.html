@@ -591,6 +591,87 @@
                 <p>번-레이트가 0이 되는 손익분기점(BEP)까지의 로드맵 수립이 핵심</p>
               </div>
             </div>
+
+            <!-- Burn-rate 시뮬레이터 -->
+            <h3 style="margin-top:2.5rem;">현금 흐름 시뮬레이터</h3>
+            <div class="calc-container">
+              <div class="calc-input-section">
+                <h3 style="margin-top:0;border:none;padding:0;font-size:1.1rem;margin-bottom:1.5rem;">변수 입력</h3>
+
+                <div style="background:white;padding:1rem;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:1rem;">
+                  <div class="input-group">
+                    <label>현재 보유 현금 (원)</label>
+                    <input type="number" id="br-cash" placeholder="예: 500,000,000" oninput="calcBurnRate()" />
+                  </div>
+                  <div class="input-group">
+                    <label>월 수익 (원)</label>
+                    <input type="number" id="br-revenue" placeholder="예: 20,000,000" oninput="calcBurnRate()" />
+                  </div>
+                </div>
+
+                <div style="background:white;padding:1rem;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:1rem;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+                    <h4 style="margin:0;font-size:0.95rem;color:#475569;">비용 항목</h4>
+                    <button onclick="addBurnItem()" style="background:#2563eb;color:white;border:none;border-radius:6px;padding:0.3rem 0.8rem;font-size:0.8rem;cursor:pointer;">+ 항목 추가</button>
+                  </div>
+                  <div id="burn-items">
+                    <div class="burn-item" style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                      <input type="text" placeholder="인건비" value="인건비" style="flex:1;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+                      <input type="number" placeholder="금액" value="30000000" style="width:130px;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+                      <button onclick="removeBurnItem(this)" style="background:#fee2e2;color:#ef4444;border:none;border-radius:6px;padding:0.5rem 0.7rem;cursor:pointer;font-size:0.85rem;">✕</button>
+                    </div>
+                    <div class="burn-item" style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                      <input type="text" placeholder="항목명" value="서버비" style="flex:1;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+                      <input type="number" placeholder="금액" value="3000000" style="width:130px;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+                      <button onclick="removeBurnItem(this)" style="background:#fee2e2;color:#ef4444;border:none;border-radius:6px;padding:0.5rem 0.7rem;cursor:pointer;font-size:0.85rem;">✕</button>
+                    </div>
+                    <div class="burn-item" style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                      <input type="text" placeholder="항목명" value="마케팅" style="flex:1;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+                      <input type="number" placeholder="금액" value="5000000" style="width:130px;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+                      <button onclick="removeBurnItem(this)" style="background:#fee2e2;color:#ef4444;border:none;border-radius:6px;padding:0.5rem 0.7rem;cursor:pointer;font-size:0.85rem;">✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="calc-result-section">
+                <h3 style="margin-top:0;border:none;padding:0;font-size:1.1rem;margin-bottom:1.5rem;">생존 분석</h3>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
+                  <div style="background:#fef2f2;padding:1rem;border-radius:10px;border:1px solid #fecaca;text-align:center;">
+                    <div style="font-size:0.75rem;color:#dc2626;margin-bottom:0.2rem;">Gross Burn / 월</div>
+                    <div id="br-gross" style="font-size:1.1rem;font-weight:700;color:#7f1d1d;">-</div>
+                  </div>
+                  <div style="background:#fff7ed;padding:1rem;border-radius:10px;border:1px solid #fed7aa;text-align:center;">
+                    <div style="font-size:0.75rem;color:#ea580c;margin-bottom:0.2rem;">Net Burn / 월</div>
+                    <div id="br-net" style="font-size:1.1rem;font-weight:700;color:#7c2d12;">-</div>
+                  </div>
+                </div>
+
+                <div id="br-dday-box" style="background:#1e293b;padding:1.5rem;border-radius:12px;text-align:center;margin-bottom:1rem;">
+                  <div style="color:#94a3b8;font-size:0.8rem;margin-bottom:0.3rem;">현금 소진 예상일</div>
+                  <div id="br-dday" style="font-size:2rem;font-weight:800;color:#f1f5f9;">-</div>
+                  <div id="br-date" style="color:#64748b;font-size:0.8rem;margin-top:0.3rem;">-</div>
+                </div>
+
+                <div style="background:white;padding:1rem;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:1rem;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                    <span style="color:#64748b;font-size:0.85rem;">Runway</span>
+                    <span id="br-runway" style="font-weight:700;color:#1e293b;">-</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:#64748b;font-size:0.85rem;">펀딩 데드라인 권고</span>
+                    <span id="br-deadline" style="font-weight:600;color:#dc2626;">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 현금 소진 차트 -->
+            <div style="background:white;padding:1.5rem;border-radius:12px;border:1px solid #e2e8f0;margin-top:1rem;">
+              <h4 style="margin-top:0;color:#1e293b;">📈 현금 잔액 추이</h4>
+              <canvas id="burnChart" height="100"></canvas>
+            </div>
           </div>
 
           <!-- Tab 5: Cap Table -->
@@ -652,6 +733,106 @@
                 <li>Vesting 없이 창업자에게 집중된 초기 지분 구조</li>
                 <li>복잡한 전환사채(CB) 미전환 물량으로 인한 잠재적 희석 리스크</li>
               </ul>
+            </div>
+
+            <!-- Cap Table 시뮬레이터 -->
+            <h3 style="margin-top:2.5rem;">지분 구조 시뮬레이터</h3>
+            <div class="calc-container">
+              <div class="calc-input-section">
+                <h3 style="margin-top:0;border:none;padding:0;font-size:1.1rem;margin-bottom:1.5rem;">창업 초기 설정</h3>
+
+                <div style="background:white;padding:1rem;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:1rem;">
+                  <h4 style="margin-top:0;margin-bottom:1rem;font-size:0.9rem;color:#475569;">창업자 구성</h4>
+                  <div class="input-group">
+                    <label>창업자 A 지분 (%)</label>
+                    <input type="number" id="ct-founder-a" value="60" min="0" max="100" oninput="calcCapTable()" />
+                  </div>
+                  <div class="input-group">
+                    <label>창업자 B 지분 (%)</label>
+                    <input type="number" id="ct-founder-b" value="30" min="0" max="100" oninput="calcCapTable()" />
+                  </div>
+                  <div class="input-group">
+                    <label>스톡옵션 풀 ESOP (%)</label>
+                    <input type="number" id="ct-esop" value="10" min="0" max="30" oninput="calcCapTable()" />
+                  </div>
+                </div>
+
+                <div style="background:white;padding:1rem;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:1rem;">
+                  <h4 style="margin-top:0;margin-bottom:1rem;font-size:0.9rem;color:#475569;">투자 라운드</h4>
+
+                  <div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #f1f5f9;">
+                    <div style="font-size:0.8rem;font-weight:600;color:#6366f1;margin-bottom:0.5rem;">🌱 시드 라운드</div>
+                    <div class="input-group" style="margin-bottom:0.5rem;">
+                      <label>Pre-money 기업가치 (억원)</label>
+                      <input type="number" id="ct-seed-pre" placeholder="예: 30" oninput="calcCapTable()" />
+                    </div>
+                    <div class="input-group">
+                      <label>투자 금액 (억원)</label>
+                      <input type="number" id="ct-seed-inv" placeholder="예: 5" oninput="calcCapTable()" />
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #f1f5f9;">
+                    <div style="font-size:0.8rem;font-weight:600;color:#0ea5e9;margin-bottom:0.5rem;">🚀 시리즈 A</div>
+                    <div class="input-group" style="margin-bottom:0.5rem;">
+                      <label>Pre-money 기업가치 (억원)</label>
+                      <input type="number" id="ct-seriesA-pre" placeholder="예: 100" oninput="calcCapTable()" />
+                    </div>
+                    <div class="input-group">
+                      <label>투자 금액 (억원)</label>
+                      <input type="number" id="ct-seriesA-inv" placeholder="예: 30" oninput="calcCapTable()" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style="font-size:0.8rem;font-weight:600;color:#22c55e;margin-bottom:0.5rem;">💰 시리즈 B</div>
+                    <div class="input-group" style="margin-bottom:0.5rem;">
+                      <label>Pre-money 기업가치 (억원)</label>
+                      <input type="number" id="ct-seriesB-pre" placeholder="예: 400" oninput="calcCapTable()" />
+                    </div>
+                    <div class="input-group">
+                      <label>투자 금액 (억원)</label>
+                      <input type="number" id="ct-seriesB-inv" placeholder="예: 100" oninput="calcCapTable()" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="calc-result-section">
+                <h3 style="margin-top:0;border:none;padding:0;font-size:1.1rem;margin-bottom:1.5rem;">지분율 변화</h3>
+                <div id="ct-table" style="overflow-x:auto;">
+                  <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                    <thead>
+                      <tr style="background:#f8fafc;">
+                        <th style="padding:0.6rem;text-align:left;border-bottom:2px solid #e2e8f0;color:#475569;">주주</th>
+                        <th style="padding:0.6rem;text-align:center;border-bottom:2px solid #e2e8f0;color:#475569;">초기</th>
+                        <th style="padding:0.6rem;text-align:center;border-bottom:2px solid #e2e8f0;color:#6366f1;">시드</th>
+                        <th style="padding:0.6rem;text-align:center;border-bottom:2px solid #e2e8f0;color:#0ea5e9;">시리즈A</th>
+                        <th style="padding:0.6rem;text-align:center;border-bottom:2px solid #e2e8f0;color:#22c55e;">시리즈B</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ct-tbody">
+                      <tr><td colspan="5" style="text-align:center;padding:1rem;color:#94a3b8;">값을 입력하면 자동 계산됩니다</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style="background:white;padding:1rem;border-radius:10px;border:1px solid #e2e8f0;margin-top:1rem;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:0.4rem;">
+                    <span style="font-size:0.85rem;color:#64748b;">최종 Post-money 기업가치</span>
+                    <span id="ct-postmoney" style="font-weight:700;color:#1e293b;">-</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="font-size:0.85rem;color:#64748b;">창업자 A 최종 지분</span>
+                    <span id="ct-founder-final" style="font-weight:700;color:#6366f1;">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cap Table 누적 막대 차트 -->
+            <div style="background:white;padding:1.5rem;border-radius:12px;border:1px solid #e2e8f0;margin-top:1rem;">
+              <h4 style="margin-top:0;color:#1e293b;">📊 라운드별 지분 변동</h4>
+              <canvas id="capChart" height="100"></canvas>
             </div>
           </div>
 
@@ -973,6 +1154,7 @@
       </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script src="js/auth.js"></script>
