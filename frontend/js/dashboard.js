@@ -1,31 +1,13 @@
-// 샘플 프로필 데이터 (데모용 - 주식회사 벤처플랫폼)
-const SAMPLE_USER = {
-  name: "박준호",
-  userId: "venture_platform",
-  email: "venture@ventureplatform.co.kr",
-  phone: "050219234562",
-  company: "주식회사 벤처플랫폼",
-  userType: "startup",
-  createdAt: "2024-06-01",
-  portfolio: "https://ventureplatform.biz/",
-  bio: "스타트업과 투자자를 연결하는 VC 라우트 플랫폼 운영사입니다. AI 기반 매칭 시스템으로 최적의 투자 파트너를 찾아드립니다.",
-  verified: true,
-  investTarget: "5억 ~ 20억원",
-  ceoAge: 35,
-  gender: "남성",
-  logoUrl: "image/favicon.png",
-};
-
 document.addEventListener("DOMContentLoaded", () => {
   checkDashboardAuth();
   renderDashboard();
 });
 
 // 대시보드 접근 권한 확인 및 프로필 로드
-function checkDashboardAuth() {
-  if (!isLoggedIn()) {
-    // 비로그인 상태에서도 샘플 프로필 표시 (데모용)
-    renderUserProfile(SAMPLE_USER);
+async function checkDashboardAuth() {
+  const loggedIn = await isLoggedIn();
+  if (!loggedIn) {
+    window.location.href = "index.html";
     return;
   }
   loadUserProfile();
@@ -200,11 +182,9 @@ function switchSection(sectionId) {
     targetSection.classList.add("active");
   }
 
-  // 프로필 섹션 진입 시: 비로그인이면 샘플 프로필 표시
+  // 프로필 섹션 진입 시: 프로필 로드
   if (sectionId === 'profile') {
-    if (!isLoggedIn()) {
-      renderUserProfile(SAMPLE_USER);
-    }
+    loadUserProfile();
   }
 
   // 추천이력 섹션 진입 시 렌더링
@@ -463,4 +443,14 @@ function clearRecommendHistory() {
   if (!confirm("추천 이력을 모두 삭제하시겠습니까?")) return;
   localStorage.removeItem("vcroute_recommend_history");
   loadRecommendHistory();
+}
+
+// 연락한 투자자 내역 그룹 토글
+function toggleContactGroup(group) {
+  const el = document.getElementById('group-contact-' + group);
+  const btn = document.getElementById('btn-contact-' + group);
+  if (!el || !btn) return;
+  const hidden = el.style.display === 'none';
+  el.style.display = hidden ? '' : 'none';
+  btn.style.opacity = hidden ? '1' : '0.45';
 }
