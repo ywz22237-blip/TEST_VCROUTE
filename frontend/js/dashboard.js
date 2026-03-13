@@ -207,6 +207,11 @@ function switchSection(sectionId) {
     }
   }
 
+  // 추천이력 섹션 진입 시 렌더링
+  if (sectionId === 'recommend') {
+    loadRecommendHistory();
+  }
+
   // 사이드바 메뉴 활성 상태 업데이트
   document
     .querySelectorAll(".category-sidebar .filter-item")
@@ -409,4 +414,53 @@ function formatAmount(amount) {
 
 function closeModal() {
   document.getElementById("detailModal").style.display = "none";
+}
+
+// ─── 추천 이력 ─────────────────────────────────────────────────
+function loadRecommendHistory() {
+  const list = JSON.parse(localStorage.getItem("vcroute_recommend_history") || "[]");
+  const container = document.getElementById("recommendList");
+  const empty = document.getElementById("recommendEmpty");
+  if (!container) return;
+
+  if (!list.length) {
+    if (empty) empty.style.display = "block";
+    // remove any previously rendered cards
+    container.querySelectorAll(".recommend-card").forEach(c => c.remove());
+    return;
+  }
+  if (empty) empty.style.display = "none";
+  container.querySelectorAll(".recommend-card").forEach(c => c.remove());
+
+  list.slice().reverse().forEach(item => {
+    const card = document.createElement("div");
+    card.className = "recommend-card";
+    card.style.cssText = "background:white;border:1px solid #e2e8f0;border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1rem;";
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.8rem;">
+        <span style="font-size:0.78rem;color:#94a3b8;">${item.date}</span>
+        <span style="background:${item.matchScore >= 70 ? '#dcfce7' : '#fef9c3'};color:${item.matchScore >= 70 ? '#166534' : '#854d0e'};padding:0.15rem 0.55rem;border-radius:20px;font-size:0.75rem;font-weight:700;">매칭 ${item.matchScore}%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div style="background:#eff6ff;border-radius:10px;padding:0.9rem 1rem;">
+          <div style="font-size:0.72rem;color:#3b82f6;font-weight:700;margin-bottom:0.4rem;"><i class="fa-solid fa-building-columns"></i> 추천 펀드</div>
+          <div style="font-weight:700;color:#1e293b;font-size:0.9rem;margin-bottom:0.2rem;">${item.fundName}</div>
+          <div style="font-size:0.8rem;color:#64748b;">${item.companyName}</div>
+          <div style="font-size:0.78rem;color:#94a3b8;margin-top:0.3rem;">${item.industry}</div>
+        </div>
+        <div style="background:#f5f3ff;border-radius:10px;padding:0.9rem 1rem;">
+          <div style="font-size:0.72rem;color:#7c3aed;font-weight:700;margin-bottom:0.4rem;"><i class="fa-solid fa-user-tie"></i> 매칭 투자자</div>
+          <div style="font-weight:700;color:#1e293b;font-size:0.9rem;margin-bottom:0.2rem;">${item.gpName} 심사역</div>
+          <div style="font-size:0.8rem;color:#64748b;">${item.gpCompany}</div>
+          <div style="font-size:0.78rem;color:#94a3b8;margin-top:0.3rem;">${item.gpEmail}</div>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function clearRecommendHistory() {
+  if (!confirm("추천 이력을 모두 삭제하시겠습니까?")) return;
+  localStorage.removeItem("vcroute_recommend_history");
+  loadRecommendHistory();
 }

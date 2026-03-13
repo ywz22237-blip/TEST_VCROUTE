@@ -402,7 +402,7 @@
         }
       }
 
-      /* IM/IR Section Styles */
+      /* 자료보관함 Section Styles */
       .imir-header {
         display: flex;
         justify-content: space-between;
@@ -715,10 +715,10 @@
           <ul class="nav-menu">
             <li><a href="index.html">홈</a></li>
             <li><a href="dashboard.html" class="active">대시보드</a></li>
+                        <li><a href="DCF.html">데이터 시뮬레이션</a></li>
             <li><a href="ir-score.html">투자 매력도 진단</a></li>
             <li><a href="fund.html">투자펀드</a></li>
             <li><a href="investors.html">투자자</a></li>
-            <li><a href="DCF.html">데이터 시뮬레이션</a></li>
             <li><a href="notice.html">공지사항</a></li>
           </ul>
         </nav>
@@ -793,7 +793,11 @@
               </label>
               <label class="filter-item" onclick="switchSection('imir')">
                 <i class="fa-solid fa-file-pdf" style="width: 20px"></i>
-                <span>IM/IR</span>
+                <span>자료보관함</span>
+              </label>
+              <label class="filter-item" onclick="switchSection('recommend')">
+                <i class="fa-solid fa-bookmark" style="width: 20px"></i>
+                <span>추천 이력</span>
               </label>
               <label class="filter-item" onclick="switchSection('history')">
                 <i class="fa-solid fa-history" style="width: 20px"></i>
@@ -1112,14 +1116,14 @@
 
           </section>
 
-          <!-- IM/IR Section -->
+          <!-- 자료보관함 Section -->
           <section
             id="imirSection"
             class="dashboard-section"
             style="display: none"
           >
             <div class="imir-header">
-              <h2>나의 IM/IR 자료</h2>
+              <h2>나의 자료보관함</h2>
               <button class="btn-upload">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
                 파일 업로드
@@ -1380,6 +1384,23 @@
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recommendation History Section -->
+          <section id="recommendSection" class="dashboard-section" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+              <h2 style="margin:0;">추천 이력</h2>
+              <button onclick="clearRecommendHistory()" style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;cursor:pointer;color:#64748b;font-family:inherit;">기록 초기화</button>
+            </div>
+            <div class="content-box highlight" style="margin-bottom:1.5rem;">
+              <p style="margin:0;font-size:0.9rem;color:#1e40af;"><i class="fa-solid fa-circle-info"></i>&nbsp; <strong>투자 매력도 진단</strong>에서 펀드 및 투자자를 선택하면 이 곳에 자동으로 기록됩니다.</p>
+            </div>
+            <div id="recommendList">
+              <div id="recommendEmpty" style="text-align:center;padding:3rem;color:#94a3b8;">
+                <i class="fa-solid fa-bookmark" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>
+                아직 추천 이력이 없습니다.<br/>투자 매력도 진단에서 펀드를 선택해보세요.
               </div>
             </div>
           </section>
