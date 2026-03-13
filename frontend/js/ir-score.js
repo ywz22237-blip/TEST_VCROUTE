@@ -468,6 +468,34 @@ function renderInvestorInFundTab() {
   section.style.display = "block";
   document.getElementById("fundGoMailBtn").disabled = false;
   setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+
+  // localStorage에 추천 이력 저장
+  saveRecommendHistory();
+}
+
+function saveRecommendHistory() {
+  if (!selectedFund || !selectedGP) return;
+  const history = JSON.parse(localStorage.getItem("vcroute_recommend_history") || "[]");
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  // 동일 펀드+투자자 중복 저장 방지
+  const isDup = history.some(h => h.fundName === selectedFund.fundName && h.gpName === selectedGP.name);
+  if (isDup) return;
+
+  history.push({
+    date: dateStr,
+    fundName: selectedFund.fundName,
+    companyName: selectedFund.companyName,
+    industry: selectedFund.industry,
+    matchScore: selectedFund.matchScore || 0,
+    gpName: selectedGP.name,
+    gpCompany: selectedGP.company,
+    gpEmail: selectedGP.email,
+  });
+  // 최대 20건 유지
+  if (history.length > 20) history.splice(0, history.length - 20);
+  localStorage.setItem("vcroute_recommend_history", JSON.stringify(history));
 }
 
 // ─── GP 매칭 (Option C: manager 이름으로 연결) ──────────────────
