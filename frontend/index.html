@@ -7,16 +7,123 @@
     <link rel="icon" type="image/png" href="image/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
+    <style>
+      /* ===== 메인 래퍼 ===== */
+      .main-wrap { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+      .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+      .section-title h2 { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+      .section-title h2 i { color: var(--primary-color); font-size: 1rem; }
+      .section-title a { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 0.3rem; transition: color 0.2s; text-decoration: none; }
+      .section-title a:hover { color: var(--primary-color); }
+
+      /* ===== 배너 슬라이더 ===== */
+      .banner-section { padding: 1.5rem 0 0; }
+      .slider-wrap { position: relative; overflow: hidden; border-radius: 20px; height: 320px; }
+      .slides { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+      .slide { min-width: 100%; height: 100%; display: flex; align-items: center; padding: 3rem 4rem; position: relative; overflow: hidden; }
+      .slide-1 { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); }
+      .slide-2 { background: linear-gradient(135deg, #064e3b 0%, #059669 60%, #34d399 100%); }
+      .slide-3 { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 60%, #fb923c 100%); }
+      .slide-4 { background: linear-gradient(135deg, #581c87 0%, #9333ea 60%, #c084fc 100%); }
+      .slide::before { content: ''; position: absolute; right: -60px; top: -60px; width: 380px; height: 380px; border-radius: 50%; background: rgba(255,255,255,0.06); }
+      .slide::after { content: ''; position: absolute; right: 80px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.04); }
+      .slide-text { position: relative; z-index: 1; color: white; }
+      .slide-tag { display: inline-block; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); padding: 0.3rem 0.85rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: 0.05em; }
+      .slide-text h2 { font-size: 1.9rem; font-weight: 900; line-height: 1.25; margin-bottom: 0.75rem; color: white; letter-spacing: -0.03em; }
+      .slide-text p { font-size: 0.9rem; opacity: 0.85; margin-bottom: 1.5rem; line-height: 1.6; }
+      .slide-btn { display: inline-block; background: white; color: #1e3a8a; padding: 0.6rem 1.4rem; border-radius: 999px; font-size: 0.88rem; font-weight: 700; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s; }
+      .slide-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+      .slider-controls { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; z-index: 10; }
+      .dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.3s; border: none; padding: 0; }
+      .dot.active { width: 24px; background: white; }
+      .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1rem; cursor: pointer; z-index: 10; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
+      .slider-arrow:hover { background: rgba(255,255,255,0.35); }
+      .slider-arrow.prev { left: 1rem; }
+      .slider-arrow.next { right: 1rem; }
+
+      /* ===== 퀵메뉴 ===== */
+      .quick-menu { padding: 1.75rem 0; border-bottom: 1px solid #f1f5f9; }
+      .quick-menu-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; }
+      .quick-item { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 1.25rem 0.5rem; background: white; border: 1px solid var(--border-color); border-radius: 16px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
+      .quick-item:hover { border-color: var(--primary-color); background: #eff6ff; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(37,99,235,0.1); }
+      .quick-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+      .qi-1 { background: #eff6ff; color: #2563eb; }
+      .qi-2 { background: #f0fdf4; color: #16a34a; }
+      .qi-3 { background: #fff7ed; color: #ea580c; }
+      .qi-4 { background: #fdf4ff; color: #9333ea; }
+      .qi-5 { background: #fff1f2; color: #e11d48; }
+      .qi-6 { background: #f0f9ff; color: #0284c7; }
+      .quick-item span { font-size: 0.8rem; font-weight: 600; color: #374151; text-align: center; line-height: 1.3; }
+
+      /* ===== 콘텐츠 섹션 ===== */
+      .content-section { padding: 2.5rem 0; border-bottom: 1px solid #f1f5f9; }
+
+      /* ===== 투자자 카드 ===== */
+      .investor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      .investor-card { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+      .investor-card:hover { border-color: #93c5fd; box-shadow: 0 8px 24px rgba(37,99,235,0.08); transform: translateY(-2px); }
+      .investor-top { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem; }
+      .inv-avatar { width: 48px; height: 48px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+      .inv-info h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; }
+      .inv-info span { font-size: 0.8rem; color: var(--text-secondary); }
+      .inv-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.85rem; }
+      .inv-tag { background: #f1f5f9; color: #475569; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+      .inv-stats { display: flex; gap: 1rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; }
+      .inv-stat { display: flex; flex-direction: column; gap: 0.1rem; }
+      .inv-stat .val { font-size: 0.9rem; font-weight: 800; color: var(--text-primary); }
+      .inv-stat .lbl { font-size: 0.72rem; color: #94a3b8; }
+      .view-badge { margin-left: auto; display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #94a3b8; white-space: nowrap; }
+
+      /* ===== 펀드 카드 ===== */
+      .fund-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+      .fund-card { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+      .fund-card:hover { border-color: #6ee7b7; box-shadow: 0 8px 24px rgba(16,185,129,0.08); transform: translateY(-2px); }
+      .fund-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+      .fund-badge { padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+      .badge-ict { background: #dbeafe; color: #1d4ed8; }
+      .badge-bio { background: #d1fae5; color: #065f46; }
+      .badge-fin { background: #fef9c3; color: #854d0e; }
+      .badge-etc { background: #ede9fe; color: #5b21b6; }
+      .fund-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .fund-company { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .fund-meta { display: flex; gap: 1.25rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; }
+      .fund-meta-item { display: flex; flex-direction: column; gap: 0.1rem; }
+      .fund-meta-item .v { font-size: 0.88rem; font-weight: 800; color: var(--text-primary); }
+      .fund-meta-item .l { font-size: 0.72rem; color: #94a3b8; }
+
+      /* ===== 하단 2열 ===== */
+      .bottom-section { padding: 2.5rem 0 3rem; }
+      .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .notice-box, .service-box { background: white; border: 1px solid var(--border-color); border-radius: 20px; overflow: hidden; }
+      .box-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+      .box-header h3 { font-size: 1rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+      .box-header a { font-size: 0.8rem; color: var(--text-secondary); text-decoration: none; font-weight: 500; }
+      .box-header a:hover { color: var(--primary-color); }
+      .notice-list { padding: 0.5rem 0; }
+      .notice-item { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.5rem; border-bottom: 1px solid #f8fafc; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+      .notice-item:last-child { border-bottom: none; }
+      .notice-item:hover { background: #f8fafc; }
+      .notice-item .ntitle { font-size: 0.88rem; color: #374151; font-weight: 500; flex: 1; margin-right: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .notice-item .ndate { font-size: 0.78rem; color: #94a3b8; flex-shrink: 0; }
+      .notice-new { background: #eff6ff; color: #2563eb; font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.4rem; flex-shrink: 0; }
+      .service-list { padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+      .service-item { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #f1f5f9; transition: all 0.2s; cursor: pointer; text-decoration: none; }
+      .service-item:hover { background: #eff6ff; border-color: #bfdbfe; }
+      .service-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+      .si-1 { background: #eff6ff; color: #2563eb; }
+      .si-2 { background: #f0fdf4; color: #16a34a; }
+      .si-3 { background: #fff7ed; color: #ea580c; }
+      .service-item-text h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.2rem; }
+      .service-item-text p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+
+      /* 스켈레톤 로딩 */
+      .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+      @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
   </head>
   <body>
     <!-- Header -->
@@ -27,7 +134,7 @@
           <ul class="nav-menu">
             <li><a href="index.html" class="active">홈</a></li>
             <li><a href="dashboard.html">대시보드</a></li>
-                        <li><a href="DCF.html">데이터<br>시뮬레이션</a></li>
+            <li><a href="DCF.html">데이터<br>시뮬레이션</a></li>
             <li><a href="ir-score.html">투자<br>진단&추천</a></li>
             <li><a href="fund.html">투자펀드</a></li>
             <li><a href="investors.html">투자자</a></li>
@@ -35,7 +142,6 @@
           </ul>
         </nav>
         <div class="auth-buttons">
-          <!-- Language Toggle -->
           <div class="lang-toggle" id="langToggle">
             <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
               <span id="currentLang">Language</span>
@@ -47,130 +153,158 @@
               <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
             </div>
           </div>
-          <!-- 로그인 상태에 따라 동적으로 변경됨 (auth.js) -->
         </div>
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1>스타트업 투자 여정의<br />완벽한 파트너</h1>
-        <p class="subtitle">
-          초기 스타트업을 위한 올인원 투자 플랫폼<br />
-          펀드 매칭부터 기업 가치 평가까지, 한 곳에서 해결하세요
-        </p>
-        <div class="hero-buttons">
-          <a href="fund.html" class="btn-primary">무료로 시작하기</a>
-        </div>
-      </div>
-    </section>
+    <div class="main-wrap">
 
-    <!-- Features Section -->
-    <section class="features" id="features">
-      <div class="section-header">
-        <h2>스타트업 성공을 위한 모든 도구</h2>
-        <p>
-          투자 유치부터 성장까지, 스타트업이 필요한 모든 기능을 하나의
-          플랫폼에서 제공합니다
-        </p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3>맞춤형 대시보드</h3>
-          <p>
-            스타트업 현황, 투자 진행 상황, 시장 트렌드를 한눈에 파악할 수 있는
-            개인화된 대시보드
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">💰</div>
-          <h3>투자펀드 매칭</h3>
-          <p>
-            AI 기반 매칭 시스템으로 스타트업 단계와 업종에 최적화된 투자펀드를
-            추천
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🤝</div>
-          <h3>투자자 네트워크</h3>
-          <p>검증된 투자자들과의 직접적인 네트워킹 기회 제공 및 소개 시스템</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📈</div>
-          <h3>투자 동향 분석</h3>
-          <p>
-            실시간 투자 시장 분석과 업계 트렌드 리포트로 전략적 의사결정 지원
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🎯</div>
-          <h3>데모데이</h3>
-          <p>
-            온라인/오프라인 피칭 기회 제공 및 투자자 매칭을 위한 데모데이 정보
-            제공
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">💎</div>
-          <h3>기업가치 평가 (DCF)</h3>
-          <p>
-            정교한 DCF 모델을 통한 객관적 기업가치 산정 및 투자 유치 전략 수립
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Process Section -->
-    <section class="process" id="process">
-      <div class="process-container">
-        <div class="section-header">
-          <h2>간단한 4단계로 투자 유치 시작</h2>
-          <p>
-            복잡한 투자 과정을 체계화하여 더 빠르고 효율적인 투자 유치를
-            실현하세요
-          </p>
-        </div>
-
-        <div class="process-steps">
-          <div class="process-step">
-            <div class="step-number">01</div>
-            <h3>기업 프로필 등록</h3>
-            <p>스타트업 정보와 사업 계획을 입력하고 기업 프로필을 완성하세요</p>
+      <!-- ===== 1. 배너 슬라이더 ===== -->
+      <section class="banner-section">
+        <div class="slider-wrap">
+          <div class="slides" id="slides">
+            <div class="slide slide-1">
+              <div class="slide-text">
+                <span class="slide-tag">🚀 AI 투자 진단</span>
+                <h2>IR 덱 업로드 하나로<br>투자 유치 성공률을 높이세요</h2>
+                <p>AI가 투자 매력도를 분석하고 최적의 펀드·투자자를 추천해드립니다.</p>
+                <a href="ir-score.html" class="slide-btn">IR 진단 시작하기 →</a>
+              </div>
+            </div>
+            <div class="slide slide-2">
+              <div class="slide-text">
+                <span class="slide-tag">💰 투자펀드 매칭</span>
+                <h2>스타트업 단계에 맞는<br>최적의 벤처펀드를 찾으세요</h2>
+                <p>수백 개의 모태펀드 자조합 중 우리 회사에 딱 맞는 펀드를 AI로 추천받으세요.</p>
+                <a href="fund.html" class="slide-btn">펀드 목록 보기 →</a>
+              </div>
+            </div>
+            <div class="slide slide-3">
+              <div class="slide-text">
+                <span class="slide-tag">📅 데모데이</span>
+                <h2>스프링 데모데이 2026<br>참가 스타트업 모집 중</h2>
+                <p>유망 스타트업과 투자자를 연결하는 VC route 데모데이에 지금 신청하세요.</p>
+                <a href="notice.html" class="slide-btn">자세히 보기 →</a>
+              </div>
+            </div>
+            <div class="slide slide-4">
+              <div class="slide-text">
+                <span class="slide-tag">📊 데이터 시뮬레이션</span>
+                <h2>DCF로 우리 회사의<br>기업가치를 직접 계산해보세요</h2>
+                <p>DCF·LTV/CAC·Burn Rate·Cap Table 계산을 쉽고 빠르게 시뮬레이션합니다.</p>
+                <a href="DCF.html" class="slide-btn">시뮬레이션 하기 →</a>
+              </div>
+            </div>
           </div>
+          <button class="slider-arrow prev" onclick="changeSlide(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="slider-arrow next" onclick="changeSlide(1)"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="slider-controls" id="dots"></div>
+        </div>
+      </section>
 
-          <div class="process-step">
-            <div class="step-number">02</div>
-            <h3>AI 매칭 & 분석</h3>
-            <p>AI가 최적의 투자펀드를 매칭하고 기업가치를 분석해 드립니다</p>
+      <!-- ===== 2. 퀵메뉴 ===== -->
+      <section class="quick-menu">
+        <div class="quick-menu-grid">
+          <a href="fund.html" class="quick-item">
+            <div class="quick-icon qi-1"><i class="fa-solid fa-coins"></i></div>
+            <span>투자펀드</span>
+          </a>
+          <a href="investors.html" class="quick-item">
+            <div class="quick-icon qi-2"><i class="fa-solid fa-user-tie"></i></div>
+            <span>투자자</span>
+          </a>
+          <a href="startups.html" class="quick-item">
+            <div class="quick-icon qi-3"><i class="fa-solid fa-rocket"></i></div>
+            <span>스타트업</span>
+          </a>
+          <a href="DCF.html" class="quick-item">
+            <div class="quick-icon qi-4"><i class="fa-solid fa-calculator"></i></div>
+            <span>데이터<br>시뮬레이션</span>
+          </a>
+          <a href="ir-score.html" class="quick-item">
+            <div class="quick-icon qi-5"><i class="fa-solid fa-chart-pie"></i></div>
+            <span>투자<br>진단&추천</span>
+          </a>
+          <a href="notice.html" class="quick-item">
+            <div class="quick-icon qi-6"><i class="fa-solid fa-bullhorn"></i></div>
+            <span>공지사항</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ===== 3. 인기 투자자 ===== -->
+      <section class="content-section">
+        <div class="section-title">
+          <h2><i class="fa-solid fa-fire"></i> 인기 투자자</h2>
+          <a href="investors.html">전체보기 <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+        <div class="investor-grid" id="topInvestors">
+          <!-- JS로 렌더링 -->
+          <div class="investor-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="investor-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="investor-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="investor-card"><div class="skeleton" style="height:120px"></div></div>
+        </div>
+      </section>
+
+      <!-- ===== 4. 인기 펀드 ===== -->
+      <section class="content-section">
+        <div class="section-title">
+          <h2><i class="fa-solid fa-trophy"></i> 인기 펀드</h2>
+          <a href="fund.html">전체보기 <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+        <div class="fund-grid" id="topFunds">
+          <!-- JS로 렌더링 -->
+          <div class="fund-card"><div class="skeleton" style="height:140px"></div></div>
+          <div class="fund-card"><div class="skeleton" style="height:140px"></div></div>
+          <div class="fund-card"><div class="skeleton" style="height:140px"></div></div>
+        </div>
+      </section>
+
+      <!-- ===== 5. 공지사항 + 주요 서비스 ===== -->
+      <section class="bottom-section">
+        <div class="bottom-grid">
+          <div class="notice-box">
+            <div class="box-header">
+              <h3><i class="fa-solid fa-bullhorn" style="color:#2563eb"></i> 공지사항</h3>
+              <a href="notice.html">더보기 →</a>
+            </div>
+            <div class="notice-list" id="noticeList">
+              <!-- JS로 렌더링 -->
+            </div>
           </div>
-
-          <div class="process-step">
-            <div class="step-number">03</div>
-            <h3>투자자 연결</h3>
-            <p>
-              관심있는 투자자들과 연결되어 피칭 기회를 얻고 투자를 유치하세요
-            </p>
-          </div>
-
-          <div class="process-step">
-            <div class="step-number">04</div>
-            <h3>투자 유치</h3>
-            <p>
-              최종 투자 유치, Series A 투자 유치 성공 시 플랫폼에서 '졸업🎓'
-              보상금 지급
-            </p>
+          <div class="service-box">
+            <div class="box-header">
+              <h3><i class="fa-solid fa-star" style="color:#f59e0b"></i> 주요 서비스</h3>
+            </div>
+            <div class="service-list">
+              <a href="ir-score.html" class="service-item">
+                <div class="service-icon si-1"><i class="fa-solid fa-chart-pie"></i></div>
+                <div class="service-item-text">
+                  <h4>AI 투자 진단 & 추천</h4>
+                  <p>IR 덱 분석으로 투자 매력도 스코어링 및 최적 펀드·투자자 자동 매칭</p>
+                </div>
+              </a>
+              <a href="DCF.html" class="service-item">
+                <div class="service-icon si-2"><i class="fa-solid fa-calculator"></i></div>
+                <div class="service-item-text">
+                  <h4>데이터 시뮬레이션</h4>
+                  <p>DCF·LTV/CAC·Burn Rate·Cap Table 계산을 인터랙티브하게 시뮬레이션</p>
+                </div>
+              </a>
+              <a href="fund.html" class="service-item">
+                <div class="service-icon si-3"><i class="fa-solid fa-coins"></i></div>
+                <div class="service-item-text">
+                  <h4>투자펀드 매칭</h4>
+                  <p>스타트업 단계·업종에 최적화된 벤처펀드를 AI로 추천 및 신청</p>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+    </div><!-- /main-wrap -->
 
     <!-- Footer -->
     <footer>
@@ -178,10 +312,7 @@
         <div class="footer-top">
           <div class="footer-brand">
             <a href="index.html" class="logo">VC route</a>
-            <p>
-              초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭
-              플랫폼입니다.
-            </p>
+            <p>초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭 플랫폼입니다.</p>
             <div class="footer-social">
               <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
               <a href="#"><i class="fa-brands fa-instagram"></i></a>
@@ -192,30 +323,10 @@
           <div class="footer-links">
             <h4>주식회사 벤처플랫폼</h4>
             <ul>
-              <li>
-                <a href="https://ventureplatform.biz/about.html" target="_blank"
-                  >About</a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://ventureplatform.biz/service.html"
-                  target="_blank"
-                  >Service</a
-                >
-              </li>
-              <li>
-                <a href="https://ventureplatform.biz/news.html" target="_blank"
-                  >News</a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://ventureplatform.biz/contact.html"
-                  target="_blank"
-                  >Contact</a
-                >
-              </li>
+              <li><a href="https://ventureplatform.biz/about.html" target="_blank">About</a></li>
+              <li><a href="https://ventureplatform.biz/service.html" target="_blank">Service</a></li>
+              <li><a href="https://ventureplatform.biz/news.html" target="_blank">News</a></li>
+              <li><a href="https://ventureplatform.biz/contact.html" target="_blank">Contact</a></li>
             </ul>
           </div>
           <div class="footer-links">
@@ -224,17 +335,12 @@
               <li><a href="notice.html">공지사항</a></li>
               <li><a href="notice.html?category=update">데모데이</a></li>
               <li><a href="notice.html?category=event">이벤트</a></li>
-              <li>
-                <a href="mailto:venture@ventureplatform.co.kr">광고문의</a>
-              </li>
+              <li><a href="mailto:venture@ventureplatform.co.kr">광고문의</a></li>
             </ul>
           </div>
           <div class="footer-contact">
             <h4>연락처</h4>
-            <p>
-              <i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구
-              동백5로 22, 215호 (주식회사 벤처플랫폼)
-            </p>
+            <p><i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구 동백5로 22, 215호 (주식회사 벤처플랫폼)</p>
             <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
             <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
           </div>
@@ -253,9 +359,160 @@
       </div>
     </footer>
 
-    <script src="js/script.js"></script>
+    <!-- 데이터 스크립트 로드 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/funds.js"></script>
+    <script src="js/notice.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+      /* ===== 슬라이더 ===== */
+      let current = 0;
+      const TOTAL = 4;
+      const slidesEl = document.getElementById('slides');
+      const dotsEl = document.getElementById('dots');
+
+      for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement('button');
+        d.className = 'dot' + (i === 0 ? ' active' : '');
+        d.onclick = () => goSlide(i);
+        dotsEl.appendChild(d);
+      }
+
+      function goSlide(n) {
+        current = (n + TOTAL) % TOTAL;
+        slidesEl.style.transform = `translateX(-${current * 100}%)`;
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+      }
+      function changeSlide(dir) { goSlide(current + dir); }
+      setInterval(() => changeSlide(1), 5000);
+
+      /* ===== 아바타 색상 팔레트 ===== */
+      const AVATAR_COLORS = [
+        'linear-gradient(135deg,#2563eb,#3b82f6)',
+        'linear-gradient(135deg,#059669,#34d399)',
+        'linear-gradient(135deg,#ea580c,#fb923c)',
+        'linear-gradient(135deg,#9333ea,#c084fc)',
+        'linear-gradient(135deg,#dc2626,#f87171)',
+        'linear-gradient(135deg,#0284c7,#38bdf8)',
+        'linear-gradient(135deg,#d97706,#fbbf24)',
+        'linear-gradient(135deg,#0f766e,#2dd4bf)',
+      ];
+
+      /* ===== 투자자 렌더링 ===== */
+      function renderTopInvestors() {
+        const container = document.getElementById('topInvestors');
+        if (!container || typeof investorsData === 'undefined') return;
+
+        // 인기 순 정렬: investments * successRate 기준
+        const top4 = [...investorsData]
+          .sort((a, b) => (b.investments * b.successRate) - (a.investments * a.successRate))
+          .slice(0, 4);
+
+        const stageLabel = { 'seed': 'Seed', 'pre-a': 'Pre-A', 'series-a': 'Series A', 'series-b': 'Series B', 'series-c': 'Series C' };
+        const typeLabel = { 'llc': 'LLC', 'corp': '주식회사', 'fund': '펀드' };
+
+        container.innerHTML = top4.map((inv, idx) => {
+          const stages = (inv.stages || []).slice(0, 2).map(s => `<span class="inv-tag">${stageLabel[s] || s}</span>`).join('');
+          const typeTag = inv.type ? `<span class="inv-tag">${typeLabel[inv.type] || inv.type}</span>` : '';
+          const aum = inv.totalInvestment >= 1000000 ? `${(inv.totalInvestment / 1000000).toFixed(1)}조+` :
+                      inv.totalInvestment >= 10000 ? `${Math.round(inv.totalInvestment / 10000)}억+` : '-';
+          const views = Math.round(inv.investments * inv.successRate * 3.1 + idx * 200 + 800).toLocaleString();
+          const color = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+
+          return `
+            <a href="investors.html" class="investor-card">
+              <div class="investor-top">
+                <div class="inv-avatar" style="background:${color}">${inv.avatar || inv.name[0]}</div>
+                <div class="inv-info">
+                  <h4>${inv.name}</h4>
+                  <span>${inv.company}</span>
+                </div>
+                <div class="view-badge"><i class="fa-solid fa-eye"></i> ${views}</div>
+              </div>
+              <div class="inv-tags">${stages}${typeTag}</div>
+              <div class="inv-stats">
+                <div class="inv-stat"><span class="val">${inv.investments}건</span><span class="lbl">포트폴리오</span></div>
+                <div class="inv-stat"><span class="val">${inv.successRate}%</span><span class="lbl">성공률</span></div>
+                <div class="inv-stat"><span class="val">${aum}</span><span class="lbl">AUM</span></div>
+              </div>
+            </a>`;
+        }).join('');
+      }
+
+      /* ===== 펀드 렌더링 ===== */
+      function renderTopFunds() {
+        const container = document.getElementById('topFunds');
+        if (!container || typeof SAMPLE_FUNDS === 'undefined') return;
+
+        // 규모 상위 3개
+        const top3 = [...SAMPLE_FUNDS]
+          .sort((a, b) => b.totalAmount - a.totalAmount)
+          .slice(0, 3);
+
+        const getBadge = (industry) => {
+          if (!industry) return ['badge-etc', '기타'];
+          if (industry.includes('바이오') || industry.includes('헬스')) return ['badge-bio', '바이오/헬스'];
+          if (industry.includes('핀테크') || industry.includes('금융')) return ['badge-fin', '핀테크'];
+          if (industry.includes('ICT') || industry.includes('AI')) return ['badge-ict', 'ICT/AI'];
+          return ['badge-etc', industry.split(',')[0].trim()];
+        };
+
+        container.innerHTML = top3.map((fund, idx) => {
+          const [badgeClass, badgeText] = getBadge(fund.industry);
+          const amount = fund.totalAmount >= 100000000000
+            ? `${Math.round(fund.totalAmount / 100000000000 * 10) / 10}조`
+            : `${Math.round(fund.totalAmount / 100000000)}억`;
+          const views = Math.round(fund.totalAmount / 100000000 * 0.28 + idx * 300 + 1200).toLocaleString();
+
+          return `
+            <a href="fund.html" class="fund-card">
+              <div class="fund-header">
+                <span class="fund-badge ${badgeClass}">${badgeText}</span>
+                <div class="view-badge"><i class="fa-solid fa-eye"></i> ${views}</div>
+              </div>
+              <h4>${fund.fundName}</h4>
+              <p class="fund-company">${fund.companyName} · ${fund.industry}</p>
+              <div class="fund-meta">
+                <div class="fund-meta-item"><span class="v">${amount}</span><span class="l">펀드 규모</span></div>
+                <div class="fund-meta-item"><span class="v">${fund.fundType}</span><span class="l">펀드 유형</span></div>
+                <div class="fund-meta-item"><span class="v">${fund.baseRate}%</span><span class="l">기준 수익률</span></div>
+              </div>
+            </a>`;
+        }).join('');
+      }
+
+      /* ===== 공지사항 렌더링 ===== */
+      function renderNotices() {
+        const container = document.getElementById('noticeList');
+        if (!container || typeof SAMPLE_NOTICES === 'undefined') return;
+
+        const top5 = [...SAMPLE_NOTICES]
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 5);
+
+        const now = new Date();
+        container.innerHTML = top5.map(notice => {
+          const diff = (now - new Date(notice.date)) / (1000 * 60 * 60 * 24);
+          const isNew = diff < 14;
+          const dateStr = notice.date.replace(/-/g, '.').slice(2);
+          return `
+            <a href="notice.html" class="notice-item">
+              <span class="ntitle">${notice.title}</span>
+              ${isNew ? '<span class="notice-new">NEW</span>' : ''}
+              <span class="ndate">${dateStr}</span>
+            </a>`;
+        }).join('');
+      }
+
+      /* ===== 초기 렌더링 ===== */
+      document.addEventListener('DOMContentLoaded', () => {
+        renderTopInvestors();
+        renderTopFunds();
+        renderNotices();
+      });
+    </script>
   </body>
 </html>
