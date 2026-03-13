@@ -134,6 +134,26 @@
       </div>
     </header>
 
+    <!-- 베타 무료 배너 -->
+    <div style="background:linear-gradient(90deg,#2563eb,#3b82f6);color:white;text-align:center;padding:0.75rem 1rem;font-size:0.92rem;font-weight:700;letter-spacing:-0.01em;display:flex;align-items:center;justify-content:center;gap:0.6rem;">
+      <span style="font-size:1.1rem;">🎉</span>
+      베타 기간 동안 <strong style="text-decoration:underline;text-underline-offset:3px;">모든 서비스를 무료</strong>로 제공합니다 &nbsp;·&nbsp; 향후 정식 출시 시 요금제가 적용될 예정입니다
+    </div>
+
+    <!-- 베타 무료 팝업 -->
+    <div id="betaPopupOverlay" onclick="closeBetaPopup()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+      <div onclick="event.stopPropagation()" style="background:white;border-radius:24px;padding:2.5rem 2rem 2rem;max-width:420px;width:90%;text-align:center;position:relative;box-shadow:0 24px 60px rgba(0,0,0,0.2);animation:popupIn 0.3s ease;">
+        <button onclick="closeBetaPopup()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;line-height:1;">&times;</button>
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1.25rem;">🎉</div>
+        <h2 style="font-size:1.35rem;font-weight:900;color:#1e293b;margin:0 0 0.75rem;">현재 모든 서비스는<br>무료로 제공되고 있습니다</h2>
+        <p style="font-size:0.9rem;color:#64748b;line-height:1.6;margin:0 0 1.75rem;">VC route는 현재 베타 서비스 중입니다.<br>정식 출시 전까지 모든 기능을 무료로 이용하실 수 있습니다.</p>
+        <button onclick="closeBetaPopup()" style="width:100%;padding:0.85rem;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.3);">무료로 시작하기</button>
+      </div>
+    </div>
+    <style>
+      @keyframes popupIn { from { opacity:0; transform:scale(0.92) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    </style>
+
     <main>
       <div class="pricing-page">
 
@@ -404,6 +424,19 @@
     <script src="js/script.js"></script>
     <script src="js/auth.js"></script>
     <script>
+      // 베타 팝업 (세션당 1회)
+      function openBetaPopup() {
+        if (sessionStorage.getItem('betaPopupSeen')) return;
+        const overlay = document.getElementById('betaPopupOverlay');
+        overlay.style.display = 'flex';
+        sessionStorage.setItem('betaPopupSeen', '1');
+      }
+      function closeBetaPopup() {
+        document.getElementById('betaPopupOverlay').style.display = 'none';
+      }
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeBetaPopup(); });
+      window.addEventListener('DOMContentLoaded', function() { setTimeout(openBetaPopup, 400); });
+
       let isYearly = false;
       let currentTab = 'startup';
 
