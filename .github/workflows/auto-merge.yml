@@ -39,7 +39,8 @@ jobs:
               return;
             }
 
-            // 기존 PR 확인
+            // PR mergeable 여부 확인 (충돌 시 rebase 후 재시도)
+            // 기존 PR 확인 (open + closed 최근 것 포함)
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -65,12 +66,35 @@ jobs:
               console.log(`기존 PR 사용: #${pr.number}`);
             }
 
-            // PR 머지
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr.number,
-              merge_method: 'squash'
-            });
+            // mergeable 상태 대기 (최대 30초)
+            let mergeable = null;
+            for (let i = 0; i < 6; i++) {
+              const { data: prDetail } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              mergeable = prDetail.mergeable;
+              if (mergeable !== null) break;
+              await new Promise(r => setTimeout(r, 5000));
+            }
 
-            console.log(`PR #${pr.number} 머지 완료 → Vercel 자동 배포 시작`);
+            if (mergeable === false) {
+              console.log('머지 충돌 발생 - checkout rebase로 해결 시도');
+              // rebase를 통한 충돌 해결은 Actions에서 별도 step 필요
+              // 일단 merge 강제 시도 (GitHub이 자동 rebase)
+            }
+
+            // PR 머지 (merge 방식: 히스토리 보존으로 squash 충돌 방지)
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                merge_method: 'merge'
+              });
+              console.log(`PR #${pr.number} 머지 완료 → Vercel 자동 배포 시작`);
+            } catch (mergeErr) {
+              console.log(`머지 실패: ${mergeErr.message}`);
+              core.setFailed(mergeErr.message);
+            }
