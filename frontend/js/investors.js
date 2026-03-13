@@ -754,7 +754,8 @@ function renderInvestors(investors) {
 
       <div class="investor-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
         <span class="tag">${formatType(investor.type)}</span>
-        ${investor.tps ? '<span class="tag tag-special">TPS</span>' : ""}
+        ${investor.tps ? '<span class="tag tag-special">TIPS</span>' : ""}
+        ${investor.sups ? '<span class="tag tag-special tag-sups">TIPS (Scale up)</span>' : ""}
         ${investor.lips ? '<span class="tag tag-special">LIPS</span>' : ""}
         ${investor.tops ? '<span class="tag tag-special">TOPS</span>' : ""}
       </div>
@@ -792,7 +793,8 @@ function openInvestorModal(id) {
           <p style="color: var(--primary-color); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.75rem;">${formatType(investor.type)}</p>
           <div style="display: flex; gap: 0.5rem;">
             <span class="tag">${formatType(investor.type)}</span>
-            ${investor.tps ? '<span class="tag tag-special">TPS</span>' : ""}
+            ${investor.tps ? '<span class="tag tag-special">TIPS</span>' : ""}
+            ${investor.sups ? '<span class="tag tag-special tag-sups">TIPS (Scale up)</span>' : ""}
             ${investor.lips ? '<span class="tag tag-special">LIPS</span>' : ""}
             ${investor.tops ? '<span class="tag tag-special">TOPS</span>' : ""}
           </div>
