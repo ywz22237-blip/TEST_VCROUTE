@@ -88,6 +88,59 @@
       .total-score-box .total-num { font-size: 4rem; font-weight: 900; line-height: 1; }
       .total-score-box .total-label { color: #94a3b8; font-size: 0.9rem; margin-top: 0.3rem; }
       .total-score-box .total-grade { font-size: 1.1rem; font-weight: 700; margin-top: 0.8rem; }
+
+      /* 진행 단계 표시 */
+      .step-indicator { display: flex; align-items: center; gap: 0; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 0.5rem; }
+      .step-indicator .step { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; white-space: nowrap; }
+      .step-indicator .step .num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; background: #e2e8f0; color: #94a3b8; }
+      .step-indicator .step.done .num { background: #22c55e; color: white; }
+      .step-indicator .step.active .num { background: #2563eb; color: white; }
+      .step-indicator .step .label { color: #94a3b8; }
+      .step-indicator .step.done .label { color: #22c55e; }
+      .step-indicator .step.active .label { color: #2563eb; font-weight: 600; }
+      .step-indicator .divider { flex: 1; min-width: 20px; height: 2px; background: #e2e8f0; margin: 0 4px; }
+      .step-indicator .divider.done { background: #22c55e; }
+
+      /* 펀드 카드 */
+      .fund-cards { display: flex; flex-direction: column; gap: 1rem; }
+      .fund-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.2rem 1.5rem; cursor: pointer; transition: all 0.2s; background: white; }
+      .fund-card:hover { border-color: #2563eb; background: #f8faff; }
+      .fund-card.selected { border-color: #2563eb; background: #eff6ff; }
+      .fund-card .fund-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; }
+      .fund-card .fund-name { font-weight: 700; color: #1e293b; font-size: 0.95rem; flex: 1; margin-right: 1rem; }
+      .fund-card .match-badge { background: #dcfce7; color: #166534; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+      .fund-card .fund-meta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+      .fund-card .fund-meta span { font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 0.2rem 0.6rem; border-radius: 4px; }
+      .fund-card .match-reason { font-size: 0.82rem; color: #475569; line-height: 1.5; }
+      .fund-card .select-btn { margin-top: 0.8rem; width: 100%; background: #2563eb; color: white; border: none; border-radius: 8px; padding: 0.6rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+      .fund-card .select-btn:hover { background: #1d4ed8; }
+
+      /* GP 카드 */
+      .gp-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: white; }
+      .gp-card .gp-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+      .gp-avatar { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem; font-weight: 700; flex-shrink: 0; }
+      .gp-card .gp-info h3 { margin: 0 0 0.2rem; font-size: 1.1rem; color: #1e293b; }
+      .gp-card .gp-info p { margin: 0; color: #64748b; font-size: 0.85rem; }
+      .gp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+      .gp-stat { background: #f8fafc; border-radius: 8px; padding: 0.7rem; text-align: center; }
+      .gp-stat .val { font-size: 1.1rem; font-weight: 700; color: #2563eb; }
+      .gp-stat .lbl { font-size: 0.72rem; color: #94a3b8; margin-top: 0.1rem; }
+      .gp-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+      .gp-tags span { background: #eff6ff; color: #2563eb; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.78rem; }
+
+      /* 콜드 메일 */
+      .mail-box { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+      .mail-header { background: #f8fafc; padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0; }
+      .mail-header input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.9rem; color: #1e293b; font-weight: 600; }
+      .mail-header input:focus { outline: none; }
+      .mail-body { padding: 1.5rem; min-height: 300px; }
+      .mail-body textarea { width: 100%; min-height: 280px; border: none; font-family: inherit; font-size: 0.9rem; line-height: 1.8; color: #1e293b; resize: vertical; box-sizing: border-box; }
+      .mail-body textarea:focus { outline: none; }
+      .mail-actions { display: flex; gap: 0.8rem; padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+      .btn-copy { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+      .btn-copy:hover { background: #f1f5f9; }
+      .btn-regenerate { background: #7c3aed; color: white; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+      .btn-regenerate:hover { background: #6d28d9; }
     </style>
   </head>
   <body>
@@ -99,10 +152,10 @@
           <ul class="nav-menu">
             <li><a href="index.html">홈</a></li>
             <li><a href="dashboard.html">대시보드</a></li>
+                        <li><a href="DCF.html">데이터 시뮬레이션</a></li>
             <li><a href="ir-score.html" class="active">투자 매력도 진단</a></li>
             <li><a href="fund.html">투자펀드</a></li>
             <li><a href="investors.html">투자자</a></li>
-            <li><a href="DCF.html">데이터 시뮬레이션</a></li>
             <li><a href="notice.html">공지사항</a></li>
           </ul>
         </nav>
@@ -143,6 +196,12 @@
               </button>
               <button class="ir-menu-item" data-tab="qa" id="menu-qa" disabled>
                 <i class="fa-solid fa-comments"></i> 가상 VC Q&A
+              </button>
+              <button class="ir-menu-item" data-tab="fund-match" id="menu-fund" disabled>
+                <i class="fa-solid fa-building-columns"></i> 펀드 & 투자자 추천
+              </button>
+              <button class="ir-menu-item" data-tab="cold-mail" id="menu-mail" disabled>
+                <i class="fa-solid fa-envelope-open-text"></i> 콜드 메일
               </button>
             </div>
             <div style="margin:1rem;padding:1rem;background:#f0f9ff;border-radius:10px;border:1px solid #bae6fd;">
@@ -246,6 +305,134 @@
                   <button onclick="sendQaAnswer()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
               </div>
+              <div style="text-align:center;margin-top:1.5rem;">
+                <button class="btn-primary" onclick="goToFundMatch()">
+                  <i class="fa-solid fa-building-columns"></i> &nbsp;펀드 추천 받기
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab 4: 펀드 & 투자자 추천 -->
+            <div id="fund-match" class="ir-section">
+              <h2>펀드 &amp; 투자자 추천</h2>
+              <div class="tag-line">IR 스코어 기반 최적 펀드 Top 3 매칭 → 담당 투자자 연결</div>
+
+              <div id="fund-step-indicator" class="step-indicator">
+                <div class="step done"><span class="num">✓</span><span class="label">IR 분석</span></div>
+                <div class="divider done"></div>
+                <div class="step done"><span class="num">✓</span><span class="label">스코어링</span></div>
+                <div class="divider done"></div>
+                <div class="step active"><span class="num">3</span><span class="label">펀드 추천</span></div>
+                <div class="divider"></div>
+                <div class="step"><span class="num">4</span><span class="label">GP 매칭</span></div>
+                <div class="divider"></div>
+                <div class="step"><span class="num">5</span><span class="label">콜드 메일</span></div>
+              </div>
+
+              <div class="content-box highlight" style="margin-bottom:1.5rem;">
+                <p style="margin:0;font-size:0.9rem;"><strong>매칭 기준:</strong> IR 스코어의 강점 항목과 펀드의 투자 분야·단계를 교차 분석하여 최적 펀드를 추천합니다.</p>
+              </div>
+
+              <div id="fund-stage-badge" style="margin-bottom:1rem;"></div>
+              <div class="fund-cards" id="fundCards">
+                <div style="text-align:center;padding:3rem;color:#94a3b8;">펀드를 불러오는 중...</div>
+              </div>
+
+              <!-- 투자자 매칭 (펀드 선택 후 표시) -->
+              <div id="investor-section" style="display:none;margin-top:2rem;">
+                <hr style="border:none;border-top:2px solid #e2e8f0;margin-bottom:1.5rem;" />
+                <h3 style="font-size:1.1rem;color:#1e293b;margin:0 0 0.3rem;">
+                  <i class="fa-solid fa-user-tie" style="color:#2563eb;"></i>&nbsp; 매칭 투자자
+                </h3>
+                <div class="tag-line" style="margin-bottom:1.2rem;">선택한 펀드의 담당 심사역</div>
+                <div id="selectedFundInfoInline" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.8rem 1.2rem;margin-bottom:1.2rem;font-size:0.88rem;color:#1e40af;"></div>
+                <div id="fundGpCard"></div>
+                <div style="text-align:center;margin-top:1.5rem;">
+                  <button class="btn-primary" id="fundGoMailBtn" onclick="goToColdMail()" disabled>
+                    <i class="fa-solid fa-envelope-open-text"></i>&nbsp; 콜드 메일 초안 생성
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 5: GP 매칭 -->
+            <div id="gp-match" class="ir-section">
+              <h2>GP 매칭</h2>
+              <div class="tag-line">선택한 펀드의 담당 심사역 연결</div>
+
+              <div class="step-indicator">
+                <div class="step done"><span class="num">✓</span><span class="label">IR 분석</span></div>
+                <div class="divider done"></div>
+                <div class="step done"><span class="num">✓</span><span class="label">스코어링</span></div>
+                <div class="divider done"></div>
+                <div class="step done"><span class="num">✓</span><span class="label">펀드 추천</span></div>
+                <div class="divider done"></div>
+                <div class="step active"><span class="num">4</span><span class="label">GP 매칭</span></div>
+                <div class="divider"></div>
+                <div class="step"><span class="num">5</span><span class="label">콜드 메일</span></div>
+              </div>
+
+              <div id="selectedFundInfo" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:0.9rem;color:#1e40af;"></div>
+
+              <div id="gpCard"></div>
+
+              <div style="text-align:center;margin-top:1.5rem;">
+                <button class="btn-primary" id="goMailBtn" onclick="goToColdMail()" disabled>
+                  <i class="fa-solid fa-envelope-open-text"></i> &nbsp;콜드 메일 초안 생성
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab 6: 콜드 메일 -->
+            <div id="cold-mail" class="ir-section">
+              <h2>콜드 메일 초안</h2>
+              <div class="tag-line">GP 정보 + IR 내용 기반 맞춤 메일 자동 생성</div>
+
+              <div class="step-indicator">
+                <div class="step done"><span class="num">✓</span><span class="label">IR 분석</span></div>
+                <div class="divider done"></div>
+                <div class="step done"><span class="num">✓</span><span class="label">스코어링</span></div>
+                <div class="divider done"></div>
+                <div class="step done"><span class="num">✓</span><span class="label">펀드 추천</span></div>
+                <div class="divider done"></div>
+                <div class="step done"><span class="num">✓</span><span class="label">GP 매칭</span></div>
+                <div class="divider done"></div>
+                <div class="step active"><span class="num">5</span><span class="label">콜드 메일</span></div>
+              </div>
+
+              <div id="mailGenerating" style="text-align:center;padding:2rem;display:none;">
+                <div class="loading" style="justify-content:center;">
+                  <div class="dot-spin"><span></span><span></span><span></span></div>
+                  <span>맞춤 메일을 작성하고 있습니다...</span>
+                </div>
+              </div>
+
+              <div id="mailContent" style="display:none;">
+                <div class="mail-box">
+                  <div class="mail-header">
+                    <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:0.3rem;">제목</div>
+                    <input type="text" id="mailSubject" />
+                  </div>
+                  <div class="mail-body">
+                    <textarea id="mailBody"></textarea>
+                  </div>
+                  <div class="mail-actions">
+                    <button class="btn-copy" onclick="copyMail()"><i class="fa-solid fa-copy"></i> 복사</button>
+                    <button class="btn-regenerate" onclick="generateMail()"><i class="fa-solid fa-rotate"></i> 재생성</button>
+                    <div id="copyDone" style="display:none;color:#22c55e;font-size:0.85rem;align-self:center;">✅ 복사됨!</div>
+                  </div>
+                </div>
+
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem 1.2rem;margin-top:1rem;">
+                  <h4 style="margin:0 0 0.5rem;color:#166534;font-size:0.9rem;">📌 발송 전 체크리스트</h4>
+                  <ul style="margin:0;padding-left:1.2rem;color:#15803d;font-size:0.85rem;line-height:1.8;">
+                    <li>투자자 이름·직함이 정확한지 확인</li>
+                    <li>회사명, 수치 데이터 최신 버전으로 교체</li>
+                    <li>IR 덱 첨부 여부 확인</li>
+                    <li>발송 시각: 화~목 오전 9~11시 권장</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -309,6 +496,8 @@
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/funds.js"></script>
+    <script src="js/investors.js"></script>
     <script src="js/ir-score.js"></script>
   </body>
 </html>
