@@ -29,6 +29,10 @@
       .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
       .toggle-switch.on::after { transform: translateX(24px); }
       .discount-badge { background: #dcfce7; color: #16a34a; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; }
+      .user-tab-wrap { display: flex; justify-content: center; margin-bottom: 2rem; }
+      .user-tabs { display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; gap: 4px; }
+      .user-tab { padding: 0.6rem 2rem; border-radius: 9px; border: none; background: transparent; font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+      .user-tab.active { background: white; color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
       .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 4rem; }
       .plan-card { background: white; border: 1.5px solid var(--border-color); border-radius: 20px; padding: 2rem; transition: all 0.2s; position: relative; }
       .plan-card:hover { box-shadow: 0 8px 32px rgba(37,99,235,0.1); transform: translateY(-4px); }
@@ -108,16 +112,24 @@
           <p>스타트업부터 전문 투자자까지, 모든 단계에 맞는 플랜을 제공합니다.</p>
         </div>
 
-        <!-- 월/연 토글 -->
-        <div class="pricing-toggle">
+        <!-- 유저 타입 탭 -->
+        <div class="user-tab-wrap">
+          <div class="user-tabs">
+            <button class="user-tab active" id="tabStartup" onclick="switchTab('startup')">스타트업</button>
+            <button class="user-tab" id="tabInvestor" onclick="switchTab('investor')">투자자</button>
+          </div>
+        </div>
+
+        <!-- 월/연 토글 (스타트업만 표시) -->
+        <div class="pricing-toggle" id="billingWrap">
           <span class="toggle-label active" id="labelMonthly">월간 결제</span>
           <button class="toggle-switch" id="billingToggle" onclick="toggleBilling()"></button>
           <span class="toggle-label" id="labelYearly">연간 결제</span>
           <span class="discount-badge">20% 할인</span>
         </div>
 
-        <!-- 플랜 카드 -->
-        <div class="plans-grid">
+        <!-- 스타트업 플랜 -->
+        <div class="plans-grid" id="plansStartup">
 
           <!-- Free -->
           <div class="plan-card">
@@ -143,7 +155,7 @@
           <div class="plan-card featured">
             <div class="plan-badge">가장 인기</div>
             <div class="plan-name">Pro</div>
-            <div class="plan-desc">스타트업 창업자 및 초기 투자자를 위한 핵심 플랜</div>
+            <div class="plan-desc">스타트업 창업자를 위한 핵심 플랜</div>
             <div class="plan-price">
               <div class="amount" id="proPrice">₩29,000<span>/월</span></div>
               <div class="period" id="proPeriod">월 29,000원 청구</div>
@@ -160,23 +172,28 @@
             </ul>
           </div>
 
-          <!-- Enterprise -->
+        </div>
+
+        <!-- 투자자 플랜 -->
+        <div class="plans-grid" id="plansInvestor" style="display:none; grid-template-columns: repeat(1, minmax(0, 400px)); justify-content: center;">
+
+          <!-- 투자자 Free -->
           <div class="plan-card">
-            <div class="plan-name">Enterprise</div>
-            <div class="plan-desc">VC·액셀러레이터·기업 투자팀을 위한 전문 플랜</div>
+            <div class="plan-name">Free</div>
+            <div class="plan-desc">투자자를 위한 기본 무료 플랜</div>
             <div class="plan-price">
-              <div class="amount">문의<span></span></div>
-              <div class="period">맞춤 견적 제공</div>
+              <div class="amount">₩0<span>/월</span></div>
+              <div class="period">영구 무료</div>
             </div>
-            <a href="mailto:venture@ventureplatform.co.kr" class="plan-btn plan-btn-outline">문의하기</a>
+            <a href="pages/register.html" class="plan-btn plan-btn-outline">무료로 시작</a>
             <ul class="plan-features">
-              <li><i class="fa-solid fa-check"></i> Pro 플랜 전체 포함</li>
-              <li><i class="fa-solid fa-check"></i> IR 진단 무제한</li>
-              <li><i class="fa-solid fa-check"></i> API 접근 및 데이터 연동</li>
-              <li><i class="fa-solid fa-check"></i> 팀 계정 (최대 10인)</li>
-              <li><i class="fa-solid fa-check"></i> 전담 고객 지원</li>
-              <li><i class="fa-solid fa-check"></i> 맞춤 리포트 제공</li>
-              <li><i class="fa-solid fa-check"></i> SLA 보장</li>
+              <li><i class="fa-solid fa-check"></i> 투자펀드 전체 목록 조회</li>
+              <li><i class="fa-solid fa-check"></i> 스타트업 정보 기본 조회</li>
+              <li><i class="fa-solid fa-check"></i> 공지사항 및 뉴스 열람</li>
+              <li><i class="fa-solid fa-check"></i> TIPS·LIPS·TOPS 프로그램 정보</li>
+              <li class="disabled"><i class="fa-solid fa-xmark"></i> 포트폴리오 분석 리포트</li>
+              <li class="disabled"><i class="fa-solid fa-xmark"></i> 투자 성과 데이터</li>
+              <li class="disabled"><i class="fa-solid fa-xmark"></i> API 연동</li>
             </ul>
           </div>
 
@@ -294,6 +311,16 @@
     <script src="js/auth.js"></script>
     <script>
       let isYearly = false;
+      let currentTab = 'startup';
+
+      function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tabStartup').classList.toggle('active', tab === 'startup');
+        document.getElementById('tabInvestor').classList.toggle('active', tab === 'investor');
+        document.getElementById('plansStartup').style.display = tab === 'startup' ? 'grid' : 'none';
+        document.getElementById('plansInvestor').style.display = tab === 'investor' ? 'grid' : 'none';
+        document.getElementById('billingWrap').style.display = tab === 'startup' ? 'flex' : 'none';
+      }
 
       function toggleBilling() {
         isYearly = !isYearly;
