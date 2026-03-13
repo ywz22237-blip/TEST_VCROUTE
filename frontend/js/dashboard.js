@@ -45,26 +45,21 @@ function renderUserProfile(user) {
                     user.userType === 'investor' ? '투자자' : '회원';
   const initial = (user.company || user.name || user.userId || user.email || '?')[0].toUpperCase();
 
-  // 사이드바 프로필 미니카드
+  // 사이드바 유저 타입 뱃지
   const sidebar = document.getElementById('sidebarProfile');
+  const typeEl = document.getElementById('sidebarType');
   if (sidebar) {
     sidebar.style.display = 'block';
-    const avatarEl = document.getElementById('profileAvatar');
-    if (avatarEl) {
-      if (user.logoUrl) {
-        avatarEl.innerHTML = `<img src="${user.logoUrl}" style="width:100%; height:100%; object-fit:contain; border-radius:50%; background:#fff; padding:4px;">`;
+    if (typeEl) {
+      typeEl.textContent = typeLabel;
+      if (user.userType === 'investor') {
+        typeEl.style.background = 'rgba(245,158,11,0.1)';
+        typeEl.style.color = '#f59e0b';
       } else {
-        avatarEl.innerHTML = initial;
+        typeEl.style.background = 'rgba(37,99,235,0.1)';
+        typeEl.style.color = '#2563eb';
       }
     }
-    setText('sidebarName', user.company || user.name || user.userId || '-');
-    setText('sidebarType', typeLabel);
-    const typeEl = document.getElementById('sidebarType');
-    if (typeEl && user.userType === 'investor') {
-      typeEl.style.background = 'rgba(245,158,11,0.1)';
-      typeEl.style.color = '#f59e0b';
-    }
-    setText('sidebarEmail', user.email || '-');
   }
 
   // 프로필 섹션 상세
