@@ -2265,23 +2265,5 @@
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
 
-    <!-- 임시: 홍보영상용 로그아웃 표시 -->
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        setTimeout(function () {
-          const authBtn = document.querySelector('.auth-buttons');
-          if (authBtn) {
-            const langToggle = authBtn.querySelector('.lang-toggle');
-            const langHTML = langToggle ? langToggle.outerHTML : '';
-            authBtn.innerHTML = langHTML + `
-              <div class="user-menu">
-                <span class="user-name">박준호님</span>
-                <a href="pages/mypage.html" class="btn-mypage">내정보</a>
-                <button class="logout-btn" onclick="window.location.href='index.html'">로그아웃</button>
-              </div>`;
-          }
-        }, 50);
-      });
-    </script>
   </body>
 </html>
