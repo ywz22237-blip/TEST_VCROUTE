@@ -467,6 +467,73 @@
                 <li>채널별 CAC 분리 분석으로 효율적 마케팅 채널 파악 가능</li>
               </ul>
             </div>
+
+            <h3 style="margin-top: 2.5rem;">LTV / CAC 계산기</h3>
+            <div class="calc-container">
+              <div class="calc-input-section">
+                <h3 style="margin-top:0; border:none; padding:0; font-size:1.1rem; margin-bottom:1.5rem;">변수 입력</h3>
+
+                <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1.5rem;">
+                  <h4 style="margin-top:0; margin-bottom:1rem; font-size:0.95rem; color:#475569;">CAC 산출</h4>
+                  <div class="input-group">
+                    <label>월 마케팅·영업 비용 (원)</label>
+                    <input type="number" id="ltv-marketing-cost" placeholder="예: 10,000,000" oninput="calcLtvCac()" />
+                  </div>
+                  <div class="input-group">
+                    <label>월 신규 획득 고객 수 (명)</label>
+                    <input type="number" id="ltv-new-customers" placeholder="예: 100" oninput="calcLtvCac()" />
+                  </div>
+                </div>
+
+                <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1.5rem;">
+                  <h4 style="margin-top:0; margin-bottom:1rem; font-size:0.95rem; color:#475569;">LTV 산출</h4>
+                  <div class="input-group">
+                    <label>고객 1인당 월 평균 결제액 ARPU (원)</label>
+                    <input type="number" id="ltv-arpu" placeholder="예: 50,000" oninput="calcLtvCac()" />
+                  </div>
+                  <div class="input-group">
+                    <label>평균 고객 유지 기간 (개월)</label>
+                    <input type="number" id="ltv-duration" placeholder="예: 24" oninput="calcLtvCac()" />
+                  </div>
+                  <div class="input-group">
+                    <label>마진율 (%)</label>
+                    <input type="number" id="ltv-margin" placeholder="예: 60" oninput="calcLtvCac()" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="calc-result-section">
+                <h3 style="margin-top:0; border:none; padding:0; font-size:1.1rem; margin-bottom:1.5rem;">계산 결과</h3>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                  <div style="background:#f0f9ff; padding:1.2rem; border-radius:10px; border:1px solid #bae6fd; text-align:center;">
+                    <div style="font-size:0.8rem; color:#0369a1; margin-bottom:0.3rem;">CAC</div>
+                    <div id="ltv-result-cac" style="font-size:1.4rem; font-weight:700; color:#0c4a6e;">-</div>
+                  </div>
+                  <div style="background:#f0fdf4; padding:1.2rem; border-radius:10px; border:1px solid #bbf7d0; text-align:center;">
+                    <div style="font-size:0.8rem; color:#15803d; margin-bottom:0.3rem;">LTV</div>
+                    <div id="ltv-result-ltv" style="font-size:1.4rem; font-weight:700; color:#14532d;">-</div>
+                  </div>
+                </div>
+
+                <div id="ltv-ratio-box" style="background:#f8fafc; padding:1.5rem; border-radius:12px; border:2px solid #e2e8f0; text-align:center; margin-bottom:1.5rem;">
+                  <div style="font-size:0.9rem; color:#64748b; margin-bottom:0.5rem;">LTV / CAC 비율</div>
+                  <div id="ltv-ratio" style="font-size:2.5rem; font-weight:800; color:#1e293b;">-</div>
+                  <div id="ltv-grade" style="margin-top:0.5rem; font-size:0.9rem; font-weight:600;">-</div>
+                </div>
+
+                <div style="background:#f8fafc; padding:1.2rem; border-radius:10px; border:1px solid #e2e8f0;">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:0.6rem;">
+                    <span style="color:#64748b; font-size:0.9rem;">CAC 회수 기간</span>
+                    <span id="ltv-payback" style="font-weight:600; color:#1e293b;">-</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#64748b; font-size:0.9rem;">월 순이익 (고객 1인)</span>
+                    <span id="ltv-monthly-profit" style="font-weight:600; color:#1e293b;">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Tab 4: Burn-rate -->
