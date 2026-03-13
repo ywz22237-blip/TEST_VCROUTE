@@ -1,0 +1,64 @@
+name: Auto Merge Claude Branch to Main
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create PR and Merge
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+
+            // 기존 PR 확인
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              base: 'main',
+              state: 'open'
+            });
+
+            let pr;
+            if (prs.length === 0) {
+              // PR 생성
+              const { data: newPr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Auto: ${branch}`,
+                head: branch,
+                base: 'main',
+                body: 'Claude Code에서 자동 생성된 PR입니다.'
+              });
+              pr = newPr;
+              console.log(`PR 생성: #${pr.number}`);
+            } else {
+              pr = prs[0];
+              console.log(`기존 PR 사용: #${pr.number}`);
+            }
+
+            // PR 머지
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              merge_method: 'squash'
+            });
+
+            console.log(`PR #${pr.number} 머지 완료 → main 자동 배포 시작`);
