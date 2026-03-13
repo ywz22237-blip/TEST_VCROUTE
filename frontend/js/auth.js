@@ -1,67 +1,189 @@
-// 인증 상태 관리 및 UI 업데이트
+// ====================================================
+// Supabase 기반 인증 관리
+// ====================================================
 
-// 현재 페이지 위치에 따라 경로 접두사 결정
-function getBasePath() {
-  const path = window.location.pathname;
-  if (path.includes("/pages/")) {
-    return ""; // pages/ 내부에서는 상대경로 사용
+let _supabase = null;
+
+function getSupabase() {
+  if (!_supabase && typeof window !== "undefined" && window.supabase) {
+    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
-  return "pages/"; // 루트에서는 pages/ 접두사
+  return _supabase;
+}
+
+function getBasePath() {
+  return window.location.pathname.includes("/pages/") ? "" : "pages/";
 }
 
 function getHomePath() {
-  const path = window.location.pathname;
-  if (path.includes("/pages/")) {
-    return "../index.html";
+  return window.location.pathname.includes("/pages/") ? "../index.html" : "index.html";
+}
+
+// ── 유저 정보 변환 ─────────────────────────────────
+
+function supabaseUserToLocal(user) {
+  if (!user) return null;
+  const meta = user.user_metadata || {};
+  return {
+    id: user.id,
+    email: user.email,
+    name: meta.full_name || meta.name || meta.user_name || user.email,
+    avatar: meta.avatar_url || meta.picture || "",
+    provider: (user.app_metadata || {}).provider || "email",
+    userType: meta.userType || "startup",
+    verified: !!user.email_confirmed_at,
+  };
+}
+
+// ── 세션 확인 ─────────────────────────────────────
+
+async function isLoggedIn() {
+  const sb = getSupabase();
+  if (sb) {
+    const { data } = await sb.auth.getSession();
+    if (data.session) return true;
   }
-  return "index.html";
+  return !!(localStorage.getItem(STORAGE_KEYS.TOKEN) && localStorage.getItem(STORAGE_KEYS.USER));
 }
 
-// 로그인 상태 확인
-function isLoggedIn() {
-  const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-  const user = localStorage.getItem(STORAGE_KEYS.USER);
-  return !!(token && user);
+async function getUserInfo() {
+  const sb = getSupabase();
+  if (sb) {
+    const { data } = await sb.auth.getUser();
+    if (data.user) return supabaseUserToLocal(data.user);
+  }
+  const cached = localStorage.getItem(STORAGE_KEYS.USER);
+  return cached ? JSON.parse(cached) : null;
 }
 
-// 사용자 정보 가져오기
-function getUserInfo() {
-  const userStr = localStorage.getItem(STORAGE_KEYS.USER);
-  return userStr ? JSON.parse(userStr) : null;
+// ── 소셜 OAuth 로그인 ─────────────────────────────
+
+async function socialLogin(provider) {
+  const sb = getSupabase();
+  if (!sb) {
+    alert("인증 모듈 로드 중입니다. 잠시 후 다시 시도해주세요.");
+    return;
+  }
+
+  if (provider === "naver") {
+    // 네이버: Supabase Edge Function 경유
+    const state = Math.random().toString(36).slice(2);
+    sessionStorage.setItem("naver_oauth_state", state);
+    const redirectUri = encodeURIComponent(
+      SUPABASE_URL + "/functions/v1/naver-auth?site=" + encodeURIComponent(window.location.origin)
+    );
+    window.location.href =
+      `https://nid.naver.com/oauth2.0/authorize?response_type=code` +
+      `&client_id=__NAVER_CLIENT_ID__` +
+      `&redirect_uri=${redirectUri}` +
+      `&state=${state}`;
+    return;
+  }
+
+  const callbackUrl = window.location.origin + "/pages/auth-callback.html";
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: provider, // "google" | "kakao"
+    options: { redirectTo: callbackUrl },
+  });
+
+  if (error) {
+    alert("로그인 중 오류가 발생했습니다: " + error.message);
+  }
 }
 
-// 로그인 처리
-function login(token, userInfo) {
-  localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+// ── 이메일/비밀번호 로그인 ────────────────────────
+
+async function handleLogin(event) {
+  event.preventDefault();
+  const sb = getSupabase();
+  if (!sb) return;
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const btn = event.target.querySelector('[type="submit"]');
+  if (btn) { btn.disabled = true; btn.textContent = "로그인 중..."; }
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> 로그인';
+  }
+
+  if (error) {
+    const msg = error.message.includes("Invalid login credentials")
+      ? "이메일 또는 비밀번호가 올바르지 않습니다."
+      : error.message;
+    alert(msg);
+    return;
+  }
+
+  const userInfo = supabaseUserToLocal(data.user);
+  localStorage.setItem(STORAGE_KEYS.TOKEN, data.session.access_token);
   localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userInfo));
-  updateAuthUI();
-}
-
-// 로그아웃 처리
-function logout() {
-  localStorage.removeItem(STORAGE_KEYS.TOKEN);
-  localStorage.removeItem(STORAGE_KEYS.USER);
-  updateAuthUI();
   window.location.href = getHomePath();
 }
 
-// 인증 UI 업데이트
-function updateAuthUI() {
-  const authButtonsContainer = document.querySelector(".auth-buttons");
+// ── 회원가입 ──────────────────────────────────────
 
-  if (!authButtonsContainer) return;
+async function handleRegister(event) {
+  event.preventDefault();
+  const sb = getSupabase();
+  if (!sb) return;
 
-  // Language 토글이 있는지 확인하고 보존
-  const langToggle = authButtonsContainer.querySelector(".lang-toggle");
-  const langToggleHTML = langToggle ? langToggle.outerHTML : "";
+  const name = (document.getElementById("name")?.value || "").trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword")?.value || password;
 
+  if (password !== confirmPassword) { alert("비밀번호가 일치하지 않습니다."); return; }
+  if (password.length < 6) { alert("비밀번호는 6자 이상이어야 합니다."); return; }
+
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: name } },
+  });
+
+  if (error) { alert(error.message); return; }
+
+  if (data.session) {
+    const userInfo = supabaseUserToLocal(data.user);
+    localStorage.setItem(STORAGE_KEYS.TOKEN, data.session.access_token);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userInfo));
+    window.location.href = getHomePath();
+  } else {
+    alert("이메일 인증 링크를 발송했습니다. 이메일을 확인해주세요.");
+    window.location.href = getBasePath() + "login.html";
+  }
+}
+
+// ── 로그아웃 ──────────────────────────────────────
+
+async function logout() {
+  const sb = getSupabase();
+  if (sb) await sb.auth.signOut();
+  localStorage.removeItem(STORAGE_KEYS.TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.USER);
+  await updateAuthUI();
+  window.location.href = getHomePath();
+}
+
+// ── Auth UI 업데이트 ──────────────────────────────
+
+async function updateAuthUI() {
+  const container = document.querySelector(".auth-buttons");
+  if (!container) return;
+
+  const langToggle = container.querySelector(".lang-toggle");
+  const langHTML = langToggle ? langToggle.outerHTML : "";
   const base = getBasePath();
 
-  if (isLoggedIn()) {
-    // 로그인 상태: Language 토글 + 내정보 + 로그아웃 버튼 표시
-    const user = getUserInfo();
-    authButtonsContainer.innerHTML = `
-      ${langToggleHTML}
+  const user = await getUserInfo();
+
+  if (user) {
+    container.innerHTML = `
+      ${langHTML}
       <div class="user-menu">
         <span class="user-name">${user.name || user.email}님</span>
         <a href="${base}mypage.html" class="btn-mypage">내정보</a>
@@ -69,115 +191,61 @@ function updateAuthUI() {
       </div>
     `;
   } else {
-    // 비로그인 상태: Language 토글 + 로그인 + 회원가입 버튼 표시
-    authButtonsContainer.innerHTML = `
-      ${langToggleHTML}
+    container.innerHTML = `
+      ${langHTML}
       <a href="${base}login.html" class="btn-login">로그인</a>
       <a href="${base}register.html" class="btn-register">회원가입</a>
     `;
   }
 }
 
-// 페이지 로드 시 인증 상태 확인 및 UI 업데이트
-document.addEventListener("DOMContentLoaded", () => {
-  updateAuthUI();
-});
+// ── Auth 상태 리스너 ──────────────────────────────
 
-// 로그인 폼 처리 (로그인 페이지용)
-async function handleLogin(event) {
-  event.preventDefault();
+function initAuthListener() {
+  const sb = getSupabase();
+  if (!sb) return;
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  try {
-    const response = await fetch(
-      API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.LOGIN,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      },
-    );
-
-    const data = await response.json();
-
-    if (response.ok) {
-      // 로그인 성공
-      login(data.token, data.user);
-      alert("로그인 성공!");
-      window.location.href = getHomePath();
-    } else {
-      // 로그인 실패
-      alert(data.message || "로그인에 실패했습니다.");
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" && session) {
+      const userInfo = supabaseUserToLocal(session.user);
+      localStorage.setItem(STORAGE_KEYS.TOKEN, session.access_token);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userInfo));
+    } else if (event === "SIGNED_OUT") {
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
     }
-  } catch (error) {
-    console.error("로그인 오류:", error);
-    alert("서버 연결에 실패했습니다.");
-  }
+    updateAuthUI();
+  });
 }
 
-// 회원가입 폼 처리 (회원가입 페이지용) - 레거시 호환
-async function handleRegister(event) {
-  event.preventDefault();
+// ── 데모 로그인 ───────────────────────────────────
 
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirmPassword").value;
-
-  if (password !== confirmPassword) {
-    alert("비밀번호가 일치하지 않습니다.");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.REGISTER,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      },
-    );
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert("회원가입이 완료되었습니다!");
-      window.location.href = getBasePath() + "login.html";
-    } else {
-      alert(data.message || "회원가입에 실패했습니다.");
-    }
-  } catch (error) {
-    console.error("회원가입 오류:", error);
-    alert("서버 연결에 실패했습니다.");
-  }
-}
-
-// 데모용: 임시 로그인 (백엔드 없이 테스트)
 function demoLogin() {
   const demoUser = {
     name: "박준호",
-    userId: "venture_platform",
     email: "venture@ventureplatform.co.kr",
-    phone: "050219234562",
     company: "주식회사 벤처플랫폼",
     userType: "startup",
-    createdAt: "2024-06-01",
-    portfolio: "https://ventureplatform.biz/",
-    bio: "스타트업과 투자자를 연결하는 VC 라우트 플랫폼 운영사입니다. AI 기반 매칭 시스템으로 최적의 투자 파트너를 찾아드립니다.",
     verified: true,
-    investTarget: "5억 ~ 20억원",
-    ceoAge: 35,
-    gender: "남성",
   };
-  const demoToken = "demo-token-" + Date.now();
-
-  login(demoToken, demoUser);
+  localStorage.setItem(STORAGE_KEYS.TOKEN, "demo-token-" + Date.now());
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(demoUser));
+  updateAuthUI();
   alert("데모 로그인 성공!");
 }
+
+// ── 초기화 ────────────────────────────────────────
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tryInit = (attempts) => {
+    if (window.supabase) {
+      initAuthListener();
+      updateAuthUI();
+    } else if (attempts < 30) {
+      setTimeout(() => tryInit(attempts + 1), 100);
+    } else {
+      updateAuthUI(); // localStorage fallback
+    }
+  };
+  tryInit(0);
+});
