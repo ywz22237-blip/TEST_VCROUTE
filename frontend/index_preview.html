@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>[미리보기] VC route 메인</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      /* ===== 미리보기 배지 ===== */
+      .preview-badge {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #ef4444;
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+        pointer-events: none;
+      }
+
+      /* ===== 공통 섹션 ===== */
+      .main-wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+      .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+      }
+      .section-title h2 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .section-title h2 i {
+        color: #2563eb;
+        font-size: 1rem;
+      }
+      .section-title a {
+        font-size: 0.85rem;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: color 0.2s;
+      }
+      .section-title a:hover { color: #2563eb; }
+
+      /* ===== 배너 슬라이더 ===== */
+      .banner-section {
+        padding: 1.5rem 0 0;
+      }
+      .slider-wrap {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        height: 340px;
+      }
+      .slides {
+        display: flex;
+        height: 100%;
+        transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+      }
+      .slide {
+        min-width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 3rem 4rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .slide-1 { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); }
+      .slide-2 { background: linear-gradient(135deg, #064e3b 0%, #059669 60%, #34d399 100%); }
+      .slide-3 { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 60%, #fb923c 100%); }
+      .slide-4 { background: linear-gradient(135deg, #581c87 0%, #9333ea 60%, #c084fc 100%); }
+      .slide::before {
+        content: '';
+        position: absolute;
+        right: -60px;
+        top: -60px;
+        width: 380px;
+        height: 380px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.06);
+      }
+      .slide::after {
+        content: '';
+        position: absolute;
+        right: 80px;
+        bottom: -80px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.04);
+      }
+      .slide-text { position: relative; z-index: 1; color: white; }
+      .slide-tag {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(8px);
+        padding: 0.3rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        letter-spacing: 0.05em;
+      }
+      .slide-text h2 {
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1.25;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.03em;
+        color: white;
+      }
+      .slide-text p {
+        font-size: 0.95rem;
+        opacity: 0.85;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+      .slide-btn {
+        display: inline-block;
+        background: white;
+        color: #1e3a8a;
+        padding: 0.65rem 1.5rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .slide-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+      .slider-controls {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.5rem;
+        z-index: 10;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.45);
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        padding: 0;
+      }
+      .dot.active {
+        width: 24px;
+        background: white;
+      }
+      .slider-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(8px);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1rem;
+        cursor: pointer;
+        z-index: 10;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .slider-arrow:hover { background: rgba(255,255,255,0.35); }
+      .slider-arrow.prev { left: 1rem; }
+      .slider-arrow.next { right: 1rem; }
+
+      /* ===== 퀵메뉴 ===== */
+      .quick-menu {
+        padding: 1.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .quick-menu-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.75rem;
+      }
+      .quick-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 1.25rem 0.5rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .quick-item:hover {
+        border-color: #2563eb;
+        background: #eff6ff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37,99,235,0.1);
+      }
+      .quick-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+      }
+      .qi-1 { background: #eff6ff; color: #2563eb; }
+      .qi-2 { background: #f0fdf4; color: #16a34a; }
+      .qi-3 { background: #fff7ed; color: #ea580c; }
+      .qi-4 { background: #fdf4ff; color: #9333ea; }
+      .qi-5 { background: #fff1f2; color: #e11d48; }
+      .qi-6 { background: #f0f9ff; color: #0284c7; }
+      .quick-item span {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        text-align: center;
+        line-height: 1.3;
+      }
+
+      /* ===== 콘텐츠 섹션 공통 ===== */
+      .content-section {
+        padding: 2.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      /* ===== 투자자 카드 ===== */
+      .investor-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+      }
+      .investor-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+      }
+      .investor-card:hover {
+        border-color: #93c5fd;
+        box-shadow: 0 8px 24px rgba(37,99,235,0.08);
+        transform: translateY(-2px);
+      }
+      .investor-top {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 0.85rem;
+      }
+      .inv-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+      .inv-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.15rem;
+      }
+      .inv-info span {
+        font-size: 0.8rem;
+        color: #64748b;
+      }
+      .inv-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.85rem;
+      }
+      .inv-tag {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+      .inv-stats {
+        display: flex;
+        gap: 1rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid #f1f5f9;
+      }
+      .inv-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .inv-stat .val {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #1e293b;
+      }
+      .inv-stat .lbl {
+        font-size: 0.72rem;
+        color: #94a3b8;
+      }
+      .view-badge {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        color: #94a3b8;
+      }
+
+      /* ===== 펀드 카드 ===== */
+      .fund-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+      .fund-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+      }
+      .fund-card:hover {
+        border-color: #6ee7b7;
+        box-shadow: 0 8px 24px rgba(16,185,129,0.08);
+        transform: translateY(-2px);
+      }
+      .fund-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+      }
+      .fund-badge {
+        padding: 0.25rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .badge-seed { background: #fef9c3; color: #854d0e; }
+      .badge-a { background: #dbeafe; color: #1d4ed8; }
+      .badge-b { background: #d1fae5; color: #065f46; }
+      .badge-c { background: #ede9fe; color: #5b21b6; }
+      .fund-card h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.3rem;
+        line-height: 1.4;
+      }
+      .fund-company {
+        font-size: 0.82rem;
+        color: #64748b;
+        margin-bottom: 1rem;
+      }
+      .fund-meta {
+        display: flex;
+        gap: 1.25rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid #f1f5f9;
+      }
+      .fund-meta-item { display: flex; flex-direction: column; gap: 0.1rem; }
+      .fund-meta-item .v { font-size: 0.9rem; font-weight: 800; color: #1e293b; }
+      .fund-meta-item .l { font-size: 0.72rem; color: #94a3b8; }
+
+      /* ===== 공지사항 + 서비스 소개 2열 ===== */
+      .bottom-section {
+        padding: 2.5rem 0 3rem;
+      }
+      .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .notice-box, .service-box {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      .box-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header h3 {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .box-header a {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .box-header a:hover { color: #2563eb; }
+      .notice-list { padding: 0.5rem 0; }
+      .notice-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1.5rem;
+        border-bottom: 1px solid #f8fafc;
+        cursor: pointer;
+        transition: background 0.15s;
+        text-decoration: none;
+      }
+      .notice-item:last-child { border-bottom: none; }
+      .notice-item:hover { background: #f8fafc; }
+      .notice-item .ntitle {
+        font-size: 0.88rem;
+        color: #374151;
+        font-weight: 500;
+        flex: 1;
+        margin-right: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .notice-item .ndate { font-size: 0.78rem; color: #94a3b8; flex-shrink: 0; }
+      .notice-new {
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        margin-left: 0.4rem;
+        flex-shrink: 0;
+      }
+
+      .service-list { padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+      .service-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .service-item:hover { background: #eff6ff; border-color: #bfdbfe; }
+      .service-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+      .si-1 { background: #eff6ff; color: #2563eb; }
+      .si-2 { background: #f0fdf4; color: #16a34a; }
+      .si-3 { background: #fff7ed; color: #ea580c; }
+      .service-item-text h4 { font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 0.2rem; }
+      .service-item-text p { font-size: 0.8rem; color: #64748b; line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <!-- ===== 미리보기 배지 ===== -->
+    <div class="preview-badge">🔍 미리보기 전용 (index.html 미변경)</div>
+
+    <!-- Header (기존 그대로) -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html" class="active">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="DCF.html">데이터<br>시뮬레이션</a></li>
+            <li><a href="ir-score.html">투자<br>진단&추천</a></li>
+            <li><a href="fund.html">투자펀드</a></li>
+            <li><a href="investors.html">투자자</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active">한국어(KOREA)</button>
+              <button class="lang-dropdown-item">English</button>
+              <button class="lang-dropdown-item">日本語</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-wrap">
+
+      <!-- ===== 1. 배너 슬라이더 ===== -->
+      <section class="banner-section">
+        <div class="slider-wrap">
+          <div class="slides" id="slides">
+            <!-- 슬라이드 1 -->
+            <div class="slide slide-1">
+              <div class="slide-text">
+                <span class="slide-tag">🚀 신규 서비스</span>
+                <h2>AI 기반 IR 진단으로<br>투자 유치 성공률을 높이세요</h2>
+                <p>IR 덱을 업로드하면 AI가 투자 매력도를 분석하고<br>최적의 펀드·투자자를 추천해드립니다.</p>
+                <a href="ir-score.html" class="slide-btn">IR 진단 시작하기 →</a>
+              </div>
+            </div>
+            <!-- 슬라이드 2 -->
+            <div class="slide slide-2">
+              <div class="slide-text">
+                <span class="slide-tag">💰 이달의 핫 펀드</span>
+                <h2>2026년 1분기<br>주목받는 벤처펀드 TOP 10</h2>
+                <p>최신 결성된 초기투자 특화 펀드를<br>한눈에 확인하고 바로 매칭 신청하세요.</p>
+                <a href="fund.html" class="slide-btn">펀드 목록 보기 →</a>
+              </div>
+            </div>
+            <!-- 슬라이드 3 -->
+            <div class="slide slide-3">
+              <div class="slide-text">
+                <span class="slide-tag">📅 이벤트</span>
+                <h2>스프링 데모데이 2026<br>참가 스타트업 모집 중</h2>
+                <p>유망 스타트업과 투자자를 연결하는<br>VC route 데모데이에 지금 신청하세요.</p>
+                <a href="notice.html" class="slide-btn">자세히 보기 →</a>
+              </div>
+            </div>
+            <!-- 슬라이드 4 -->
+            <div class="slide slide-4">
+              <div class="slide-text">
+                <span class="slide-tag">📊 데이터 시뮬레이션</span>
+                <h2>DCF로 우리 회사의<br>기업가치를 직접 계산해보세요</h2>
+                <p>복잡한 DCF·LTV/CAC·Burn Rate 계산을<br>쉽고 빠르게 시뮬레이션합니다.</p>
+                <a href="DCF.html" class="slide-btn">시뮬레이션 하기 →</a>
+              </div>
+            </div>
+          </div>
+          <!-- 화살표 -->
+          <button class="slider-arrow prev" onclick="changeSlide(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="slider-arrow next" onclick="changeSlide(1)"><i class="fa-solid fa-chevron-right"></i></button>
+          <!-- 도트 -->
+          <div class="slider-controls" id="dots"></div>
+        </div>
+      </section>
+
+      <!-- ===== 2. 퀵메뉴 ===== -->
+      <section class="quick-menu">
+        <div class="quick-menu-grid">
+          <a href="fund.html" class="quick-item">
+            <div class="quick-icon qi-1"><i class="fa-solid fa-coins"></i></div>
+            <span>투자펀드</span>
+          </a>
+          <a href="investors.html" class="quick-item">
+            <div class="quick-icon qi-2"><i class="fa-solid fa-user-tie"></i></div>
+            <span>투자자</span>
+          </a>
+          <a href="startups.html" class="quick-item">
+            <div class="quick-icon qi-3"><i class="fa-solid fa-rocket"></i></div>
+            <span>스타트업</span>
+          </a>
+          <a href="DCF.html" class="quick-item">
+            <div class="quick-icon qi-4"><i class="fa-solid fa-calculator"></i></div>
+            <span>데이터<br>시뮬레이션</span>
+          </a>
+          <a href="ir-score.html" class="quick-item">
+            <div class="quick-icon qi-5"><i class="fa-solid fa-chart-pie"></i></div>
+            <span>투자<br>진단&추천</span>
+          </a>
+          <a href="notice.html" class="quick-item">
+            <div class="quick-icon qi-6"><i class="fa-solid fa-bullhorn"></i></div>
+            <span>공지사항</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ===== 3. 조회수 많은 투자자 ===== -->
+      <section class="content-section">
+        <div class="section-title">
+          <h2><i class="fa-solid fa-fire"></i> 조회수 많은 투자자</h2>
+          <a href="investors.html">전체보기 <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+        <div class="investor-grid">
+          <!-- 카드 1 -->
+          <a href="investors.html" class="investor-card">
+            <div class="investor-top">
+              <div class="inv-avatar">박</div>
+              <div class="inv-info">
+                <h4>박준호</h4>
+                <span>알토스벤처스</span>
+              </div>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 2,841</div>
+            </div>
+            <div class="inv-tags">
+              <span class="inv-tag">Series A</span>
+              <span class="inv-tag">LLC</span>
+              <span class="inv-tag">IT/SaaS</span>
+            </div>
+            <div class="inv-stats">
+              <div class="inv-stat"><span class="val">80건</span><span class="lbl">포트폴리오</span></div>
+              <div class="inv-stat"><span class="val">90%</span><span class="lbl">성공률</span></div>
+              <div class="inv-stat"><span class="val">1.5조+</span><span class="lbl">AUM</span></div>
+            </div>
+          </a>
+          <!-- 카드 2 -->
+          <a href="investors.html" class="investor-card">
+            <div class="investor-top">
+              <div class="inv-avatar" style="background:linear-gradient(135deg,#059669,#34d399)">김</div>
+              <div class="inv-info">
+                <h4>김성훈</h4>
+                <span>인터베스트</span>
+              </div>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 2,503</div>
+            </div>
+            <div class="inv-tags">
+              <span class="inv-tag">Series A</span>
+              <span class="inv-tag">Series B</span>
+              <span class="inv-tag">핀테크</span>
+            </div>
+            <div class="inv-stats">
+              <div class="inv-stat"><span class="val">80건</span><span class="lbl">포트폴리오</span></div>
+              <div class="inv-stat"><span class="val">73%</span><span class="lbl">성공률</span></div>
+              <div class="inv-stat"><span class="val">1.3조+</span><span class="lbl">AUM</span></div>
+            </div>
+          </a>
+          <!-- 카드 3 -->
+          <a href="investors.html" class="investor-card">
+            <div class="investor-top">
+              <div class="inv-avatar" style="background:linear-gradient(135deg,#ea580c,#fb923c)">이</div>
+              <div class="inv-info">
+                <h4>이민수</h4>
+                <span>프리미어파트너스</span>
+              </div>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 2,190</div>
+            </div>
+            <div class="inv-tags">
+              <span class="inv-tag">Series B</span>
+              <span class="inv-tag">Series C</span>
+              <span class="inv-tag">헬스케어</span>
+            </div>
+            <div class="inv-stats">
+              <div class="inv-stat"><span class="val">80건</span><span class="lbl">포트폴리오</span></div>
+              <div class="inv-stat"><span class="val">70%</span><span class="lbl">성공률</span></div>
+              <div class="inv-stat"><span class="val">1.2조+</span><span class="lbl">AUM</span></div>
+            </div>
+          </a>
+          <!-- 카드 4 -->
+          <a href="investors.html" class="investor-card">
+            <div class="investor-top">
+              <div class="inv-avatar" style="background:linear-gradient(135deg,#9333ea,#c084fc)">최</div>
+              <div class="inv-info">
+                <h4>최재원</h4>
+                <span>메디치인베스트먼트</span>
+              </div>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 1,978</div>
+            </div>
+            <div class="inv-tags">
+              <span class="inv-tag">Series C</span>
+              <span class="inv-tag">Growth</span>
+              <span class="inv-tag">이커머스</span>
+            </div>
+            <div class="inv-stats">
+              <div class="inv-stat"><span class="val">80건</span><span class="lbl">포트폴리오</span></div>
+              <div class="inv-stat"><span class="val">78%</span><span class="lbl">성공률</span></div>
+              <div class="inv-stat"><span class="val">1조+</span><span class="lbl">AUM</span></div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- ===== 4. 조회수 많은 펀드 ===== -->
+      <section class="content-section">
+        <div class="section-title">
+          <h2><i class="fa-solid fa-trophy"></i> 조회수 많은 펀드</h2>
+          <a href="fund.html">전체보기 <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+        <div class="fund-grid">
+          <!-- 펀드 카드 1 -->
+          <a href="fund.html" class="fund-card">
+            <div class="fund-header">
+              <span class="fund-badge badge-seed">Seed</span>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 3,412</div>
+            </div>
+            <h4>2026 초기기업 성장지원 투자조합</h4>
+            <p class="fund-company">한국벤처투자 · 스마트팜 / 딥테크 / 바이오</p>
+            <div class="fund-meta">
+              <div class="fund-meta-item"><span class="v">500억</span><span class="l">펀드 규모</span></div>
+              <div class="fund-meta-item"><span class="v">Seed~Pre-A</span><span class="l">투자 단계</span></div>
+              <div class="fund-meta-item"><span class="v">~2026.06</span><span class="l">마감일</span></div>
+            </div>
+          </a>
+          <!-- 펀드 카드 2 -->
+          <a href="fund.html" class="fund-card">
+            <div class="fund-header">
+              <span class="fund-badge badge-a">Series A</span>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 2,887</div>
+            </div>
+            <h4>디지털 헬스케어 혁신 투자조합 1호</h4>
+            <p class="fund-company">카카오벤처스 · 헬스케어 / 바이오 / 의료기기</p>
+            <div class="fund-meta">
+              <div class="fund-meta-item"><span class="v">800억</span><span class="l">펀드 규모</span></div>
+              <div class="fund-meta-item"><span class="v">Series A~B</span><span class="l">투자 단계</span></div>
+              <div class="fund-meta-item"><span class="v">~2026.09</span><span class="l">마감일</span></div>
+            </div>
+          </a>
+          <!-- 펀드 카드 3 -->
+          <a href="fund.html" class="fund-card">
+            <div class="fund-header">
+              <span class="fund-badge badge-b">Series B</span>
+              <div class="view-badge"><i class="fa-solid fa-eye"></i> 2,341</div>
+            </div>
+            <h4>글로벌 핀테크 스케일업 펀드 3호</h4>
+            <p class="fund-company">알토스벤처스 · 핀테크 / 블록체인 / SaaS</p>
+            <div class="fund-meta">
+              <div class="fund-meta-item"><span class="v">1,200억</span><span class="l">펀드 규모</span></div>
+              <div class="fund-meta-item"><span class="v">Series B~C</span><span class="l">투자 단계</span></div>
+              <div class="fund-meta-item"><span class="v">~2026.12</span><span class="l">마감일</span></div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- ===== 5. 공지사항 + 서비스 소개 ===== -->
+      <section class="bottom-section">
+        <div class="bottom-grid">
+          <!-- 공지사항 -->
+          <div class="notice-box">
+            <div class="box-header">
+              <h3><i class="fa-solid fa-bullhorn" style="color:#2563eb"></i> 공지사항</h3>
+              <a href="notice.html">더보기 →</a>
+            </div>
+            <div class="notice-list">
+              <a href="notice.html" class="notice-item">
+                <span class="ntitle">스프링 데모데이 2026 참가 스타트업 모집 안내</span>
+                <span class="notice-new">NEW</span>
+                <span class="ndate">2026.03.10</span>
+              </a>
+              <a href="notice.html" class="notice-item">
+                <span class="ntitle">VC route 투자자 매칭 서비스 정식 오픈</span>
+                <span class="notice-new">NEW</span>
+                <span class="ndate">2026.03.05</span>
+              </a>
+              <a href="notice.html" class="notice-item">
+                <span class="ntitle">2026년 1분기 벤처투자 동향 리포트 발간</span>
+                <span class="ndate">2026.02.28</span>
+              </a>
+              <a href="notice.html" class="notice-item">
+                <span class="ntitle">서비스 이용약관 일부 개정 안내</span>
+                <span class="ndate">2026.02.20</span>
+              </a>
+              <a href="notice.html" class="notice-item">
+                <span class="ntitle">DCF 시뮬레이션 Cap Table 기능 추가</span>
+                <span class="ndate">2026.02.14</span>
+              </a>
+            </div>
+          </div>
+          <!-- 서비스 소개 -->
+          <div class="service-box">
+            <div class="box-header">
+              <h3><i class="fa-solid fa-star" style="color:#f59e0b"></i> 주요 서비스</h3>
+            </div>
+            <div class="service-list">
+              <a href="ir-score.html" class="service-item">
+                <div class="service-icon si-1"><i class="fa-solid fa-chart-pie"></i></div>
+                <div class="service-item-text">
+                  <h4>AI 투자 진단 & 추천</h4>
+                  <p>IR 덱 분석으로 투자 매력도 스코어링 및 최적 펀드·투자자 자동 매칭</p>
+                </div>
+              </a>
+              <a href="DCF.html" class="service-item">
+                <div class="service-icon si-2"><i class="fa-solid fa-calculator"></i></div>
+                <div class="service-item-text">
+                  <h4>데이터 시뮬레이션</h4>
+                  <p>DCF·LTV/CAC·Burn Rate·Cap Table 계산을 인터랙티브하게 시뮬레이션</p>
+                </div>
+              </a>
+              <a href="fund.html" class="service-item">
+                <div class="service-icon si-3"><i class="fa-solid fa-coins"></i></div>
+                <div class="service-item-text">
+                  <h4>투자펀드 매칭</h4>
+                  <p>스타트업 단계·업종에 최적화된 벤처펀드를 AI로 추천 및 신청</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /main-wrap -->
+
+    <!-- Footer (기존 그대로) -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭 플랫폼입니다.</p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li><a href="https://ventureplatform.biz/about.html" target="_blank">About</a></li>
+              <li><a href="https://ventureplatform.biz/service.html" target="_blank">Service</a></li>
+              <li><a href="https://ventureplatform.biz/news.html" target="_blank">News</a></li>
+              <li><a href="https://ventureplatform.biz/contact.html" target="_blank">Contact</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li><a href="mailto:venture@ventureplatform.co.kr">광고문의</a></li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p><i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구 동백5로 22, 215호</p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="legal.html?tab=terms">이용약관</a>
+              <a href="legal.html?tab=privacy">개인정보처리방침</a>
+              <a href="legal.html?tab=policy">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+      // ===== 슬라이더 =====
+      let current = 0;
+      const total = 4;
+      const slidesEl = document.getElementById('slides');
+      const dotsEl = document.getElementById('dots');
+
+      // 도트 생성
+      for (let i = 0; i < total; i++) {
+        const d = document.createElement('button');
+        d.className = 'dot' + (i === 0 ? ' active' : '');
+        d.onclick = () => goSlide(i);
+        dotsEl.appendChild(d);
+      }
+
+      function goSlide(n) {
+        current = (n + total) % total;
+        slidesEl.style.transform = `translateX(-${current * 100}%)`;
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+      }
+
+      function changeSlide(dir) { goSlide(current + dir); }
+
+      // 자동 슬라이드
+      setInterval(() => changeSlide(1), 4500);
+    </script>
+  </body>
+</html>
