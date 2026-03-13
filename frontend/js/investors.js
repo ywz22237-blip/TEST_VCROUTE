@@ -664,6 +664,13 @@ let searchQuery = "";
 document.addEventListener("DOMContentLoaded", () => {
   renderInvestors(investorsData);
   updateResultsCount(investorsData.length);
+
+  // URL ?id= 파라미터로 진입 시 해당 투자자 모달 자동 오픈
+  const params = new URLSearchParams(window.location.search);
+  const targetId = parseInt(params.get("id"));
+  if (targetId) {
+    openInvestorModal(targetId);
+  }
 });
 
 // 검색 기능
