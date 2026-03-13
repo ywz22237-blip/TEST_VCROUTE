@@ -150,6 +150,57 @@ function formatNumber(num) {
   return Math.round(num).toLocaleString("ko-KR");
 }
 
+// LTV/CAC 계산기
+function calcLtvCac() {
+  const marketingCost = parseFloat(document.getElementById("ltv-marketing-cost")?.value) || 0;
+  const newCustomers  = parseFloat(document.getElementById("ltv-new-customers")?.value)  || 0;
+  const arpu          = parseFloat(document.getElementById("ltv-arpu")?.value)           || 0;
+  const duration      = parseFloat(document.getElementById("ltv-duration")?.value)       || 0;
+  const margin        = parseFloat(document.getElementById("ltv-margin")?.value)         || 0;
+
+  const cac = newCustomers > 0 ? marketingCost / newCustomers : 0;
+  const ltv = arpu * duration * (margin / 100);
+  const ratio = cac > 0 ? ltv / cac : 0;
+  const monthlyProfit = arpu * (margin / 100);
+  const payback = monthlyProfit > 0 ? cac / monthlyProfit : 0;
+
+  document.getElementById("ltv-result-cac").textContent = cac > 0 ? formatNumber(cac) + "원" : "-";
+  document.getElementById("ltv-result-ltv").textContent = ltv > 0 ? formatNumber(ltv) + "원" : "-";
+  document.getElementById("ltv-monthly-profit").textContent = monthlyProfit > 0 ? formatNumber(monthlyProfit) + "원" : "-";
+  document.getElementById("ltv-payback").textContent = payback > 0 ? payback.toFixed(1) + "개월" : "-";
+
+  const ratioEl = document.getElementById("ltv-ratio");
+  const gradeEl = document.getElementById("ltv-grade");
+  const boxEl   = document.getElementById("ltv-ratio-box");
+
+  if (ratio > 0) {
+    ratioEl.textContent = ratio.toFixed(2);
+    if (ratio < 1) {
+      gradeEl.textContent = "❌ 위험 — 비즈니스 지속 불가";
+      gradeEl.style.color = "#ef4444";
+      boxEl.style.borderColor = "#fca5a5";
+      boxEl.style.background = "#fff1f2";
+    } else if (ratio < 3) {
+      gradeEl.textContent = "⚠️ 주의 — 추가 개선 필요";
+      gradeEl.style.color = "#f59e0b";
+      boxEl.style.borderColor = "#fcd34d";
+      boxEl.style.background = "#fffbeb";
+    } else {
+      gradeEl.textContent = "✅ 우수 — VC가 선호하는 구조";
+      gradeEl.style.color = "#22c55e";
+      boxEl.style.borderColor = "#86efac";
+      boxEl.style.background = "#f0fdf4";
+    }
+    ratioEl.style.color = ratio < 1 ? "#ef4444" : ratio < 3 ? "#f59e0b" : "#22c55e";
+  } else {
+    ratioEl.textContent = "-";
+    gradeEl.textContent = "-";
+    boxEl.style.borderColor = "#e2e8f0";
+    boxEl.style.background = "#f8fafc";
+    ratioEl.style.color = "#1e293b";
+  }
+}
+
 // 간단한 애니메이션 추가
 const style = document.createElement("style");
 style.innerHTML = `
