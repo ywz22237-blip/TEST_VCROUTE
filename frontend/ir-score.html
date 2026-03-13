@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>투자 매력도 진단 - VC route</title>
+    <link rel="icon" type="image/png" href="image/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      .ir-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+      .ir-page .page-header { text-align: center; margin-bottom: 3rem; }
+      .ir-page .page-header h1 { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+      .ir-page .page-header p { color: #64748b; font-size: 1rem; }
+
+      .ir-container { display: grid; grid-template-columns: 260px 1fr; gap: 2rem; align-items: start; }
+      @media (max-width: 768px) { .ir-container { grid-template-columns: 1fr; } }
+
+      /* Sidebar */
+      .ir-sidebar { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; position: sticky; top: 80px; }
+      .ir-sidebar .sidebar-header { padding: 1.2rem 1.5rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+      .ir-sidebar .sidebar-header h3 { margin: 0; font-size: 0.95rem; color: #475569; font-weight: 600; }
+      .ir-menu { padding: 0.8rem; }
+      .ir-menu-item { display: flex; align-items: center; gap: 0.7rem; width: 100%; padding: 0.75rem 1rem; border: none; border-radius: 10px; background: transparent; cursor: pointer; font-size: 0.9rem; color: #475569; text-align: left; transition: all 0.2s; font-family: inherit; }
+      .ir-menu-item:hover { background: #f1f5f9; color: #1e293b; }
+      .ir-menu-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+      .ir-menu-item i { width: 18px; text-align: center; }
+
+      /* Content */
+      .ir-content { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 2rem; min-height: 500px; }
+      .ir-section { display: none; }
+      .ir-section.active { display: block; }
+
+      .tag-line { color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem; font-style: italic; }
+
+      /* Upload Zone */
+      .upload-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #f8fafc; }
+      .upload-zone:hover, .upload-zone.dragover { border-color: #2563eb; background: #eff6ff; }
+      .upload-zone i { font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem; display: block; }
+      .upload-zone p { color: #64748b; margin: 0.3rem 0; }
+      .upload-zone .hint { font-size: 0.8rem; color: #94a3b8; }
+
+      .btn-primary { background: #2563eb; color: white; border: none; border-radius: 10px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+      .btn-primary:hover { background: #1d4ed8; }
+      .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+      /* Score Cards */
+      .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 2rem; }
+      @media (max-width: 900px) { .score-grid { grid-template-columns: repeat(3, 1fr); } }
+      .score-card { background: #f8fafc; border-radius: 12px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; }
+      .score-card .label { font-size: 0.75rem; color: #64748b; margin-bottom: 0.4rem; }
+      .score-card .value { font-size: 1.6rem; font-weight: 800; }
+      .score-card .bar { height: 4px; border-radius: 2px; background: #e2e8f0; margin-top: 0.5rem; }
+      .score-card .bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+      /* Feedback */
+      .feedback-item { padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; font-size: 0.9rem; display: flex; gap: 0.6rem; align-items: flex-start; }
+      .feedback-item.good { background: #f0fdf4; color: #166534; border-left: 3px solid #22c55e; }
+      .feedback-item.warn { background: #fffbeb; color: #92400e; border-left: 3px solid #f59e0b; }
+      .feedback-item.bad  { background: #fef2f2; color: #991b1b; border-left: 3px solid #ef4444; }
+
+      /* Q&A */
+      .qa-box { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+      .qa-messages { height: 340px; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; background: #f8fafc; }
+      .msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.5; }
+      .msg.vc  { background: #1e293b; color: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 4px; }
+      .msg.user { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+      .msg.guide { background: #fef9c3; color: #713f12; align-self: flex-start; font-size: 0.82rem; border-left: 3px solid #f59e0b; }
+      .qa-input { display: flex; gap: 0.5rem; padding: 0.8rem; border-top: 1px solid #e2e8f0; background: white; }
+      .qa-input input { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 0.8rem; font-family: inherit; font-size: 0.9rem; }
+      .qa-input input:focus { outline: none; border-color: #2563eb; }
+      .qa-input button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 0.6rem 1rem; cursor: pointer; font-size: 0.9rem; }
+
+      .loading { display: flex; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.85rem; }
+      .dot-spin { display: inline-flex; gap: 3px; }
+      .dot-spin span { width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; animation: blink 1.2s infinite; }
+      .dot-spin span:nth-child(2) { animation-delay: 0.2s; }
+      .dot-spin span:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+      .content-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; }
+      .content-box.highlight { background: #eff6ff; border-color: #bfdbfe; }
+      .total-score-box { text-align: center; padding: 2rem; background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; color: white; margin-bottom: 2rem; }
+      .total-score-box .total-num { font-size: 4rem; font-weight: 900; line-height: 1; }
+      .total-score-box .total-label { color: #94a3b8; font-size: 0.9rem; margin-top: 0.3rem; }
+      .total-score-box .total-grade { font-size: 1.1rem; font-weight: 700; margin-top: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <a href="index.html" class="logo">VC route</a>
+        <nav>
+          <ul class="nav-menu">
+            <li><a href="index.html">홈</a></li>
+            <li><a href="dashboard.html">대시보드</a></li>
+            <li><a href="ir-score.html" class="active">투자 매력도 진단</a></li>
+            <li><a href="fund.html">투자펀드</a></li>
+            <li><a href="investors.html">투자자</a></li>
+            <li><a href="DCF.html">데이터 시뮬레이션</a></li>
+            <li><a href="notice.html">공지사항</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+          <div class="lang-toggle" id="langToggle">
+            <button class="lang-toggle-btn" onclick="toggleLangDropdown()">
+              <span id="currentLang">Language</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown">
+              <button class="lang-dropdown-item active" onclick="selectLang('ko', '한국어(KOREA)')">한국어(KOREA)</button>
+              <button class="lang-dropdown-item" onclick="selectLang('en', 'English')">English</button>
+              <button class="lang-dropdown-item" onclick="selectLang('ja', '日本語')">日本語</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="ir-page">
+        <div class="page-header">
+          <h1>투자 매력도 진단 <span style="color:#2563eb;">&amp; 스코어링</span></h1>
+          <p>IR 덱을 업로드하면 10년 차 수석 심사역 관점으로 분석하고, 투자 유치 가능성을 진단합니다.</p>
+        </div>
+
+        <div class="ir-container">
+          <!-- Sidebar -->
+          <aside class="ir-sidebar">
+            <div class="sidebar-header"><h3>메뉴</h3></div>
+            <div class="ir-menu">
+              <button class="ir-menu-item active" data-tab="upload">
+                <i class="fa-solid fa-file-arrow-up"></i> IR 덱 업로드
+              </button>
+              <button class="ir-menu-item" data-tab="score" id="menu-score" disabled>
+                <i class="fa-solid fa-chart-radar" style="font-family:'Font Awesome 6 Free';"></i>
+                <i class="fa-solid fa-bullseye"></i> 스코어링 결과
+              </button>
+              <button class="ir-menu-item" data-tab="qa" id="menu-qa" disabled>
+                <i class="fa-solid fa-comments"></i> 가상 VC Q&A
+              </button>
+            </div>
+            <div style="margin:1rem;padding:1rem;background:#f0f9ff;border-radius:10px;border:1px solid #bae6fd;">
+              <h4 style="color:#0369a1;margin:0 0 0.5rem;font-size:0.85rem;">💡 분석 기준</h4>
+              <ul style="color:#0c4a6e;font-size:0.8rem;line-height:1.8;margin:0;padding-left:1.2rem;">
+                <li>시장성 (TAM·SAM·SOM)</li>
+                <li>팀 역량 및 경험</li>
+                <li>기술력 / 해자</li>
+                <li>수익 모델 (BM)</li>
+                <li>재무 계획</li>
+              </ul>
+            </div>
+          </aside>
+
+          <!-- Content -->
+          <div class="ir-content">
+
+            <!-- Tab 1: Upload -->
+            <div id="upload" class="ir-section active">
+              <h2>IR 덱 업로드</h2>
+              <div class="tag-line">Upload your IR Deck for AI-powered VC Scoring</div>
+
+              <div class="content-box highlight">
+                <p><strong>어떻게 분석하나요?</strong><br />
+                IR 덱의 텍스트를 추출하여 VC 심사역 프레임워크로 5개 항목을 채점합니다.
+                시장 규모 논리, 팀 구성, 기술적 해자, 수익 모델, 재무 계획의 완성도를 평가합니다.</p>
+              </div>
+
+              <div class="upload-zone" id="uploadZone" onclick="document.getElementById('irFile').click()">
+                <i class="fa-solid fa-file-pdf"></i>
+                <p><strong>PDF 파일을 드래그하거나 클릭하여 업로드</strong></p>
+                <p id="fileName" style="color:#2563eb;font-weight:600;"></p>
+                <p class="hint">지원 형식: PDF · 최대 20MB</p>
+              </div>
+              <input type="file" id="irFile" accept=".pdf,.txt" style="display:none;" onchange="onFileSelect(this)" />
+
+              <div style="margin-top:1.5rem;">
+                <label style="display:block;font-size:0.9rem;font-weight:600;color:#475569;margin-bottom:0.5rem;">회사 한 줄 소개 (선택)</label>
+                <input type="text" id="companyDesc" placeholder="예: B2B SaaS 기반 HR 자동화 솔루션" style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:0.9rem;box-sizing:border-box;" />
+              </div>
+
+              <div style="margin-top:1.5rem;text-align:center;">
+                <button class="btn-primary" id="analyzeBtn" onclick="startAnalysis()" disabled>
+                  <i class="fa-solid fa-magnifying-glass-chart"></i> &nbsp;AI 분석 시작
+                </button>
+              </div>
+
+              <div id="analyzing" style="display:none;text-align:center;padding:2rem;">
+                <div class="loading" style="justify-content:center;">
+                  <div class="dot-spin"><span></span><span></span><span></span></div>
+                  <span id="analyzeStatus">IR 덱을 분석하고 있습니다...</span>
+                </div>
+                <p style="color:#94a3b8;font-size:0.8rem;margin-top:0.5rem;">약 10~20초 소요됩니다</p>
+              </div>
+            </div>
+
+            <!-- Tab 2: Score -->
+            <div id="score" class="ir-section">
+              <h2>스코어링 결과</h2>
+              <div class="tag-line">VC Scoring Framework · 10년 차 수석 심사역 관점</div>
+
+              <div class="total-score-box">
+                <div class="total-num" id="totalScore">--</div>
+                <div class="total-label">/ 100점</div>
+                <div class="total-grade" id="totalGrade">-</div>
+              </div>
+
+              <div class="score-grid" id="scoreGrid"></div>
+
+              <div style="background:white;padding:1.5rem;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:2rem;">
+                <h4 style="margin-top:0;">📊 레이더 차트</h4>
+                <canvas id="radarChart" height="220"></canvas>
+              </div>
+
+              <h3>상세 피드백</h3>
+              <div id="feedbackList"></div>
+
+              <div style="text-align:center;margin-top:2rem;">
+                <button class="btn-primary" onclick="switchIrTab('qa')">
+                  가상 VC Q&amp;A 시작하기 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab 3: Q&A -->
+            <div id="qa" class="ir-section">
+              <h2>가상 VC Q&amp;A</h2>
+              <div class="tag-line">IR 내용 기반 공격적 질문 시뮬레이션</div>
+
+              <div class="content-box" style="margin-bottom:1rem;">
+                <p style="margin:0;font-size:0.9rem;color:#475569;">
+                  <strong>10년 차 수석 심사역</strong>이 IR 덱의 약점을 파고드는 질문을 던집니다.
+                  답변 후 실시간 코칭을 받아보세요.
+                </p>
+              </div>
+
+              <div class="qa-box">
+                <div class="qa-messages" id="qaMessages"></div>
+                <div class="qa-input">
+                  <input type="text" id="qaInput" placeholder="답변을 입력하세요..." onkeydown="if(event.key==='Enter') sendQaAnswer()" />
+                  <button onclick="sendQaAnswer()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="index.html" class="logo">VC route</a>
+            <p>초기 스타트업과 전문 투자자를 잇는<br />대한민국 No.1 투자 매칭 플랫폼입니다.</p>
+            <div class="footer-social">
+              <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <h4>주식회사 벤처플랫폼</h4>
+            <ul>
+              <li><a href="https://ventureplatform.biz/about.html" target="_blank">About</a></li>
+              <li><a href="https://ventureplatform.biz/service.html" target="_blank">Service</a></li>
+              <li><a href="https://ventureplatform.biz/news.html" target="_blank">News</a></li>
+              <li><a href="https://ventureplatform.biz/contact.html" target="_blank">Contact</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>고객지원</h4>
+            <ul>
+              <li><a href="notice.html">공지사항</a></li>
+              <li><a href="notice.html?category=update">데모데이</a></li>
+              <li><a href="notice.html?category=event">이벤트</a></li>
+              <li><a href="mailto:venture@ventureplatform.co.kr">광고문의</a></li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>연락처</h4>
+            <p><i class="fa-solid fa-location-dot"></i> 경기도 용인시 기흥구 동백5로 22, 215호 (주식회사 벤처플랫폼)</p>
+            <p><i class="fa-solid fa-phone"></i> 0502-1923-4562</p>
+            <p><i class="fa-solid fa-envelope"></i> venture@platform.co.kr</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-info">
+            <div class="legal-links">
+              <a href="#">이용약관</a>
+              <a href="#" style="font-weight:700;color:white;">개인정보처리방침</a>
+              <a href="#">운영정책</a>
+            </div>
+            <p>&copy; 2026 VC route. All rights reserved.</p>
+          </div>
+          <p>주식회사 벤처플랫폼 | 대표 박준호 | 사업자번호 466-88-02318</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ir-score.js"></script>
+  </body>
+</html>
