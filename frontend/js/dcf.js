@@ -29,6 +29,15 @@ document.addEventListener("DOMContentLoaded", () => {
       window.switchTab(targetId);
     });
   });
+
+  // URL 해시로 진입 시 해당 탭 자동 활성화 (#cap-table 등)
+  const hash = window.location.hash.replace('#', '');
+  if (hash) {
+    const target = document.getElementById(hash);
+    if (target && target.classList.contains('dcf-section')) {
+      window.switchTab(hash);
+    }
+  }
 });
 
 // FCF 자동 계산
