@@ -26,6 +26,19 @@ jobs:
           script: |
             const branch = context.ref.replace('refs/heads/', '');
 
+            // main과 diff 확인 (변경사항 없으면 스킵)
+            const { data: compare } = await github.rest.repos.compareCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: 'main',
+              head: branch
+            });
+
+            if (compare.ahead_by === 0) {
+              console.log('변경사항 없음, 스킵');
+              return;
+            }
+
             // 기존 PR 확인
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
@@ -37,7 +50,6 @@ jobs:
 
             let pr;
             if (prs.length === 0) {
-              // PR 생성
               const { data: newPr } = await github.rest.pulls.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -61,4 +73,4 @@ jobs:
               merge_method: 'squash'
             });
 
-            console.log(`PR #${pr.number} 머지 완료 → main 자동 배포 시작`);
+            console.log(`PR #${pr.number} 머지 완료 → Vercel 자동 배포 시작`);
