@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인 처리 중 - VC route</title>
+    <link rel="icon" type="image/png" href="../image/favicon.png" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Noto Sans KR', sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #f8fafc;
+      }
+      .callback-box {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        max-width: 360px;
+        width: 100%;
+      }
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #e2e8f0;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 1.5rem;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      h2 { font-size: 1.1rem; color: #1e293b; margin-bottom: 0.5rem; }
+      p  { font-size: 0.9rem; color: #64748b; }
+      .error-box { display: none; }
+      .error-box h2 { color: #dc2626; }
+      .error-box a {
+        display: inline-block;
+        margin-top: 1.25rem;
+        padding: 0.6rem 1.5rem;
+        background: #2563eb;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="callback-box" id="loadingBox">
+      <div class="spinner"></div>
+      <h2>로그인 처리 중...</h2>
+      <p>잠시만 기다려주세요</p>
+    </div>
+
+    <div class="callback-box error-box" id="errorBox">
+      <h2>로그인 실패</h2>
+      <p id="errorMsg">인증 처리 중 오류가 발생했습니다.</p>
+      <a href="login.html">다시 시도하기</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script>
+      (async () => {
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 네이버 Edge Function에서 넘어온 경우: ?token=...&refresh=...
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("access_token")) {
+          const { data, error } = await sb.auth.setSession({
+            access_token: params.get("access_token"),
+            refresh_token: params.get("refresh_token") || "",
+          });
+          if (error) {
+            showError(error.message);
+            return;
+          }
+          saveAndRedirect(data.session, data.user);
+          return;
+        }
+
+        // 구글/카카오: URL hash or code exchange (PKCE)
+        const { data, error } = await sb.auth.exchangeCodeForSession(window.location.href);
+
+        if (error) {
+          // hash 방식 fallback
+          const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+          if (sessionError || !sessionData.session) {
+            showError((error || sessionError)?.message || "인증 처리 중 오류가 발생했습니다.");
+            return;
+          }
+          saveAndRedirect(sessionData.session, sessionData.session.user);
+          return;
+        }
+
+        saveAndRedirect(data.session, data.user);
+      })();
+
+      function saveAndRedirect(session, user) {
+        if (!session || !user) { showError("세션 정보를 가져올 수 없습니다."); return; }
+
+        const meta = user.user_metadata || {};
+        const userInfo = {
+          id: user.id,
+          email: user.email,
+          name: meta.full_name || meta.name || meta.user_name || user.email,
+          avatar: meta.avatar_url || meta.picture || "",
+          provider: (user.app_metadata || {}).provider || "email",
+          userType: meta.userType || "startup",
+          verified: !!user.email_confirmed_at,
+        };
+
+        localStorage.setItem("auth_token", session.access_token);
+        localStorage.setItem("user_info", JSON.stringify(userInfo));
+        window.location.href = "../index.html";
+      }
+
+      function showError(msg) {
+        document.getElementById("loadingBox").style.display = "none";
+        const box = document.getElementById("errorBox");
+        box.style.display = "block";
+        document.getElementById("errorMsg").textContent = msg || "인증 처리 중 오류가 발생했습니다.";
+      }
+    </script>
+  </body>
+</html>

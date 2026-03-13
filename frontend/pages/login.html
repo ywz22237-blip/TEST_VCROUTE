@@ -129,17 +129,11 @@
       </div>
     </section>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/config.js"></script>
     <script src="../js/auth.js"></script>
     <script>
-      function socialLogin(provider) {
-        const urls = {
-          kakao: API_CONFIG.BASE_URL + '/api/auth/oauth/kakao',
-          naver: API_CONFIG.BASE_URL + '/api/auth/oauth/naver',
-          google: API_CONFIG.BASE_URL + '/api/auth/oauth/google'
-        };
-        window.location.href = urls[provider];
-      }
+      // socialLogin()은 auth.js에서 처리
       function togglePw() {
         const input = document.getElementById('password');
         const icon = document.querySelector('.toggle-pw i');

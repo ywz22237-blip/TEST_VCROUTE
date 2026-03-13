@@ -1,6 +1,10 @@
-// API Configuration
+// Supabase Configuration
+const SUPABASE_URL = "https://kdfsselcksrnntarumdx.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZnNzZWxja3Nybm50YXJ1bWR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTI3ODksImV4cCI6MjA4ODk4ODc4OX0._22yAjCX96B62tr2fy7EriktaKPbtDyUgsZ7BPqGMUM";
+
+// API Configuration (레거시 호환)
 const API_CONFIG = {
-  BASE_URL: "", // 같은 도메인 사용 (Vercel 배포 시 상대경로)
+  BASE_URL: "",
   ENDPOINTS: {
     LOGIN: "/api/auth/login",
     REGISTER: "/api/auth/register",
@@ -17,5 +21,5 @@ const STORAGE_KEYS = {
 
 // Export configuration
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { API_CONFIG, STORAGE_KEYS };
+  module.exports = { SUPABASE_URL, SUPABASE_ANON_KEY, API_CONFIG, STORAGE_KEYS };
 }
