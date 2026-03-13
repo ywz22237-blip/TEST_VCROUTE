@@ -2,7 +2,6 @@
 
 let currentStep = 1;
 let isIdChecked = false;
-let isEmailVerified = false;
 let emailTimerInterval = null;
 
 // Supabase 클라이언트 (auth.js의 getSupabase 공유)
@@ -60,7 +59,6 @@ function validateStep2() {
   if (password.length < 8)   { alert('비밀번호는 8자 이상이어야 합니다.'); return false; }
   if (password !== pwConfirm){ alert('비밀번호가 일치하지 않습니다.'); return false; }
   if (!email)                { alert('이메일을 입력해주세요.'); return false; }
-  if (!isEmailVerified)      { alert('이메일 인증을 완료해주세요.'); return false; }
   return true;
 }
 
@@ -173,77 +171,6 @@ function togglePassword(fieldId) {
     input.type = 'password';
     icon.classList.replace('fa-eye-slash', 'fa-eye');
   }
-}
-
-// ===== 이메일 인증 (Supabase OTP) =====
-
-async function sendEmailVerification() {
-  const email = document.getElementById('email').value.trim();
-  const msg   = document.getElementById('emailMsg');
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return showFieldMsg(msg, '올바른 이메일 주소를 입력해주세요.', 'error');
-  }
-
-  const sb = getSB();
-  if (!sb) return showFieldMsg(msg, '인증 모듈 로드 중입니다. 잠시 후 다시 시도해주세요.', 'error');
-
-  const btn = document.querySelector('#emailVerifyGroup')?.previousElementSibling?.querySelector('.btn-check')
-    || document.querySelector('button[onclick="sendEmailVerification()"]');
-  if (btn) { btn.disabled = true; btn.textContent = '발송 중...'; }
-
-  // Supabase OTP 발송 (이메일로 6자리 코드)
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true }
-  });
-
-  if (btn) { btn.disabled = false; btn.textContent = '인증요청'; }
-
-  if (error) {
-    return showFieldMsg(msg, '인증코드 발송 실패: ' + error.message, 'error');
-  }
-
-  showFieldMsg(msg, '인증코드가 이메일로 발송되었습니다.', 'success');
-  document.getElementById('emailVerifyGroup').style.display = 'block';
-  startTimer('emailTimer', 180, () => {
-    showFieldMsg(document.getElementById('emailCodeMsg'), '인증시간이 만료되었습니다. 다시 요청해주세요.', 'error');
-  });
-}
-
-async function verifyEmailCode() {
-  const email = document.getElementById('email').value.trim();
-  const code  = document.getElementById('emailCode').value.trim();
-  const msg   = document.getElementById('emailCodeMsg');
-
-  if (!code || code.length !== 6) {
-    return showFieldMsg(msg, '6자리 인증코드를 입력해주세요.', 'error');
-  }
-
-  const sb = getSB();
-  if (!sb) return;
-
-  const { error } = await sb.auth.verifyOtp({
-    email,
-    token: code,
-    type: 'email'
-  });
-
-  if (error) {
-    return showFieldMsg(msg, '인증코드가 올바르지 않습니다.', 'error');
-  }
-
-  completeEmailVerification();
-}
-
-function completeEmailVerification() {
-  isEmailVerified = true;
-  clearInterval(emailTimerInterval);
-  showFieldMsg(document.getElementById('emailCodeMsg'), '이메일 인증이 완료되었습니다.', 'success');
-  document.getElementById('emailCode').disabled = true;
-  document.getElementById('emailCode').classList.add('success');
-  document.getElementById('email').disabled = true;
-  document.getElementById('email').classList.add('success');
 }
 
 // ===== 연락처 인증 (Supabase 무료 플랜 미지원 → 선택 항목으로 처리) =====

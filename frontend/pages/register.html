@@ -210,23 +210,8 @@
                 <!-- Email -->
                 <div class="form-group">
                   <label for="email">이메일 <span class="required-mark">*</span></label>
-                  <div class="input-with-btn">
-                    <input type="email" id="email" name="email" placeholder="example@email.com" required />
-                    <button type="button" class="btn-check" onclick="sendEmailVerification()">인증요청</button>
-                  </div>
+                  <input type="email" id="email" name="email" placeholder="example@email.com" required />
                   <span class="field-msg" id="emailMsg"></span>
-                </div>
-
-                <!-- Email Verification Code -->
-                <div class="form-group verify-group" id="emailVerifyGroup" style="display:none;">
-                  <label for="emailCode">이메일 인증코드 <span class="required-mark">*</span></label>
-                  <div class="input-with-btn">
-                    <input type="text" id="emailCode" name="emailCode" placeholder="인증코드 6자리" maxlength="6" />
-                    <button type="button" class="btn-verify" onclick="verifyEmailCode()">인증확인</button>
-                  </div>
-                  <span class="field-msg" id="emailCodeMsg">
-                    <span class="timer" id="emailTimer"></span>
-                  </span>
                 </div>
 
                 <!-- Phone -->
