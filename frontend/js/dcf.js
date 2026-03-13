@@ -211,3 +211,252 @@ style.innerHTML = `
   }
 `;
 document.head.appendChild(style);
+
+// ─── Burn-rate 시뮬레이터 ───────────────────────────────────────
+let burnChart = null;
+
+function addBurnItem() {
+  const container = document.getElementById("burn-items");
+  const div = document.createElement("div");
+  div.className = "burn-item";
+  div.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem;";
+  div.innerHTML = `
+    <input type="text" placeholder="항목명" style="flex:1;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+    <input type="number" placeholder="금액" style="width:130px;padding:0.5rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;" oninput="calcBurnRate()" />
+    <button onclick="removeBurnItem(this)" style="background:#fee2e2;color:#ef4444;border:none;border-radius:6px;padding:0.5rem 0.7rem;cursor:pointer;font-size:0.85rem;">✕</button>
+  `;
+  container.appendChild(div);
+  calcBurnRate();
+}
+
+function removeBurnItem(btn) {
+  btn.parentElement.remove();
+  calcBurnRate();
+}
+
+function calcBurnRate() {
+  const cash    = parseFloat(document.getElementById("br-cash")?.value)    || 0;
+  const revenue = parseFloat(document.getElementById("br-revenue")?.value) || 0;
+
+  let grossBurn = 0;
+  document.querySelectorAll(".burn-item").forEach(item => {
+    const amt = parseFloat(item.querySelectorAll("input")[1]?.value) || 0;
+    grossBurn += amt;
+  });
+
+  const netBurn = Math.max(0, grossBurn - revenue);
+
+  document.getElementById("br-gross").textContent = grossBurn > 0 ? formatNumber(grossBurn) + "원" : "-";
+  document.getElementById("br-net").textContent   = netBurn  > 0 ? formatNumber(netBurn)  + "원" : "-";
+
+  if (cash > 0 && netBurn > 0) {
+    const runway = cash / netBurn;
+    const runwayMonths = Math.floor(runway);
+    const deadlineMonths = Math.max(0, runwayMonths - 6);
+
+    const now = new Date();
+    const endDate = new Date(now.getFullYear(), now.getMonth() + runwayMonths, now.getDate());
+    const deadlineDate = new Date(now.getFullYear(), now.getMonth() + deadlineMonths, now.getDate());
+
+    const diffDays = Math.round((endDate - now) / (1000*60*60*24));
+
+    document.getElementById("br-dday").textContent  = `D-${diffDays.toLocaleString()}`;
+    document.getElementById("br-date").textContent  = `${endDate.getFullYear()}년 ${endDate.getMonth()+1}월 ${endDate.getDate()}일 소진 예상`;
+    document.getElementById("br-runway").textContent   = `${runwayMonths}개월 (${runway.toFixed(1)}개월)`;
+    document.getElementById("br-deadline").textContent = `${deadlineDate.getFullYear()}년 ${deadlineDate.getMonth()+1}월까지 펀딩 필요`;
+
+    // D-Day 색상
+    const box = document.getElementById("br-dday-box");
+    if (runwayMonths < 6)       { box.style.background = "#7f1d1d"; }
+    else if (runwayMonths < 12) { box.style.background = "#78350f"; }
+    else                        { box.style.background = "#1e293b"; }
+
+    // 차트 데이터
+    const labels = [], data = [];
+    for (let i = 0; i <= Math.min(runwayMonths + 2, 36); i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      labels.push(`${d.getMonth()+1}월`);
+      data.push(Math.max(0, cash - netBurn * i));
+    }
+
+    renderBurnChart(labels, data, runwayMonths, deadlineMonths, cash);
+  } else {
+    document.getElementById("br-dday").textContent    = "-";
+    document.getElementById("br-date").textContent    = "-";
+    document.getElementById("br-runway").textContent  = "-";
+    document.getElementById("br-deadline").textContent = "-";
+  }
+}
+
+function renderBurnChart(labels, data, runwayMonths, deadlineMonths, cash) {
+  const ctx = document.getElementById("burnChart");
+  if (!ctx) return;
+
+  if (burnChart) burnChart.destroy();
+
+  const pointColors = data.map((v, i) => {
+    if (i === runwayMonths) return "#ef4444";
+    if (i === deadlineMonths) return "#f59e0b";
+    return "#2563eb";
+  });
+
+  burnChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "현금 잔액",
+        data,
+        borderColor: "#2563eb",
+        backgroundColor: "rgba(37,99,235,0.08)",
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: pointColors,
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `잔액: ${Math.round(ctx.raw).toLocaleString("ko-KR")}원`
+          }
+        },
+        annotation: {
+          annotations: {
+            deadline: {
+              type: "line",
+              xMin: deadlineMonths, xMax: deadlineMonths,
+              borderColor: "#f59e0b", borderWidth: 2, borderDash: [5,5],
+              label: { content: "⚠️ 펀딩 데드라인", enabled: true, position: "start", color: "#f59e0b", font: { size: 11 } }
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => (v/100000000).toFixed(1) + "억" },
+          grid: { color: "#f1f5f9" }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ─── Cap Table 시뮬레이터 ───────────────────────────────────────
+let capChart = null;
+
+function calcCapTable() {
+  const founderA = parseFloat(document.getElementById("ct-founder-a")?.value) || 0;
+  const founderB = parseFloat(document.getElementById("ct-founder-b")?.value) || 0;
+  const esop     = parseFloat(document.getElementById("ct-esop")?.value)      || 0;
+
+  const total = founderA + founderB + esop;
+  if (total > 100) {
+    document.getElementById("ct-tbody").innerHTML =
+      `<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ef4444;">창업자 지분 합계가 100%를 초과합니다</td></tr>`;
+    return;
+  }
+
+  // 라운드별 입력
+  const rounds = [
+    { label: "시드",    pre: parseFloat(document.getElementById("ct-seed-pre")?.value)    || 0, inv: parseFloat(document.getElementById("ct-seed-inv")?.value)    || 0 },
+    { label: "시리즈A", pre: parseFloat(document.getElementById("ct-seriesA-pre")?.value) || 0, inv: parseFloat(document.getElementById("ct-seriesA-inv")?.value) || 0 },
+    { label: "시리즈B", pre: parseFloat(document.getElementById("ct-seriesB-pre")?.value) || 0, inv: parseFloat(document.getElementById("ct-seriesB-inv")?.value) || 0 },
+  ];
+
+  // 지분율 계산 (라운드별 희석)
+  const shareholders = [
+    { name: "창업자 A", pct: founderA },
+    { name: "창업자 B", pct: founderB },
+    { name: "ESOP",    pct: esop },
+  ];
+
+  const history = [ shareholders.map(s => ({ ...s })) ]; // [라운드0=초기, ...]
+  const investors = [];
+  let lastPostmoney = 0;
+
+  rounds.forEach((r, idx) => {
+    if (r.pre <= 0 || r.inv <= 0) { history.push(null); return; }
+    const postmoney = r.pre + r.inv;
+    const newPct = (r.inv / postmoney) * 100;
+    const dilution = 1 - newPct / 100;
+    lastPostmoney = postmoney;
+
+    const prev = history[history.length - 1] || history[0];
+    const next = prev.map(s => ({ ...s, pct: s.pct * dilution }));
+    investors.push({ name: r.label + " 투자자", pct: newPct, roundIdx: idx });
+    next.push({ name: r.label + " 투자자", pct: newPct });
+    history.push(next);
+  });
+
+  // 테이블 렌더링
+  const allNames = [...new Set(history.flat().filter(Boolean).map(s => s.name))];
+  const cols = history.filter(Boolean);
+
+  const getPct = (round, name) => {
+    if (!round) return null;
+    const s = round.find(x => x.name === name);
+    return s ? s.pct : 0;
+  };
+
+  let rows = allNames.map(name => {
+    const cells = [history[0], ...history.slice(1)].map(round => {
+      if (round === null) return `<td style="padding:0.6rem;text-align:center;color:#cbd5e1;">-</td>`;
+      const pct = getPct(round, name);
+      if (pct === null || pct === undefined) {
+        return `<td style="padding:0.6rem;text-align:center;color:#cbd5e1;">-</td>`;
+      }
+      const color = name.startsWith("창업자") ? "#6366f1" : name === "ESOP" ? "#f59e0b" : "#22c55e";
+      return `<td style="padding:0.6rem;text-align:center;font-weight:600;color:${color};">${pct.toFixed(1)}%</td>`;
+    });
+    return `<tr><td style="padding:0.6rem;font-weight:500;color:#1e293b;">${name}</td>${cells.join("")}</tr>`;
+  });
+
+  document.getElementById("ct-tbody").innerHTML = rows.join("");
+
+  // 요약
+  const finalRound = history.filter(Boolean).pop();
+  const founderAFinal = finalRound?.find(s => s.name === "창업자 A");
+  document.getElementById("ct-postmoney").textContent = lastPostmoney > 0 ? lastPostmoney + "억원" : "-";
+  document.getElementById("ct-founder-final").textContent = founderAFinal ? founderAFinal.pct.toFixed(1) + "%" : founderA.toFixed(1) + "%";
+
+  // 차트
+  renderCapChart(history);
+}
+
+function renderCapChart(history) {
+  const ctx = document.getElementById("capChart");
+  if (!ctx) return;
+  if (capChart) capChart.destroy();
+
+  const roundLabels = ["초기", "시드", "시리즈A", "시리즈B"].slice(0, history.length);
+  const allNames = [...new Set(history.flat().filter(Boolean).map(s => s.name))];
+  const colors = { "창업자 A": "#6366f1", "창업자 B": "#818cf8", "ESOP": "#f59e0b", "시드 투자자": "#34d399", "시리즈A 투자자": "#0ea5e9", "시리즈B 투자자": "#22c55e" };
+
+  const datasets = allNames.map(name => ({
+    label: name,
+    data: history.map(round => round ? (round.find(s => s.name === name)?.pct || 0) : null),
+    backgroundColor: colors[name] || "#94a3b8",
+    borderRadius: 4,
+  }));
+
+  capChart = new Chart(ctx, {
+    type: "bar",
+    data: { labels: roundLabels, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom", labels: { font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw?.toFixed(1)}%` } }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, max: 100, ticks: { callback: v => v + "%" }, grid: { color: "#f1f5f9" } }
+      }
+    }
+  });
+}
