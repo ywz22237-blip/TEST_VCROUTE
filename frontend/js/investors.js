@@ -671,6 +671,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (targetId) {
     openInvestorModal(targetId);
   }
+
+  // URL ?filter= 파라미터로 진입 시 해당 특수 필터 자동 활성화
+  const filterParam = params.get("filter");
+  if (filterParam && ["tps", "sups", "lips", "tops"].includes(filterParam)) {
+    toggleSpecialFilter(filterParam);
+  }
 });
 
 // 검색 기능
