@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -18,31 +19,74 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge to main
-        run: |
-          BRANCH="${GITHUB_REF#refs/heads/}"
-          echo "브랜치: $BRANCH"
+      - name: Deploy via fresh PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { execSync } = require('child_process');
+            const branch = context.ref.replace('refs/heads/', '');
 
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
+            execSync('git config user.email "actions@github.com"');
+            execSync('git config user.name "GitHub Actions"');
+            execSync('git fetch origin');
 
-          # main 최신화
-          git fetch origin main
-          git checkout main
-          git pull origin main
+            // 파일 변경사항 확인
+            const diff = execSync(`git diff --name-only origin/main..origin/${branch}`).toString().trim();
+            if (!diff) {
+              console.log('변경사항 없음, 스킵');
+              return;
+            }
+            console.log('변경된 파일:\n' + diff);
 
-          # 변경사항 확인
-          AHEAD=$(git rev-list main..origin/$BRANCH --count)
-          echo "main 대비 $AHEAD 커밋 앞섬"
+            // main 기준으로 새 deploy 브랜치 생성 (충돌 없음)
+            const deployBranch = `deploy/${Date.now()}`;
+            execSync(`git checkout -b ${deployBranch} origin/main`);
 
-          if [ "$AHEAD" = "0" ]; then
-            echo "변경사항 없음, 스킵"
-            exit 0
-          fi
+            // claude 브랜치의 파일을 그대로 덮어씌우기
+            execSync(`git checkout origin/${branch} -- .`);
+            execSync('git add -A');
 
-          # 브랜치를 main에 머지 (충돌 시 브랜치 내용 우선)
-          git merge origin/$BRANCH --no-ff -m "Auto merge: $BRANCH" \
-            || git merge origin/$BRANCH -X theirs --no-ff -m "Auto merge (theirs): $BRANCH"
+            // 스테이징된 변경사항이 있는지 확인
+            try {
+              execSync('git diff --cached --quiet');
+              console.log('스테이징 변경사항 없음');
+              return;
+            } catch(e) {
+              // 변경사항 있음 → 계속
+            }
 
-          git push origin main
-          echo "main 머지 완료 → Vercel 자동 배포 시작"
+            execSync(`git commit -m "Auto deploy from ${branch}"`);
+            execSync(`git push origin ${deployBranch}`);
+
+            // PR 생성
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Auto deploy: ${branch}`,
+              head: deployBranch,
+              base: 'main',
+              body: `${branch} 브랜치의 변경사항을 배포합니다.`
+            });
+            console.log(`PR 생성: #${pr.number}`);
+
+            // mergeable 상태 대기
+            await new Promise(r => setTimeout(r, 4000));
+
+            // PR 머지
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              merge_method: 'squash'
+            });
+            console.log(`PR #${pr.number} 머지 완료 → Vercel 자동 배포`);
+
+            // deploy 브랜치 삭제
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${deployBranch}`
+              });
+            } catch(e) { /* ignore */ }
