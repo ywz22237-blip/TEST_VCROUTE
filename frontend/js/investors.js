@@ -928,6 +928,7 @@ function applyFilters() {
         if (filter === "tps") return investor.tps;
         if (filter === "lips") return investor.lips;
         if (filter === "tops") return investor.tops;
+        if (filter === "sups") return investor.sups;
         if (filter === "bookmarked")
           return BookmarkMgr.isBookmarked("investors", investor.id);
         return false;
