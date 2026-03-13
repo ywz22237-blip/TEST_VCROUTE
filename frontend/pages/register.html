@@ -231,9 +231,9 @@
 
                 <!-- Phone -->
                 <div class="form-group">
-                  <label for="phone">연락처 <span class="required-mark">*</span></label>
+                  <label for="phone">연락처</label>
                   <div class="input-with-btn">
-                    <input type="tel" id="phone" name="phone" placeholder="010-0000-0000" required />
+                    <input type="tel" id="phone" name="phone" placeholder="010-0000-0000" />
                     <button type="button" class="btn-check" onclick="sendPhoneVerification()">인증요청</button>
                   </div>
                   <span class="field-msg" id="phoneMsg"></span>
@@ -241,7 +241,7 @@
 
                 <!-- Phone Verification Code -->
                 <div class="form-group verify-group" id="phoneVerifyGroup" style="display:none;">
-                  <label for="phoneCode">연락처 인증코드 <span class="required-mark">*</span></label>
+                  <label for="phoneCode">연락처 인증코드</label>
                   <div class="input-with-btn">
                     <input type="text" id="phoneCode" name="phoneCode" placeholder="인증코드 6자리" maxlength="6" />
                     <button type="button" class="btn-verify" onclick="verifyPhoneCode()">인증확인</button>
