@@ -75,7 +75,7 @@ function renderUserProfile(user) {
   const avatarLarge = document.getElementById('profileAvatarLarge');
   if (avatarLarge) {
     if (user.logoUrl) {
-      avatarLarge.innerHTML = `<img src="${user.logoUrl}" style="width:100%; height:100%; object-fit:contain; background:#fff; padding:6px; border-radius:50%;">`;
+      avatarLarge.innerHTML = `<img src="${user.logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
     } else {
       avatarLarge.innerHTML = initial;
     }
@@ -292,6 +292,56 @@ function cancelProfileEdit() {
   document.getElementById('profileEditBtn').style.display   = 'inline-flex';
   document.getElementById('profileSaveBtn').style.display   = 'none';
   document.getElementById('profileCancelBtn').style.display = 'none';
+}
+
+// ── 로고 업로드 ──────────────────────────────────
+
+function resizeImageToDataUrl(file, maxPx, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+        const w = Math.round(img.width  * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleAvatarChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // 최대 300px, JPEG quality 0.82 — 대부분 20KB 이하
+  const dataUrl = await resizeImageToDataUrl(file, 300, 0.82);
+
+  // 즉시 화면 반영
+  const avatarEl = document.getElementById('profileAvatarLarge');
+  if (avatarEl) avatarEl.innerHTML = `<img src="${dataUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+
+  // localStorage 저장
+  if (_profileUser) {
+    _profileUser.logoUrl = dataUrl;
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(_profileUser));
+  }
+
+  // Supabase user_metadata 저장 (avatar_url)
+  try {
+    const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+    if (sb) await sb.auth.updateUser({ data: { avatar_url: dataUrl } });
+  } catch (e) { console.warn('아바타 Supabase 저장 실패:', e); }
+
+  // 파일 input 초기화 (같은 파일 재선택 허용)
+  event.target.value = '';
 }
 
 // 대시보드 섹션 전환
