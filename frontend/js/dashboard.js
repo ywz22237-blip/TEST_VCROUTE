@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   checkDashboardAuth();
   renderDashboard();
+  initStoredFiles();
 });
 
 // 대시보드 접근 권한 확인 및 프로필 로드
@@ -635,4 +636,138 @@ function toggleContactGroup(group) {
   const hidden = el.style.display === 'none';
   el.style.display = hidden ? '' : 'none';
   btn.style.opacity = hidden ? '1' : '0.45';
+}
+
+// ─── 자료보관함 (localStorage 기반) ───────────────────────────────
+const VCROUTE_FILES_KEY = "vcroute_stored_files";
+
+const SEED_FILES = [
+  { id:"seed1", name:"2025_Series_A_IR_Deck_v3.pdf",       category:"IR자료",    badge:"IR",     size:"4.2 MB", date:"2025.01.15", content:"" },
+  { id:"seed2", name:"회사소개서_2025_최종.pptx",           category:"회사소개서", badge:"IR",     size:"12.8 MB",date:"2025.01.10", content:"" },
+  { id:"seed3", name:"Investment_Memorandum_Q4.docx",       category:"기타",      badge:"IM",     size:"2.1 MB", date:"2025.01.05", content:"" },
+  { id:"seed4", name:"재무제표_2024_감사완료.pdf",           category:"재무제표",  badge:"IM",     size:"1.5 MB", date:"2024.12.28", content:"" },
+  { id:"seed5", name:"Pitch_Deck_Demo_Day.pptx",            category:"IR자료",    badge:"IR",     size:"8.7 MB", date:"2024.12.20", content:"" },
+  { id:"seed6", name:"특허등록증_제10-2024-0123456호.pdf",   category:"기타",      badge:"인증서류",size:"0.8 MB", date:"2024.09.15", content:"" },
+  { id:"seed7", name:"벤처기업확인서_주식회사벤처플랫폼_2025.pdf", category:"기타", badge:"인증서류",size:"0.5 MB",date:"2025.01.20", content:"" },
+  { id:"seed8", name:"투자확인서_스마트벤처캠퍼스_2025.pdf", category:"기타",      badge:"인증서류",size:"0.3 MB", date:"2025.02.10", content:"" },
+];
+
+function initStoredFiles() {
+  if (!localStorage.getItem(VCROUTE_FILES_KEY)) {
+    localStorage.setItem(VCROUTE_FILES_KEY, JSON.stringify(SEED_FILES));
+  }
+  renderStoredFiles();
+}
+
+function renderStoredFiles() {
+  const list = document.getElementById("imirFilesList");
+  if (!list) return;
+  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
+  if (!files.length) {
+    list.innerHTML = `<div style="text-align:center;padding:2.5rem;color:#94a3b8;"><i class="fa-solid fa-folder-open" style="font-size:2rem;margin-bottom:0.8rem;display:block;"></i>저장된 파일이 없습니다.</div>`;
+    return;
+  }
+  list.innerHTML = files.map(f => {
+    const ext = (f.name || "").split(".").pop().toLowerCase();
+    const iconCls = ext === "pdf" ? "pdf" : (ext === "pptx" || ext === "ppt") ? "ppt" : (ext === "docx" || ext === "doc") ? "doc" : f.badge === "인증서류" ? "cert" : "pdf";
+    const iconTag = ext === "pdf" ? "fa-file-pdf" : (ext === "pptx" || ext === "ppt") ? "fa-file-powerpoint" : (ext === "docx" || ext === "doc") ? "fa-file-word" : "fa-file";
+    const badgeCls = f.badge === "IR" ? "ir" : f.badge === "IM" ? "im" : f.badge === "인증서류" ? "cert" : "ir";
+    const hasContent = f.content && f.content.trim().length > 0;
+    return `
+      <div class="imir-file-item">
+        <div class="file-icon ${iconCls}"><i class="fa-solid ${iconTag}"></i></div>
+        <div class="file-info">
+          <h4>${f.name}${hasContent ? ' <span style="color:#22c55e;font-size:0.72rem;font-weight:700;background:#f0fdf4;padding:0.1rem 0.35rem;border-radius:4px;">내용 있음</span>' : ''}</h4>
+          <div class="file-meta">
+            <span><i class="fa-regular fa-calendar"></i> ${f.date}</span>
+            <span><i class="fa-regular fa-file"></i> ${f.size}</span>
+            <span style="color:#64748b;">${f.category}</span>
+          </div>
+        </div>
+        <span class="file-badge ${badgeCls}">${f.badge}</span>
+        <div class="file-actions">
+          <button class="file-action-btn delete" title="삭제" onclick="deleteStoredFile('${f.id}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>`;
+  }).join("");
+
+  // 통계 업데이트
+  const ir   = files.filter(f => f.badge === "IR").length;
+  const im   = files.filter(f => f.badge === "IM").length;
+  const cert = files.filter(f => f.badge === "인증서류").length;
+  const statEls = document.querySelectorAll(".imir-stat-card .stat-value");
+  if (statEls[0]) statEls[0].textContent = ir;
+  if (statEls[1]) statEls[1].textContent = im;
+  if (statEls[2]) statEls[2].textContent = cert;
+  if (statEls[3]) statEls[3].textContent = files.length;
+}
+
+function deleteStoredFile(id) {
+  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
+  localStorage.setItem(VCROUTE_FILES_KEY, JSON.stringify(files.filter(f => f.id !== id)));
+  renderStoredFiles();
+}
+
+// 업로드 모달
+let _pendingStorageFile = null;
+
+function openStorageUploadModal() {
+  _pendingStorageFile = null;
+  const modal = document.getElementById("storageUploadModal");
+  if (modal) { modal.style.display = "flex"; }
+  document.getElementById("storageSelectedName").textContent = "";
+  document.getElementById("storageSaveBtn").disabled = true;
+}
+
+function closeStorageUploadModal() {
+  const modal = document.getElementById("storageUploadModal");
+  if (modal) modal.style.display = "none";
+  _pendingStorageFile = null;
+}
+
+function onStorageFileChosen(input) {
+  const file = input.files[0];
+  if (!file) return;
+  _pendingStorageFile = file;
+  document.getElementById("storageSelectedName").textContent = `✅ ${file.name}`;
+  document.getElementById("storageSaveBtn").disabled = false;
+}
+
+function handleStorageDrop(e) {
+  e.preventDefault();
+  document.getElementById("storageDropZone").style.borderColor = "#cbd5e1";
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  _pendingStorageFile = file;
+  document.getElementById("storageSelectedName").textContent = `✅ ${file.name}`;
+  document.getElementById("storageSaveBtn").disabled = false;
+}
+
+function saveStorageFile() {
+  if (!_pendingStorageFile) return;
+  const file     = _pendingStorageFile;
+  const category = document.getElementById("storageCategorySelect").value;
+  const badge    = category === "IR자료" || category === "회사소개서" ? "IR"
+                 : category === "재무제표" ? "IM" : "기타";
+  const sizeMB   = (file.size / 1024 / 1024).toFixed(1) + " MB";
+  const now      = new Date();
+  const date     = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,"0")}.${String(now.getDate()).padStart(2,"0")}`;
+
+  const btn = document.getElementById("storageSaveBtn");
+  btn.textContent = "읽는 중...";
+  btn.disabled = true;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
+    files.unshift({ id: Date.now().toString(), name: file.name, category, badge, size: sizeMB, date, content: e.target.result });
+    localStorage.setItem(VCROUTE_FILES_KEY, JSON.stringify(files));
+    renderStoredFiles();
+    closeStorageUploadModal();
+    btn.textContent = "저장";
+    btn.disabled = false;
+  };
+  reader.readAsText(file, "utf-8");
 }
