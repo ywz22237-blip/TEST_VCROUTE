@@ -1155,10 +1155,11 @@
           >
             <div class="imir-header">
               <h2>나의 자료보관함</h2>
-              <button class="btn-upload">
+              <button class="btn-upload" onclick="openStorageUploadModal()">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
                 파일 업로드
               </button>
+              <input type="file" id="storageFileInput" accept=".pdf,.txt,.pptx,.docx,.doc" style="display:none;" onchange="handleStorageFileSelect(this)" />
             </div>
 
             <!-- 통계 카드 -->
@@ -1204,217 +1205,8 @@
                   <button class="imir-filter-tab">인증서류</button>
                 </div>
               </div>
-              <div class="imir-files-list">
-                <!-- 파일 아이템 1 -->
-                <div class="imir-file-item">
-                  <div class="file-icon pdf">
-                    <i class="fa-solid fa-file-pdf"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>2025_Series_A_IR_Deck_v3.pdf</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2025.01.15</span>
-                      <span><i class="fa-regular fa-file"></i> 4.2 MB</span>
-                    </div>
-                  </div>
-                  <span class="file-badge ir">IR</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 2 -->
-                <div class="imir-file-item">
-                  <div class="file-icon ppt">
-                    <i class="fa-solid fa-file-powerpoint"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>회사소개서_2025_최종.pptx</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2025.01.10</span>
-                      <span><i class="fa-regular fa-file"></i> 12.8 MB</span>
-                    </div>
-                  </div>
-                  <span class="file-badge ir">IR</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 3 -->
-                <div class="imir-file-item">
-                  <div class="file-icon doc">
-                    <i class="fa-solid fa-file-word"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>Investment_Memorandum_Q4.docx</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2025.01.05</span>
-                      <span><i class="fa-regular fa-file"></i> 2.1 MB</span>
-                    </div>
-                  </div>
-                  <span class="file-badge im">IM</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 4 -->
-                <div class="imir-file-item">
-                  <div class="file-icon pdf">
-                    <i class="fa-solid fa-file-pdf"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>재무제표_2024_감사완료.pdf</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2024.12.28</span>
-                      <span><i class="fa-regular fa-file"></i> 1.5 MB</span>
-                    </div>
-                  </div>
-                  <span class="file-badge im">IM</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 5 -->
-                <div class="imir-file-item">
-                  <div class="file-icon ppt">
-                    <i class="fa-solid fa-file-powerpoint"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>Pitch_Deck_Demo_Day.pptx</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2024.12.20</span>
-                      <span><i class="fa-regular fa-file"></i> 8.7 MB</span>
-                    </div>
-                  </div>
-                  <span class="file-badge ir">IR</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 6 — 특허등록증 -->
-                <div class="imir-file-item">
-                  <div class="file-icon cert">
-                    <i class="fa-solid fa-award"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>특허등록증_제10-2024-0123456호.pdf</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2024.09.15</span>
-                      <span><i class="fa-regular fa-file"></i> 0.8 MB</span>
-                      <span style="color:#a855f7; font-weight:700;"><i class="fa-solid fa-shield-check"></i> 특허청 등록</span>
-                    </div>
-                  </div>
-                  <span class="file-badge cert">인증서류</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 7 — 벤처기업확인서 -->
-                <div class="imir-file-item">
-                  <div class="file-icon cert">
-                    <i class="fa-solid fa-rocket"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>벤처기업확인서_주식회사벤처플랫폼_2025.pdf</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2025.01.20</span>
-                      <span><i class="fa-regular fa-file"></i> 0.5 MB</span>
-                      <span style="color:#a855f7; font-weight:700;"><i class="fa-solid fa-shield-check"></i> 중소벤처기업부 인증</span>
-                    </div>
-                  </div>
-                  <span class="file-badge cert">인증서류</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 파일 아이템 8 — 투자확인서 -->
-                <div class="imir-file-item">
-                  <div class="file-icon cert">
-                    <i class="fa-solid fa-handshake"></i>
-                  </div>
-                  <div class="file-info">
-                    <h4>투자확인서_스마트벤처캠퍼스_2025.pdf</h4>
-                    <div class="file-meta">
-                      <span><i class="fa-regular fa-calendar"></i> 2025.02.10</span>
-                      <span><i class="fa-regular fa-file"></i> 0.3 MB</span>
-                      <span style="color:#a855f7; font-weight:700;"><i class="fa-solid fa-shield-check"></i> 투자기관 발행</span>
-                    </div>
-                  </div>
-                  <span class="file-badge cert">인증서류</span>
-                  <div class="file-actions">
-                    <button class="file-action-btn" title="다운로드">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
-                    <button class="file-action-btn" title="미리보기">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="file-action-btn delete" title="삭제">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
+              <div class="imir-files-list" id="imirFilesList">
+                <!-- 파일 아이템 1 (동적 렌더링으로 대체됨) -->
               </div>
             </div>
           </section>
@@ -2200,6 +1992,36 @@
         </div>
       </div>
     </main>
+
+    <!-- 자료보관함 업로드 모달 -->
+    <div id="storageUploadModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeStorageUploadModal()">
+      <div style="background:white;border-radius:20px;width:min(460px,92vw);padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.4rem;">
+          <h3 style="margin:0;font-size:1.05rem;color:#1e293b;"><i class="fa-solid fa-cloud-arrow-up" style="color:#2563eb;margin-right:0.5rem;"></i>파일 업로드</h3>
+          <button onclick="closeStorageUploadModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;line-height:1;">×</button>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.85rem;font-weight:600;color:#475569;margin-bottom:0.4rem;">파일 종류</label>
+          <select id="storageCategorySelect" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:0.9rem;color:#1e293b;background:white;">
+            <option value="회사소개서">회사소개서</option>
+            <option value="IR자료">IR 자료</option>
+            <option value="재무제표">재무제표</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div id="storageDropZone" style="border:2px dashed #cbd5e1;border-radius:12px;padding:1.8rem 1rem;text-align:center;cursor:pointer;background:#f8fafc;transition:all 0.2s;" onclick="document.getElementById('storageFileInput2').click()" ondragover="event.preventDefault();this.style.borderColor='#2563eb'" ondragleave="this.style.borderColor='#cbd5e1'" ondrop="handleStorageDrop(event)">
+          <i class="fa-solid fa-file-arrow-up" style="font-size:1.8rem;color:#94a3b8;margin-bottom:0.5rem;display:block;"></i>
+          <p style="margin:0;font-size:0.88rem;color:#64748b;font-weight:600;">클릭하거나 파일을 드래그하세요</p>
+          <p id="storageSelectedName" style="margin:0.3rem 0 0;font-size:0.8rem;color:#2563eb;font-weight:600;min-height:1.2em;"></p>
+          <p style="margin:0.2rem 0 0;font-size:0.75rem;color:#94a3b8;">PDF, TXT, PPTX, DOCX · 최대 20MB</p>
+        </div>
+        <input type="file" id="storageFileInput2" accept=".pdf,.txt,.pptx,.docx,.doc" style="display:none;" onchange="onStorageFileChosen(this)" />
+        <div style="display:flex;gap:0.6rem;margin-top:1.2rem;">
+          <button onclick="closeStorageUploadModal()" style="flex:1;padding:0.75rem;border:1.5px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;font-family:inherit;font-size:0.9rem;color:#64748b;">취소</button>
+          <button id="storageSaveBtn" onclick="saveStorageFile()" style="flex:2;padding:0.75rem;border:none;border-radius:10px;background:#2563eb;color:white;cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600;" disabled>저장</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Footer -->
     <footer>

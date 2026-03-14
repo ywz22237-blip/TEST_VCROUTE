@@ -638,3 +638,78 @@ function copyMail() {
     setTimeout(() => done.style.display = "none", 2000);
   });
 }
+
+// ─── 대시보드 자료보관함 가져오기 ─────────────────────────────────
+const VCROUTE_FILES_KEY = "vcroute_stored_files";
+
+const SLOT_LABELS = { 1: "회사소개서", 2: "IR 자료", 3: "재무제표" };
+
+function guessSlot(category) {
+  if (!category) return 2;
+  const c = category.toLowerCase();
+  if (c.includes("회사") || c.includes("소개")) return 1;
+  if (c.includes("ir") || c.includes("자료") || c.includes("pitch") || c.includes("deck")) return 2;
+  if (c.includes("재무") || c.includes("financial")) return 3;
+  return 2;
+}
+
+function openImportModal() {
+  const overlay = document.getElementById("importModalOverlay");
+  const body    = document.getElementById("importModalBody");
+  if (!overlay || !body) return;
+
+  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
+
+  if (!files.length) {
+    body.innerHTML = `<div class="import-empty"><i class="fa-solid fa-folder-open"></i>자료보관함에 저장된 파일이 없습니다.<br><small style="margin-top:0.4rem;display:block;">대시보드 → 자료보관함에서 파일을 먼저 업로드해 주세요.</small></div>`;
+  } else {
+    body.innerHTML = files.map(f => {
+      const ext  = (f.name || "").split(".").pop().toLowerCase();
+      const iconCls = ext === "pdf" ? "pdf" : (ext === "pptx" || ext === "ppt") ? "ppt" : (ext === "docx" || ext === "doc") ? "doc" : ext === "cert" ? "cert" : "other";
+      const iconTag = ext === "pdf" ? "fa-file-pdf" : (ext === "pptx" || ext === "ppt") ? "fa-file-powerpoint" : (ext === "docx" || ext === "doc") ? "fa-file-word" : "fa-file";
+      const badgeCls = f.badge === "IR" ? "ir" : f.badge === "IM" ? "im" : f.badge === "인증서류" ? "cert" : "other";
+      const badgeLabel = f.badge || "기타";
+      const slot = guessSlot(f.category);
+      const hasContent = f.content && f.content.trim().length > 0;
+      const btnLabel = hasContent ? `슬롯 ${slot}(${SLOT_LABELS[slot]})으로` : "내용 없음";
+      const btnCls   = hasContent ? "import-btn" : "import-btn no-content";
+      const btnAttr  = hasContent ? `onclick="importFileFromDashboard('${f.id}', ${slot})"` : "disabled title='대시보드에서 파일을 다시 업로드해 주세요'";
+      return `
+        <div class="import-file-item">
+          <div class="import-file-icon ${iconCls}"><i class="fa-solid ${iconTag}"></i></div>
+          <div class="import-file-info">
+            <div class="fname">${f.name}</div>
+            <div class="fmeta">${f.date || ""} · ${f.size || ""} ${hasContent ? "" : "· <span style=\'color:#ef4444\'>내용 미포함</span>"}</div>
+          </div>
+          <span class="import-file-badge ${badgeCls}">${badgeLabel}</span>
+          <button class="${btnCls}" ${btnAttr}>${hasContent ? btnLabel : "내용 없음"}</button>
+        </div>`;
+    }).join("");
+  }
+
+  overlay.classList.add("open");
+}
+
+function closeImportModal() {
+  document.getElementById("importModalOverlay")?.classList.remove("open");
+}
+
+function importFileFromDashboard(fileId, slot) {
+  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
+  const file  = files.find(f => f.id === fileId);
+  if (!file || !file.content) return;
+
+  irTexts[slot] = file.content;
+  const nameEl = document.getElementById(`fileName${slot}`);
+  const zoneEl = document.getElementById(`uploadZone${slot}`);
+  if (nameEl) nameEl.textContent = `✅ ${file.name}`;
+  if (zoneEl) zoneEl.classList.add("has-file");
+
+  const hasAny = Object.values(irTexts).some(t => t.trim());
+  const btn = document.getElementById("analyzeBtn");
+  if (btn) btn.disabled = !hasAny;
+
+  closeImportModal();
+  // 가져온 슬롯 스크롤
+  zoneEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
