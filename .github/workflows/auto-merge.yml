@@ -70,8 +70,24 @@ jobs:
             });
             console.log(`PR 생성: #${pr.number}`);
 
-            // mergeable 상태 대기
-            await new Promise(r => setTimeout(r, 4000));
+            // mergeable 상태가 될 때까지 폴링 (최대 60초)
+            let mergeable = null;
+            for (let i = 0; i < 12; i++) {
+              await new Promise(r => setTimeout(r, 5000));
+              const { data: prState } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+              });
+              mergeable = prState.mergeable;
+              console.log(`머지 가능 여부 확인 (${i+1}/12): ${mergeable}`);
+              if (mergeable === true) break;
+              if (mergeable === false) {
+                console.log('머지 불가 상태, 스킵');
+                return;
+              }
+              // null이면 아직 계산 중 → 재시도
+            }
 
             // PR 머지
             await github.rest.pulls.merge({
