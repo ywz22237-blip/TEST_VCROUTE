@@ -843,9 +843,16 @@
                 <!-- 프로필 헤더 -->
                 <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); padding:2.5rem 2.5rem 4rem; color:white; position:relative;">
                   <div style="display:flex; align-items:center; gap:1.5rem;">
-                    <div id="profileAvatarLarge" style="width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); border:3px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:900; color:white;">
-                      <i class="fa-solid fa-user"></i>
+                    <div onclick="document.getElementById('avatarFileInput').click()" title="로고 업로드" style="position:relative; width:80px; height:80px; border-radius:50%; cursor:pointer; flex-shrink:0;" onmouseover="document.getElementById('avatarOverlay').style.opacity='1'" onmouseout="document.getElementById('avatarOverlay').style.opacity='0'">
+                      <div id="profileAvatarLarge" style="width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); border:3px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:900; color:white; overflow:hidden;">
+                        <i class="fa-solid fa-user"></i>
+                      </div>
+                      <div id="avatarOverlay" style="position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,0.45); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0; transition:opacity 0.2s; pointer-events:none;">
+                        <i class="fa-solid fa-camera" style="font-size:1.1rem; color:white;"></i>
+                        <span style="font-size:0.55rem; font-weight:700; color:white; letter-spacing:0.03em;">업로드</span>
+                      </div>
                     </div>
+                    <input id="avatarFileInput" type="file" accept="image/*" style="display:none;" onchange="handleAvatarChange(event)">
                     <div>
                       <h3 id="pName" style="font-size:1.5rem; font-weight:800; margin-bottom:0.25rem;">-</h3>
                       <div style="display:flex; align-items:center; gap:0.75rem;">
