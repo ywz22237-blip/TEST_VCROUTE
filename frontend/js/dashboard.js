@@ -125,7 +125,8 @@ function renderUserProfile(user) {
   }
 
   // 투자희망금액
-  setText('pInvestTarget', user.investTarget || '-');
+  const investVal = parseFloat(user.investTarget);
+  setText('pInvestTarget', (!isNaN(investVal) && investVal > 0) ? investVal + '억원' : (user.investTarget || '-'));
 
   // 대표자 나이
   setText('pCeoAge', user.ceoAge ? user.ceoAge + '세' : '-');
@@ -177,7 +178,7 @@ function enterProfileEdit() {
     ['pUserId',       'pUserId_e',       _profileUser.company      || ''],
     ['pPhone',        'pPhone_e',        _profileUser.phone        || ''],
     ['pCompany',      'pCompany_e',      _profileUser.name         || ''],
-    ['pInvestTarget', 'pInvestTarget_e', _profileUser.investTarget || ''],
+    ['pInvestTarget', 'pInvestTarget_wrap', _profileUser.investTarget || ''],
     ['pCeoAge',       'pCeoAge_e',       _profileUser.ceoAge       || ''],
     ['pGender',       'pGender_e',       _profileUser.gender       || ''],
   ];
@@ -187,8 +188,11 @@ function enterProfileEdit() {
     const inp = document.getElementById(inpId);
     if (val) val.style.display = 'none';
     if (inp) {
-      inp.style.display = 'block';
-      inp.value = curVal;
+      inp.style.display = inpId.endsWith('_wrap') ? 'flex' : 'block';
+      // input 자식이 있으면 실제 input에 값 세팅
+      const actualInput = inp.tagName === 'INPUT' || inp.tagName === 'SELECT' || inp.tagName === 'TEXTAREA'
+        ? inp : inp.querySelector('input');
+      if (actualInput) actualInput.value = curVal;
     }
   });
 
@@ -261,13 +265,19 @@ async function saveProfileEdit() {
 }
 
 function cancelProfileEdit() {
-  const valIds = ['pUserId','pPhone','pCompany','pInvestTarget','pCeoAge','pGender'];
+  const valIds = ['pUserId','pPhone','pCompany','pCeoAge','pGender'];
   valIds.forEach(id => {
     const val = document.getElementById(id);
     const inp = document.getElementById(id + '_e');
     if (val) val.style.display = 'block';
     if (inp) inp.style.display = 'none';
   });
+
+  // 투자희망금액 (wrap 구조)
+  const investVal = document.getElementById('pInvestTarget');
+  const investWrap = document.getElementById('pInvestTarget_wrap');
+  if (investVal)  investVal.style.display  = 'block';
+  if (investWrap) investWrap.style.display = 'none';
 
   const portLink = document.getElementById('pPortfolio');
   const portInp  = document.getElementById('pPortfolio_e');
