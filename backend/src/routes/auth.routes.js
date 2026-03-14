@@ -7,6 +7,7 @@ const { authenticate } = require('../middlewares/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/check-id', authController.checkId);
+router.post('/find-email', authController.findEmailByUserId);
 router.post('/send-email-code', authController.sendEmailCode);
 router.post('/verify-email-code', authController.verifyEmailCode);
 router.post('/send-phone-code', authController.sendPhoneCode);
