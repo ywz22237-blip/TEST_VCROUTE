@@ -271,7 +271,13 @@ const findEmailByUserId = async (req, res, next) => {
     const { userId } = req.body;
     if (!userId) throw createError('아이디를 입력해주세요.', 400);
 
-    const user = await users.findByEmailOrUserId(userId);
+    let user;
+    try {
+      user = await users.findByEmailOrUserId(userId);
+    } catch {
+      return res.status(503).json({ success: false, message: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' });
+    }
+
     if (!user) {
       return res.json({ success: false, message: '존재하지 않는 아이디입니다.' });
     }
