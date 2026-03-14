@@ -312,6 +312,28 @@ async function handleRegisterSubmit(event) {
     accessToken = data.session?.access_token;
   }
 
+  // users 테이블에도 저장 (아이디 기반 로그인을 위해 필수)
+  try {
+    await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        email,
+        password,
+        name: userId,
+        userType,
+        phone: phone || null,
+        company: company || null,
+        portfolio: portfolio || null,
+        bio: bio || null,
+        marketingAgree: false,
+      }),
+    });
+  } catch {
+    // users 테이블 저장 실패는 무시 (Supabase Auth 가입은 완료됨)
+  }
+
   if (accessToken) {
     // 바로 로그인 처리
     const userInfo = {
