@@ -142,6 +142,18 @@
       .btn-regenerate { background: #7c3aed; color: white; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: background 0.2s; }
       .btn-regenerate:hover { background: #6d28d9; }
 
+      /* 3분할 업로드 그리드 */
+      .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+      @media (max-width: 700px) { .upload-grid { grid-template-columns: 1fr; } }
+      .upload-zone-sm { padding: 1.4rem 1rem; }
+      .upload-zone-sm i { font-size: 1.8rem; margin-bottom: 0.5rem; }
+      .upload-zone-sm .uz-label { font-size: 0.88rem; font-weight: 700; color: #1e293b; margin: 0 0 0.25rem; }
+      .upload-zone-sm .uz-name { font-size: 0.78rem; color: #94a3b8; margin: 0 0 0.2rem; min-height: 1.1em; word-break: break-all; }
+      .upload-zone-sm .hint { font-size: 0.72rem; }
+      .upload-zone-sm.has-file { border-color: #22c55e; background: #f0fdf4; }
+      .upload-zone-sm.has-file i { color: #22c55e; }
+      .upload-zone-sm.has-file .uz-name { color: #16a34a; font-weight: 600; }
+
       /* AI 심사역 루트 소개 */
       .route-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #1e1b4b 100%); border-radius: 20px; padding: 2.5rem 2rem 2rem; color: white; text-align: center; margin-bottom: 1.8rem; position: relative; overflow: hidden; }
       .route-hero::before { content: ''; position: absolute; top: -40%; left: -20%; width: 180%; height: 200%; background: radial-gradient(circle at 65% 35%, rgba(37,99,235,0.28) 0%, transparent 55%); pointer-events: none; }
@@ -217,14 +229,14 @@
                 <i class="fa-solid fa-robot"></i> AI 심사역 '루트'<span class="route-menu-badge">AI</span>
               </button>
               <button class="ir-menu-item" data-tab="upload">
-                <i class="fa-solid fa-file-arrow-up"></i> IR 업로드
+                <i class="fa-solid fa-file-arrow-up"></i> 투자심사 받기
               </button>
               <button class="ir-menu-item" data-tab="score" id="menu-score" disabled>
                 <i class="fa-solid fa-chart-radar" style="font-family:'Font Awesome 6 Free';"></i>
                 <i class="fa-solid fa-bullseye"></i> 스코어링 결과
               </button>
               <button class="ir-menu-item" data-tab="qa" id="menu-qa" disabled>
-                <i class="fa-solid fa-comments"></i> IR 피드백
+                <i class="fa-solid fa-comments"></i> 자료 피드백
               </button>
               <button class="ir-menu-item" data-tab="fund-match" id="menu-fund" disabled>
                 <i class="fa-solid fa-building-columns"></i> 펀드 & 투자자 추천
@@ -315,7 +327,7 @@
 
               <div style="text-align:center;">
                 <button class="route-start-btn" onclick="switchIrTab('upload')">
-                  <i class="fa-solid fa-file-arrow-up"></i>&nbsp; IR 업로드하고 분석 시작하기
+                  <i class="fa-solid fa-file-arrow-up"></i>&nbsp; 투자심사 받기
                 </button>
               </div>
 
@@ -323,8 +335,8 @@
 
             <!-- Tab 1: Upload -->
             <div id="upload" class="ir-section">
-              <h2>IR<br>업로드</h2>
-              <div class="tag-line">Upload your IR Deck for AI-powered VC Scoring</div>
+              <h2>투자심사 받기</h2>
+              <div class="tag-line">자료를 업로드하면 AI 심사역 '루트'가 투자 가능성을 진단합니다</div>
 
               <div class="content-box highlight">
                 <p><strong>어떻게 분석하나요?</strong><br />
@@ -332,13 +344,35 @@
                 시장 규모 논리, 팀 구성, 기술적 해자, 수익 모델, 재무 계획의 완성도를 평가합니다.</p>
               </div>
 
-              <div class="upload-zone" id="uploadZone" onclick="document.getElementById('irFile').click()">
-                <i class="fa-solid fa-file-pdf"></i>
-                <p><strong>PDF 파일을 드래그하거나 클릭하여 업로드</strong></p>
-                <p id="fileName" style="color:#2563eb;font-weight:600;"></p>
-                <p class="hint">지원 형식: PDF · 최대 20MB</p>
+              <div class="upload-grid">
+                <!-- 1. 회사소개서 -->
+                <div class="upload-zone upload-zone-sm" id="uploadZone1" onclick="document.getElementById('irFile1').click()">
+                  <i class="fa-solid fa-building"></i>
+                  <p class="uz-label">회사소개서</p>
+                  <p class="uz-name" id="fileName1">PDF 파일 업로드</p>
+                  <p class="hint">최대 20MB</p>
+                </div>
+                <input type="file" id="irFile1" accept=".pdf,.txt" style="display:none;" onchange="onFileSelect(this,1)" />
+
+                <!-- 2. IR 자료 -->
+                <div class="upload-zone upload-zone-sm" id="uploadZone2" onclick="document.getElementById('irFile2').click()">
+                  <i class="fa-solid fa-file-chart-column"></i>
+                  <p class="uz-label">IR 자료</p>
+                  <p class="uz-name" id="fileName2">PDF 파일 업로드</p>
+                  <p class="hint">최대 20MB</p>
+                </div>
+                <input type="file" id="irFile2" accept=".pdf,.txt" style="display:none;" onchange="onFileSelect(this,2)" />
+
+                <!-- 3. 재무제표 -->
+                <div class="upload-zone upload-zone-sm" id="uploadZone3" onclick="document.getElementById('irFile3').click()">
+                  <i class="fa-solid fa-table-cells-large"></i>
+                  <p class="uz-label">재무제표</p>
+                  <p class="uz-name" id="fileName3">PDF 파일 업로드</p>
+                  <p class="hint">최대 20MB</p>
+                </div>
+                <input type="file" id="irFile3" accept=".pdf,.txt" style="display:none;" onchange="onFileSelect(this,3)" />
               </div>
-              <input type="file" id="irFile" accept=".pdf,.txt" style="display:none;" onchange="onFileSelect(this)" />
+              <p style="font-size:0.78rem;color:#94a3b8;text-align:center;margin:0 0 0.5rem;">드래그 앤 드롭 또는 클릭으로 업로드 · PDF 형식 · 1개 이상 업로드 시 분석 가능</p>
 
               <div style="margin-top:1.5rem;">
                 <label style="display:block;font-size:0.9rem;font-weight:600;color:#475569;margin-bottom:0.5rem;">회사 한 줄 소개 (선택)</label>
@@ -383,15 +417,15 @@
 
               <div style="text-align:center;margin-top:2rem;">
                 <button class="btn-primary" onclick="switchIrTab('qa')">
-                  IR 피드백 시작하기 <i class="fa-solid fa-arrow-right"></i>
+                  자료 피드백 시작하기 <i class="fa-solid fa-arrow-right"></i>
                 </button>
               </div>
             </div>
 
             <!-- Tab 3: Q&A -->
             <div id="qa" class="ir-section">
-              <h2>IR 피드백</h2>
-              <div class="tag-line">IR 내용 기반 공격적 질문 시뮬레이션</div>
+              <h2>자료 피드백</h2>
+              <div class="tag-line">업로드 자료 기반 공격적 질문 시뮬레이션</div>
 
               <div class="content-box" style="margin-bottom:1rem;">
                 <p style="margin:0;font-size:0.9rem;color:#475569;">
