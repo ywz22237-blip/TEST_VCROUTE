@@ -37,6 +37,7 @@ function supabaseUserToLocal(user) {
     phone: meta.phone || "",
     portfolio: meta.portfolio || "",
     bio: meta.bio || "",
+    logoUrl: meta.avatar_url || meta.picture || "",
   };
 }
 
