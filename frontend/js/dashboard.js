@@ -152,11 +152,15 @@ function renderUserProfile(user) {
   const portfolioEl = document.getElementById('pPortfolio');
   if (portfolioWrap && user.portfolio) {
     portfolioWrap.style.display = 'block';
-    portfolioEl.textContent = user.portfolio;
     const url = /^https?:\/\//i.test(user.portfolio) ? user.portfolio : 'https://' + user.portfolio;
+    portfolioEl.textContent = user.portfolio;
     portfolioEl.href = url;
-    portfolioEl.target = '_blank';
-    portfolioEl.rel = 'noopener noreferrer';
+    portfolioEl.setAttribute('target', '_blank');
+    portfolioEl.setAttribute('rel', 'noopener noreferrer');
+    portfolioEl.onclick = function(e) {
+      e.preventDefault();
+      window.open(url, '_blank', 'noopener,noreferrer');
+    };
   }
 
   const bioWrap = document.getElementById('pBioWrap');
