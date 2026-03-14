@@ -407,7 +407,7 @@ function renderFundMatches() {
       <div class="match-reason">
         ${i === 0 ? "✅" : i === 1 ? "🔵" : "🟡"} ${f.purpose.slice(0, 60)}...
       </div>
-      <button class="select-btn">이 펀드 선택 → GP 매칭</button>
+      <button class="select-btn" type="button" onclick="event.stopPropagation(); selectFund(${f.id})">이 펀드 선택 → GP 매칭</button>
     </div>
   `).join("");
 }
