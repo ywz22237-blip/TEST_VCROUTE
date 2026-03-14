@@ -153,7 +153,10 @@ function renderUserProfile(user) {
   if (portfolioWrap && user.portfolio) {
     portfolioWrap.style.display = 'block';
     portfolioEl.textContent = user.portfolio;
-    portfolioEl.href = user.portfolio;
+    const url = /^https?:\/\//i.test(user.portfolio) ? user.portfolio : 'https://' + user.portfolio;
+    portfolioEl.href = url;
+    portfolioEl.target = '_blank';
+    portfolioEl.rel = 'noopener noreferrer';
   }
 
   const bioWrap = document.getElementById('pBioWrap');
