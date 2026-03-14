@@ -7,7 +7,15 @@ INSERT INTO users (id, email, password, name, role, created_at) VALUES
 INSERT INTO users (id, user_id, email, password, name, role, user_type, phone, company, portfolio, bio, marketing_agree, created_at) VALUES
 (2, 'ADMIN', 'tempadmin@vcroute.com', '$2a$10$.KWzd6gdbIA/HJ.BrkbGy.S75zqZJwpABsrXDIi.62T3MggMFyRsS', 'ADMIN', 'admin', 'startup', '', '', '', '', FALSE, '2026-02-07');
 
-SELECT setval('users_id_seq', 2);
+-- 스타트업 관리자 계정 (startup@vcroute.com / Startup2026!)
+INSERT INTO users (id, user_id, email, password, name, role, user_type, phone, company, portfolio, bio, marketing_agree, created_at) VALUES
+(3, 'startup_admin', 'startup@vcroute.com', '$2a$10$y1mvvfojRB4skgmBP/9IcOOO7DdmAnwYe8t4FJvCF/3L3moUL2ZAG', '스타트업 관리자', 'admin', 'startup', '', '', '', '', FALSE, '2026-03-14');
+
+-- 투자자 관리자 계정 (investor@vcroute.com / Investor2026!)
+INSERT INTO users (id, user_id, email, password, name, role, user_type, phone, company, portfolio, bio, marketing_agree, created_at) VALUES
+(4, 'investor_admin', 'investor@vcroute.com', '$2a$10$zdsVUxr07Gsg3yDWkBUMMeNMrrbwEv5nx/MHokWZNwjV4A/KY1Zli', '투자자 관리자', 'admin', 'investor', '', '', '', '', FALSE, '2026-03-14');
+
+SELECT setval('users_id_seq', 4);
 
 -- Investors
 INSERT INTO investors (id, name, company, position, investments, success_rate, portfolio, focus_area, min_investment, max_investment, stage, bio, contact) VALUES
