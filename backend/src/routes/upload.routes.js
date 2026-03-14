@@ -6,10 +6,15 @@ const fs = require('fs');
 const uploadController = require('../controllers/upload.controller');
 const { authenticate, isAdmin } = require('../middlewares/auth');
 
-// uploads 폴더 생성
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// uploads 폴더 생성 (Vercel은 /tmp만 쓰기 가능)
+let uploadDir;
+try {
+  uploadDir = path.join(__dirname, '../../uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch {
+  uploadDir = '/tmp';
 }
 
 // Multer 설정
