@@ -827,7 +827,19 @@
             <!-- 로그인 프로필 -->
             <div id="profileContent" style="display:none;">
               <!-- 프로필 카드 -->
-              <div style="background:white; border-radius:24px; border:1px solid var(--border-color); overflow:hidden; margin-bottom:2rem;">
+              <div style="background:white; border-radius:24px; border:1px solid var(--border-color); overflow:hidden; margin-bottom:2rem; position:relative;">
+                <!-- 편집 버튼 영역 -->
+                <div style="position:absolute; top:1rem; right:1rem; z-index:10; display:flex; gap:0.5rem;">
+                  <button id="profileEditBtn" onclick="enterProfileEdit()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#2563eb; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
+                    <i class="fa-solid fa-pen-to-square"></i> 수정
+                  </button>
+                  <button id="profileSaveBtn" onclick="saveProfileEdit()" style="display:none; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:#2563eb; color:white; border:none; border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                    <i class="fa-solid fa-floppy-disk"></i> 저장
+                  </button>
+                  <button id="profileCancelBtn" onclick="cancelProfileEdit()" style="display:none; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#64748b; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;">
+                    <i class="fa-solid fa-xmark"></i> 취소
+                  </button>
+                </div>
                 <!-- 프로필 헤더 -->
                 <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); padding:2.5rem 2.5rem 4rem; color:white; position:relative;">
                   <div style="display:flex; align-items:center; gap:1.5rem;">
@@ -847,12 +859,13 @@
                 <!-- 프로필 상세 -->
                 <div style="padding:2rem 2.5rem; margin-top:-1.5rem;">
                   <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
-                    <!-- 아이디 -->
+                    <!-- 회사명 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
                       <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.5rem;">
-                        <i class="fa-solid fa-at" style="margin-right:0.4rem; color:var(--primary-color);"></i>아이디
+                        <i class="fa-solid fa-building" style="margin-right:0.4rem; color:var(--primary-color);"></i>회사명
                       </div>
                       <div id="pUserId" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
+                      <input id="pUserId_e" placeholder="회사명 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
                     <!-- 이메일 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
@@ -867,6 +880,7 @@
                         <i class="fa-solid fa-phone" style="margin-right:0.4rem; color:var(--primary-color);"></i>연락처
                       </div>
                       <div id="pPhone" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
+                      <input id="pPhone_e" placeholder="연락처 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
                     <!-- 대표자 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
@@ -874,6 +888,7 @@
                         <i class="fa-solid fa-user-tie" style="margin-right:0.4rem; color:var(--primary-color);"></i>대표자
                       </div>
                       <div id="pCompany" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
+                      <input id="pCompany_e" placeholder="대표자 이름 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
                     <!-- 인증 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
@@ -888,6 +903,7 @@
                         <i class="fa-solid fa-sack-dollar" style="margin-right:0.4rem; color:var(--primary-color);"></i>투자희망금액
                       </div>
                       <div id="pInvestTarget" style="font-size:1rem; font-weight:700; color:var(--accent-color);">-</div>
+                      <input id="pInvestTarget_e" placeholder="예: 5억원" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
                     <!-- 대표자 나이 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
@@ -895,6 +911,7 @@
                         <i class="fa-solid fa-cake-candles" style="margin-right:0.4rem; color:var(--primary-color);"></i>대표자 나이
                       </div>
                       <div id="pCeoAge" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
+                      <input id="pCeoAge_e" placeholder="나이 입력" type="number" min="1" max="120" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
                     <!-- 성별 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
@@ -902,6 +919,12 @@
                         <i class="fa-solid fa-venus-mars" style="margin-right:0.4rem; color:var(--primary-color);"></i>성별
                       </div>
                       <div id="pGender" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
+                      <select id="pGender_e" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
+                        <option value="">선택</option>
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
+                        <option value="기타">기타</option>
+                      </select>
                     </div>
                   </div>
 
@@ -959,6 +982,7 @@
                       <i class="fa-solid fa-link" style="margin-right:0.4rem; color:var(--primary-color);"></i>포트폴리오
                     </div>
                     <a id="pPortfolio" href="#" target="_blank" style="font-size:1rem; font-weight:700; color:var(--primary-color); text-decoration:none; word-break:break-all;">-</a>
+                    <input id="pPortfolio_e" placeholder="포트폴리오 URL 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                   </div>
 
                   <!-- 소개 -->
@@ -967,6 +991,7 @@
                       <i class="fa-solid fa-quote-left" style="margin-right:0.4rem; color:var(--primary-color);"></i>소개
                     </div>
                     <p id="pBio" style="font-size:0.95rem; color:var(--text-primary); line-height:1.7;">-</p>
+                    <textarea id="pBio_e" placeholder="소개 입력" rows="4" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; color:var(--text-primary); background:white; outline:none; box-sizing:border-box; resize:vertical; line-height:1.6;"></textarea>
                   </div>
                 </div>
               </div>

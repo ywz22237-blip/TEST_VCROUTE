@@ -32,6 +32,11 @@ function supabaseUserToLocal(user) {
     provider: (user.app_metadata || {}).provider || "email",
     userType: meta.userType || meta.user_type || "startup",
     verified: !!user.email_confirmed_at,
+    userId: meta.username || meta.full_name || "",
+    company: meta.company || "",
+    phone: meta.phone || "",
+    portfolio: meta.portfolio || "",
+    bio: meta.bio || "",
   };
 }
 
