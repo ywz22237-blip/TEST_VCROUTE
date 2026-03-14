@@ -236,7 +236,7 @@ async function saveProfileEdit() {
     const sb = getSupabase ? getSupabase() : null;
     if (sb) {
       await sb.auth.updateUser({
-        data: { company, phone, full_name: name, portfolio, bio }
+        data: { company, phone, full_name: name, portfolio, bio, investTarget, ceoAge, gender }
       });
     }
   } catch (e) {

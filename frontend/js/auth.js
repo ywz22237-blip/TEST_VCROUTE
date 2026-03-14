@@ -38,6 +38,9 @@ function supabaseUserToLocal(user) {
     portfolio: meta.portfolio || "",
     bio: meta.bio || "",
     logoUrl: meta.avatar_url || meta.picture || "",
+    investTarget: meta.investTarget || "",
+    ceoAge: meta.ceoAge || "",
+    gender: meta.gender || "",
   };
 }
 
