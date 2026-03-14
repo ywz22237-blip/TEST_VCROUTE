@@ -91,17 +91,40 @@ async function socialLogin(provider) {
   }
 }
 
-// ── 이메일/비밀번호 로그인 ────────────────────────
+// ── 아이디/이메일 로그인 ──────────────────────────
 
 async function handleLogin(event) {
   event.preventDefault();
   const sb = getSupabase();
   if (!sb) return;
 
-  const email = document.getElementById("email").value.trim();
+  let login = document.getElementById("loginId").value.trim();
   const password = document.getElementById("password").value;
   const btn = event.target.querySelector('[type="submit"]');
   if (btn) { btn.disabled = true; btn.textContent = "로그인 중..."; }
+
+  // 아이디(@ 없음)로 입력한 경우 → 백엔드에서 이메일 조회
+  let email = login;
+  if (!login.includes("@")) {
+    try {
+      const res = await fetch("/api/auth/find-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: login }),
+      });
+      const json = await res.json();
+      if (!json.success || !json.email) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> 로그인'; }
+        alert("존재하지 않는 아이디입니다.");
+        return;
+      }
+      email = json.email;
+    } catch {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> 로그인'; }
+      alert("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+  }
 
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
@@ -112,7 +135,7 @@ async function handleLogin(event) {
 
   if (error) {
     const msg = error.message.includes("Invalid login credentials")
-      ? "이메일 또는 비밀번호가 올바르지 않습니다."
+      ? "아이디(이메일) 또는 비밀번호가 올바르지 않습니다."
       : error.message;
     alert(msg);
     return;

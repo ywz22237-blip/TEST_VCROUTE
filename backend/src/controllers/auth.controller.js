@@ -265,6 +265,22 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
+// 아이디로 이메일 조회 (프론트 Supabase 로그인용)
+const findEmailByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) throw createError('아이디를 입력해주세요.', 400);
+
+    const user = await users.findByEmailOrUserId(userId);
+    if (!user) {
+      return res.json({ success: false, message: '존재하지 않는 아이디입니다.' });
+    }
+    res.json({ success: true, email: user.email });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -272,6 +288,7 @@ module.exports = {
   changePassword,
   deleteAccount,
   checkId,
+  findEmailByUserId,
   sendEmailCode,
   verifyEmailCode,
   sendPhoneCode,
