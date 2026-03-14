@@ -52,12 +52,20 @@ window.addEventListener("load", () => {
 
 // 즐겨찾기 유틸리티
 const BookmarkMgr = {
+  _key: function () {
+    try {
+      const u = JSON.parse(localStorage.getItem("user_info") || "{}");
+      const uid = u.id || u.userId || u.email;
+      if (uid) return "vc_bookmarks_" + uid;
+    } catch {}
+    return "vc_bookmarks";
+  },
   getBookmarks: function () {
-    const data = localStorage.getItem("vc_bookmarks");
+    const data = localStorage.getItem(this._key());
     return data ? JSON.parse(data) : { funds: [], startups: [], investors: [] };
   },
   saveBookmarks: function (bookmarks) {
-    localStorage.setItem("vc_bookmarks", JSON.stringify(bookmarks));
+    localStorage.setItem(this._key(), JSON.stringify(bookmarks));
   },
   toggle: function (type, id) {
     const bookmarks = this.getBookmarks();
