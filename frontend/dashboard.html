@@ -715,7 +715,7 @@
           <ul class="nav-menu">
             <li><a href="index.html">홈</a></li>
             <li><a href="dashboard.html" class="active">대시보드</a></li>
-                        <li><a href="DCF.html">기업 진단</a></li>
+                        <li><a href="DCF.html">기업가치 계산기</a></li>
             <li><a href="ir-score.html">AI 심사&매칭</a></li>
             <li><a href="fund.html">투자펀드</a></li>
             <li><a href="investors.html">투자자</a></li>
@@ -768,32 +768,21 @@
                 <i class="fa-solid fa-id-card" style="width: 20px"></i>
                 <span>내 프로필</span>
               </label>
-              <label
-                class="filter-item"
-                onclick="switchSection('funds')"
-              >
-                <i class="fa-solid fa-coins" style="width: 20px"></i>
-                <span>투자펀드</span>
-              </label>
-              <label class="filter-item" onclick="switchSection('investors')">
-                <i class="fa-solid fa-user-tie" style="width: 20px"></i>
-                <span>투자자</span>
-              </label>
-              <label class="filter-item" onclick="switchSection('startups')">
-                <i class="fa-solid fa-rocket" style="width: 20px"></i>
-                <span>스타트업</span>
-              </label>
-              <label class="filter-item" onclick="switchSection('notice')">
-                <i class="fa-solid fa-bullhorn" style="width: 20px"></i>
-                <span>공지사항</span>
-              </label>
-              <label class="filter-item" onclick="switchSection('imir')">
-                <i class="fa-solid fa-file-pdf" style="width: 20px"></i>
-                <span>자료보관함</span>
+              <label class="filter-item" onclick="switchSection('favorites')">
+                <i class="fa-solid fa-star" style="width: 20px"></i>
+                <span>즐겨찾기</span>
               </label>
               <label class="filter-item" onclick="switchSection('recommend')">
                 <i class="fa-solid fa-bookmark" style="width: 20px"></i>
                 <span>추천 이력</span>
+              </label>
+              <label class="filter-item" onclick="switchSection('support')">
+                <i class="fa-solid fa-hand-holding-dollar" style="width: 20px"></i>
+                <span>지원사업</span>
+              </label>
+              <label class="filter-item" onclick="switchSection('imir')">
+                <i class="fa-solid fa-file-pdf" style="width: 20px"></i>
+                <span>자료보관함</span>
               </label>
               <label class="filter-item" onclick="switchSection('history')">
                 <i class="fa-solid fa-history" style="width: 20px"></i>
@@ -1008,39 +997,33 @@
             </div>
           </section>
 
-          <!-- Funds Section -->
-          <section id="fundsSection" class="dashboard-section" style="display:none">
+          <!-- Favorites Section (통합: 투자펀드 + 투자자 + 스타트업) -->
+          <section id="favoritesSection" class="dashboard-section" style="display:none">
             <h2>즐겨찾는 투자펀드</h2>
             <div id="bookmarkedFunds" class="investors-grid">
               <!-- Content will be injected by dashboard.js -->
             </div>
-          </section>
-
-          <!-- Investors Section -->
-          <section
-            id="investorsSection"
-            class="dashboard-section"
-            style="display: none"
-          >
-            <h2>즐겨찾는 투자자</h2>
+            <h2 style="margin-top:3rem;">즐겨찾는 투자자</h2>
             <div id="bookmarkedInvestors" class="investors-grid">
               <!-- Content will be injected by dashboard.js -->
             </div>
-          </section>
-
-          <!-- Startups Section -->
-          <section
-            id="startupsSection"
-            class="dashboard-section"
-            style="display: none"
-          >
-            <h2>즐겨찾는 스타트업</h2>
+            <h2 style="margin-top:3rem;">즐겨찾는 스타트업</h2>
             <div id="bookmarkedStartups" class="investors-grid">
               <!-- Content will be injected by dashboard.js -->
             </div>
           </section>
 
-          <!-- Notice Section (Mock) -->
+          <!-- 지원사업 Section -->
+          <section id="supportSection" class="dashboard-section" style="display:none">
+            <h2>지원사업</h2>
+            <div class="empty-state">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+              <h3 style="margin-top:1rem; font-size:1.25rem;">지원사업 준비 중</h3>
+              <p>정부 및 민간 지원사업 정보를 곧 제공할 예정입니다.</p>
+            </div>
+          </section>
+
+          <!-- Notice Section (Mock) (hidden - removed from menu) -->
           <section
             id="noticeSection"
             class="dashboard-section"
