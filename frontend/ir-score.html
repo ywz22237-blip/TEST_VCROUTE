@@ -141,6 +141,31 @@
       .btn-copy:hover { background: #f1f5f9; }
       .btn-regenerate { background: #7c3aed; color: white; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: background 0.2s; }
       .btn-regenerate:hover { background: #6d28d9; }
+
+      /* AI 심사역 루트 소개 */
+      .route-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #1e1b4b 100%); border-radius: 20px; padding: 2.5rem 2rem 2rem; color: white; text-align: center; margin-bottom: 1.8rem; position: relative; overflow: hidden; }
+      .route-hero::before { content: ''; position: absolute; top: -40%; left: -20%; width: 180%; height: 200%; background: radial-gradient(circle at 65% 35%, rgba(37,99,235,0.28) 0%, transparent 55%); pointer-events: none; }
+      .route-avatar-lg { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 2.4rem; margin: 0 auto 1.1rem; position: relative; z-index: 1; box-shadow: 0 8px 30px rgba(37,99,235,0.5); }
+      .route-hero h2 { font-size: 1.45rem; font-weight: 800; margin: 0 0 0.25rem; position: relative; z-index: 1; }
+      .route-hero .rh-sub { font-size: 0.82rem; color: #93c5fd; font-weight: 500; margin: 0 0 0.8rem; position: relative; z-index: 1; }
+      .route-hero .rh-tagline { font-size: 0.88rem; color: #cbd5e1; font-style: italic; line-height: 1.6; position: relative; z-index: 1; margin: 0; }
+      .route-card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.4rem 1.6rem; margin-bottom: 1.1rem; background: #fff; }
+      .route-card-title { font-size: 0.97rem; font-weight: 700; color: #1e293b; margin: 0 0 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+      .route-card p { font-size: 0.87rem; color: #475569; line-height: 1.8; margin: 0; }
+      .route-career-list { margin: 0.8rem 0 0; display: flex; flex-direction: column; gap: 0.55rem; }
+      .route-career-item { background: #f8fafc; border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.83rem; color: #1e293b; display: flex; gap: 0.7rem; align-items: flex-start; border-left: 3px solid #2563eb; }
+      .route-career-item strong { color: #2563eb; flex-shrink: 0; }
+      .route-svc-list { margin: 0.9rem 0 0; display: flex; flex-direction: column; gap: 1rem; }
+      .route-svc-item { display: flex; gap: 1rem; align-items: flex-start; }
+      .route-svc-num { width: 30px; height: 30px; background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; color: #2563eb; flex-shrink: 0; }
+      .route-svc-body .svc-title { font-size: 0.88rem; font-weight: 700; color: #1e293b; margin-bottom: 0.2rem; }
+      .route-svc-body .svc-desc { font-size: 0.82rem; color: #64748b; line-height: 1.65; }
+      .route-quote { background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border: 1.5px solid #c7d2fe; border-radius: 14px; padding: 1.5rem 1.8rem; margin-top: 0.5rem; text-align: center; }
+      .route-quote p { font-size: 0.87rem; color: #1e40af; line-height: 1.85; font-style: italic; margin: 0 0 0.8rem; }
+      .route-quote .q-sig { font-size: 0.83rem; color: #7c3aed; font-weight: 700; font-style: normal; }
+      .route-start-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: white; border: none; border-radius: 10px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; margin-top: 1.5rem; }
+      .route-start-btn:hover { background: #1d4ed8; }
+      .route-menu-badge { display: inline-block; background: linear-gradient(90deg,#2563eb,#7c3aed); color: white; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; margin-left: 0.35rem; vertical-align: middle; letter-spacing: 0.02em; }
     </style>
   </head>
   <body>
@@ -188,7 +213,10 @@
           <aside class="ir-sidebar">
             <div class="sidebar-header"><h3>메뉴</h3></div>
             <div class="ir-menu">
-              <button class="ir-menu-item active" data-tab="upload">
+              <button class="ir-menu-item active" data-tab="route-intro">
+                <i class="fa-solid fa-robot"></i> AI 심사역 '루트'<span class="route-menu-badge">AI</span>
+              </button>
+              <button class="ir-menu-item" data-tab="upload">
                 <i class="fa-solid fa-file-arrow-up"></i> IR 업로드
               </button>
               <button class="ir-menu-item" data-tab="score" id="menu-score" disabled>
@@ -220,8 +248,81 @@
           <!-- Content -->
           <div class="ir-content">
 
+            <!-- Tab 0: AI 심사역 루트 소개 -->
+            <div id="route-intro" class="ir-section active">
+
+              <!-- 히어로 -->
+              <div class="route-hero">
+                <div class="route-avatar-lg">🤖</div>
+                <h2>AI 심사역 '루트(Route)'</h2>
+                <p class="rh-sub">VC Route 수석 심사역</p>
+                <p class="rh-tagline">"지표 너머의 가능성을 읽고,<br>투자자의 언어로 당신의 가치를 증명합니다."</p>
+              </div>
+
+              <!-- 소개 본문 -->
+              <div class="route-card">
+                <div class="route-card-title"><i class="fa-solid fa-circle-info" style="color:#2563eb;"></i> 안녕하세요, 루트입니다</div>
+                <p>저는 VC Route의 수석 심사역 <strong>'루트'</strong>입니다.<br>
+                지난 10년간 수만 건의 IR 피치덱과 재무제표, 시장 동향 데이터를 학습하며 대한민국 투자 시장의 흐름을 몸소 체득해 왔습니다.<br><br>
+                단순히 점수를 매기는 기계가 아닙니다. 저는 당신이 밤새 고민한 비즈니스 모델(BM)의 빈틈을 찾아내고, 실제 GP(운용역)들이 던질 날카로운 질문을 미리 던져 당신의 <strong>'필승 전략'</strong>을 함께 만드는 베테랑 파트너입니다.</p>
+              </div>
+
+              <!-- 약력 -->
+              <div class="route-card">
+                <div class="route-card-title"><i class="fa-solid fa-briefcase" style="color:#7c3aed;"></i> 💼 수석 심사역 주요 약력</div>
+                <div class="route-career-list">
+                  <div class="route-career-item"><strong>데이터 학습량</strong><span>국내외 1만 개 이상의 IR 자료 및 투자 유치 성공/실패 사례 딥러닝</span></div>
+                  <div class="route-career-item"><strong>전문 분야</strong><span>비정형 데이터(IR, 재무제표 등) 기반의 다각도 가치 평가 및 리스크 탐지</span></div>
+                  <div class="route-career-item"><strong>핵심 역량</strong><span>시계열 데이터 분석을 통한 매칭 최적화 및 타겟 펀드별 맞춤형 전략 수립</span></div>
+                </div>
+              </div>
+
+              <!-- 3가지 서비스 -->
+              <div class="route-card">
+                <div class="route-card-title"><i class="fa-solid fa-magnifying-glass" style="color:#2563eb;"></i> 🔍 루트가 제공하는 10년 차의 디테일</div>
+                <div class="route-svc-list">
+                  <div class="route-svc-item">
+                    <div class="route-svc-num">1</div>
+                    <div class="route-svc-body">
+                      <div class="svc-title">5대 핵심 지표 정밀 스코어링 (Audit)</div>
+                      <div class="svc-desc">시장성, 팀 역량, 기술력, BM, 재무 상태를 분석하여 현재 당신의 팀이 투자 시장에서 어느 위치에 있는지 냉정하게 평가합니다. "왜 이 점수인가?"에 대한 논리적 근거를 함께 제시합니다.</div>
+                    </div>
+                  </div>
+                  <div class="route-svc-item">
+                    <div class="route-svc-num">2</div>
+                    <div class="route-svc-body">
+                      <div class="svc-title">실전보다 더 날카로운 '압박 면접' (Interactive Q&amp;A)</div>
+                      <div class="svc-desc">스코어링 이후 제공되는 대화창을 통해 저와 직접 대화하세요. "수익 모델의 확장성이 부족해 보이는데, 해결책이 있나요?"와 같은 실제 심사역의 예상 질문으로 당신의 답변을 다듬어 드립니다.</div>
+                    </div>
+                  </div>
+                  <div class="route-svc-item">
+                    <div class="route-svc-num">3</div>
+                    <div class="route-svc-body">
+                      <div class="svc-title">승률 높은 펀드 타겟팅 &amp; 콜드메일 (Strategic Matching)</div>
+                      <div class="svc-desc">10년 치 히스토리 DB를 가동해, 지금 당신의 라운드와 섹터에 가장 목말라 있는 GP를 찾아냅니다. 그들의 마음을 움직일 최적화된 콜드메일 초안까지 제가 직접 작성해 드립니다.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 한마디 -->
+              <div class="route-quote">
+                <p>"투자 유치는 정답을 찾는 과정이 아니라, 설득의 논리를 완성하는 과정입니다.<br>
+                저와 함께 연습한 스타트업은 실제 IR 테이블에서 당황하지 않습니다.<br>
+                당신의 혁신이 숫자로 증명될 수 있도록, 제가 가장 먼저 당신의 IR 자료를 읽겠습니다."</p>
+                <span class="q-sig">— AI 심사역 '루트(Route)', VC Route 수석 심사역</span>
+              </div>
+
+              <div style="text-align:center;">
+                <button class="route-start-btn" onclick="switchIrTab('upload')">
+                  <i class="fa-solid fa-file-arrow-up"></i>&nbsp; IR 업로드하고 분석 시작하기
+                </button>
+              </div>
+
+            </div>
+
             <!-- Tab 1: Upload -->
-            <div id="upload" class="ir-section active">
+            <div id="upload" class="ir-section">
               <h2>IR<br>업로드</h2>
               <div class="tag-line">Upload your IR Deck for AI-powered VC Scoring</div>
 
