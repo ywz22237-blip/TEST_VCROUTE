@@ -2,6 +2,8 @@
 let noticesData = [];
 let currentCategory = "all";
 let searchQuery = "";
+const NOTICE_PAGE_SIZE = 5;
+let currentNoticePage = 1;
 
 // 샘플 공지사항 데이터 (백엔드 미연결 시 표시)
 const SAMPLE_NOTICES = [
@@ -384,9 +386,14 @@ function renderNotices() {
   if (filtered.length === 0) {
     noticeList.innerHTML = "";
     noResults.style.display = "block";
+    renderPaginationNotices(0);
   } else {
     noResults.style.display = "none";
-    noticeList.innerHTML = filtered
+
+    const start = (currentNoticePage - 1) * NOTICE_PAGE_SIZE;
+    const pageItems = filtered.slice(start, start + NOTICE_PAGE_SIZE);
+
+    noticeList.innerHTML = pageItems
       .map(
         (notice) => `
       <article class="notice-card" onclick="openNoticeDetail(${notice.id})">
@@ -412,9 +419,55 @@ function renderNotices() {
     `,
       )
       .join("");
+
+    renderPaginationNotices(filtered.length);
   }
 
   updateCount(filtered.length);
+}
+
+// 페이지네이션 렌더링
+function renderPaginationNotices(total) {
+  const container = document.getElementById("noticePagination");
+  if (!container) return;
+  const totalPages = Math.ceil(total / NOTICE_PAGE_SIZE);
+  if (totalPages <= 1) { container.innerHTML = ""; return; }
+
+  const range = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentNoticePage - 2 && i <= currentNoticePage + 2)) {
+      range.push(i);
+    } else if (range[range.length - 1] !== "…") {
+      range.push("…");
+    }
+  }
+
+  container.innerHTML = `
+    <button class="page-btn" onclick="goPageNotices(${currentNoticePage - 1})" ${currentNoticePage === 1 ? "disabled" : ""}><i class="fa-solid fa-chevron-left"></i></button>
+    ${range.map(p => p === "…"
+      ? `<span class="page-ellipsis">…</span>`
+      : `<button class="page-btn ${p === currentNoticePage ? "active" : ""}" onclick="goPageNotices(${p})">${p}</button>`
+    ).join("")}
+    <button class="page-btn" onclick="goPageNotices(${currentNoticePage + 1})" ${currentNoticePage === totalPages ? "disabled" : ""}><i class="fa-solid fa-chevron-right"></i></button>
+  `;
+}
+
+function goPageNotices(page) {
+  const filtered = noticesData.filter((notice) => {
+    const matchesCategory = currentCategory === "all" || notice.category === currentCategory;
+    const query = searchQuery.toLowerCase();
+    const matchesSearch =
+      (notice.title || "").toLowerCase().includes(query) ||
+      (notice.summary || "").toLowerCase().includes(query) ||
+      (notice.author || "").toLowerCase().includes(query) ||
+      (notice.tag || "").toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  });
+  const totalPages = Math.ceil(filtered.length / NOTICE_PAGE_SIZE);
+  if (page < 1 || page > totalPages) return;
+  currentNoticePage = page;
+  renderNotices();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // Category Filter
@@ -441,6 +494,7 @@ function filterCategory(category) {
     labelEl.textContent = categoryLabels[category] || "전체";
   }
 
+  currentNoticePage = 1;
   handleSearch(); // Re-render with new filter
 }
 
@@ -473,6 +527,7 @@ function handleSearch() {
   const searchKeyword = document.getElementById("searchKeyword");
 
   searchQuery = input.value.trim();
+  currentNoticePage = 1;
 
   // Clear 버튼 및 검색 통계 표시
   if (searchQuery.length > 0) {
