@@ -428,46 +428,58 @@ function selectFund(fundId) {
 function renderInvestorInFundTab() {
   if (!selectedFund) return;
 
+  // 섹션을 먼저 표시하고 버튼 활성화 — 이후 오류가 있어도 UI는 반드시 노출
+  const section = document.getElementById("investor-section");
+  if (section) section.style.display = "block";
+
   const investors = (typeof investorsData !== "undefined" ? investorsData : []);
   selectedGP = investors.find(inv => inv.name === selectedFund.manager);
-  if (!selectedGP) {
+  if (!selectedGP && investors.length > 0) {
     selectedGP = investors[Math.floor(Math.random() * Math.min(investors.length, 20))];
   }
 
-  document.getElementById("selectedFundInfoInline").innerHTML =
-    `<i class="fa-solid fa-building-columns"></i>&nbsp; 선택 펀드: <strong>${selectedFund.fundName}</strong> · ${selectedFund.companyName}`;
+  const infoEl = document.getElementById("selectedFundInfoInline");
+  if (infoEl) {
+    infoEl.innerHTML = `<i class="fa-solid fa-building-columns"></i>&nbsp; 선택 펀드: <strong>${selectedFund.fundName}</strong> · ${selectedFund.companyName}`;
+  }
 
-  const stageLabels = { "seed": "시드", "series-a": "시리즈A", "series-b": "시리즈B", "growth": "성장", "pre-ipo": "Pre-IPO" };
-  const stages = (selectedGP.stages || []).map(s => stageLabels[s] || s);
+  const gpCardEl = document.getElementById("fundGpCard");
+  if (gpCardEl) {
+    if (!selectedGP) {
+      gpCardEl.innerHTML = `<p style="color:#64748b;padding:1rem;">GP 정보를 불러올 수 없습니다.</p>`;
+    } else {
+      const stageLabels = { "seed": "시드", "series-a": "시리즈A", "series-b": "시리즈B", "growth": "성장", "pre-ipo": "Pre-IPO" };
+      const stages = (selectedGP.stages || []).map(s => stageLabels[s] || s);
+      gpCardEl.innerHTML = `
+        <div class="gp-card">
+          <div class="gp-header">
+            <div class="gp-avatar">${selectedGP.avatar || selectedGP.name[0]}</div>
+            <div class="gp-info">
+              <h3>${selectedGP.name} 심사역</h3>
+              <p>${selectedGP.company}</p>
+            </div>
+          </div>
+          <div class="gp-tags">
+            ${stages.map(s => `<span>${s}</span>`).join("")}
+            ${selectedGP.tps ? '<span style="background:#fef9c3;color:#854d0e;">초기전문</span>' : ""}
+          </div>
+          <div class="gp-stats">
+            <div class="gp-stat"><div class="val">${selectedGP.investments}</div><div class="lbl">투자 건수</div></div>
+            <div class="gp-stat"><div class="val">${selectedGP.successRate}%</div><div class="lbl">성공률</div></div>
+            <div class="gp-stat"><div class="val">${selectedGP.exitCount || "-"}</div><div class="lbl">엑싯</div></div>
+          </div>
+          <p style="font-size:0.85rem;color:#475569;line-height:1.6;margin-bottom:0.5rem;">${selectedGP.description}</p>
+          <div style="font-size:0.82rem;color:#64748b;">
+            <span><i class="fa-solid fa-envelope"></i> ${selectedGP.email}</span>
+          </div>
+        </div>`;
+    }
+  }
 
-  document.getElementById("fundGpCard").innerHTML = `
-    <div class="gp-card">
-      <div class="gp-header">
-        <div class="gp-avatar">${selectedGP.avatar || selectedGP.name[0]}</div>
-        <div class="gp-info">
-          <h3>${selectedGP.name} 심사역</h3>
-          <p>${selectedGP.company}</p>
-        </div>
-      </div>
-      <div class="gp-tags">
-        ${stages.map(s => `<span>${s}</span>`).join("")}
-        ${selectedGP.tps ? '<span style="background:#fef9c3;color:#854d0e;">초기전문</span>' : ""}
-      </div>
-      <div class="gp-stats">
-        <div class="gp-stat"><div class="val">${selectedGP.investments}</div><div class="lbl">투자 건수</div></div>
-        <div class="gp-stat"><div class="val">${selectedGP.successRate}%</div><div class="lbl">성공률</div></div>
-        <div class="gp-stat"><div class="val">${selectedGP.exitCount || "-"}</div><div class="lbl">엑싯</div></div>
-      </div>
-      <p style="font-size:0.85rem;color:#475569;line-height:1.6;margin-bottom:0.5rem;">${selectedGP.description}</p>
-      <div style="font-size:0.82rem;color:#64748b;">
-        <span><i class="fa-solid fa-envelope"></i> ${selectedGP.email}</span>
-      </div>
-    </div>`;
+  const mailBtn = document.getElementById("fundGoMailBtn");
+  if (mailBtn) mailBtn.disabled = false;
 
-  const section = document.getElementById("investor-section");
-  section.style.display = "block";
-  document.getElementById("fundGoMailBtn").disabled = false;
-  setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  setTimeout(() => section && section.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
 
   // localStorage에 추천 이력 저장
   saveRecommendHistory();
