@@ -30,7 +30,7 @@ function supabaseUserToLocal(user) {
     name: meta.full_name || meta.name || meta.user_name || user.email,
     avatar: meta.avatar_url || meta.picture || "",
     provider: (user.app_metadata || {}).provider || "email",
-    userType: meta.userType || "startup",
+    userType: meta.userType || meta.user_type || "startup",
     verified: !!user.email_confirmed_at,
   };
 }
