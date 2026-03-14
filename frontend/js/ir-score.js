@@ -7,18 +7,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 드래그앤드롭
-  const zone = document.getElementById("uploadZone");
-  if (zone) {
+  // 드래그앤드롭 (3개 존)
+  [1, 2, 3].forEach(slot => {
+    const zone = document.getElementById(`uploadZone${slot}`);
+    if (!zone) return;
     zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("dragover"); });
     zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
     zone.addEventListener("drop", e => {
       e.preventDefault();
       zone.classList.remove("dragover");
       const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
+      if (file) handleFile(file, slot);
     });
-  }
+  });
 });
 
 function switchIrTab(tabId) {
@@ -29,19 +30,25 @@ function switchIrTab(tabId) {
 }
 
 // ─── 파일 처리 ────────────────────────────────────────────────
-let irText = "";
+const irTexts = { 1: "", 2: "", 3: "" };
 
-function onFileSelect(input) {
+function onFileSelect(input, slot) {
   const file = input.files[0];
-  if (file) handleFile(file);
+  if (file) handleFile(file, slot);
 }
 
-function handleFile(file) {
-  document.getElementById("fileName").textContent = `✅ ${file.name}`;
-  document.getElementById("analyzeBtn").disabled = false;
+function handleFile(file, slot) {
+  const nameEl = document.getElementById(`fileName${slot}`);
+  const zoneEl = document.getElementById(`uploadZone${slot}`);
+  if (nameEl) nameEl.textContent = `✅ ${file.name}`;
+  if (zoneEl) zoneEl.classList.add("has-file");
 
   const reader = new FileReader();
-  reader.onload = e => { irText = e.target.result; };
+  reader.onload = e => {
+    irTexts[slot] = e.target.result;
+    const hasAny = Object.values(irTexts).some(t => t.trim());
+    document.getElementById("analyzeBtn").disabled = !hasAny;
+  };
   reader.readAsText(file, "utf-8");
 }
 
@@ -54,7 +61,12 @@ let irAnalysis = null;
 
 async function startAnalysis() {
   const desc = document.getElementById("companyDesc").value.trim();
-  const textToAnalyze = (irText || "") + (desc ? `\n회사 소개: ${desc}` : "");
+  const combinedText = [
+    irTexts[1] ? `[회사소개서]\n${irTexts[1]}` : "",
+    irTexts[2] ? `[IR 자료]\n${irTexts[2]}` : "",
+    irTexts[3] ? `[재무제표]\n${irTexts[3]}` : "",
+  ].filter(Boolean).join("\n\n");
+  const textToAnalyze = (combinedText || "") + (desc ? `\n회사 소개: ${desc}` : "");
 
   if (!textToAnalyze.trim()) {
     alert("파일을 업로드하거나 회사 소개를 입력해 주세요.");
