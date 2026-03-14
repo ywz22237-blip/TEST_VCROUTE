@@ -7,7 +7,7 @@ const { users } = require('../models/data');
 router.put('/profile', authenticate, async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { name } = req.body;
+    const { name, company, phone, portfolio, bio } = req.body;
 
     const user = await users.findById(userId);
     if (!user) {
@@ -17,7 +17,11 @@ router.put('/profile', authenticate, async (req, res, next) => {
     }
 
     const updates = {};
-    if (name) updates.name = name;
+    if (name      !== undefined) updates.name      = name;
+    if (company   !== undefined) updates.company   = company;
+    if (phone     !== undefined) updates.phone     = phone;
+    if (portfolio !== undefined) updates.portfolio = portfolio;
+    if (bio       !== undefined) updates.bio       = bio;
 
     const updated = await users.update(userId, updates);
 
@@ -25,10 +29,14 @@ router.put('/profile', authenticate, async (req, res, next) => {
       success: true,
       message: '프로필이 업데이트되었습니다.',
       data: {
-        id: updated.id,
-        email: updated.email,
-        name: updated.name,
-        role: updated.role
+        id:        updated.id,
+        email:     updated.email,
+        name:      updated.name,
+        company:   updated.company,
+        phone:     updated.phone,
+        portfolio: updated.portfolio,
+        bio:       updated.bio,
+        role:      updated.role
       }
     });
   } catch (error) {

@@ -16,7 +16,7 @@ async function checkDashboardAuth() {
 // 서버에서 최신 회원 정보 가져오기
 async function loadUserProfile() {
   const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-  let user = getUserInfo();
+  let user = await getUserInfo();
 
   try {
     const response = await fetch(API_CONFIG.BASE_URL + '/api/auth/me', {
@@ -35,9 +35,13 @@ async function loadUserProfile() {
   }
 
   if (user) {
+    _profileUser = user;
     renderUserProfile(user);
   }
 }
+
+// 현재 로그인된 유저 데이터 (편집용)
+let _profileUser = null;
 
 // 프로필 데이터를 UI에 렌더링
 function renderUserProfile(user) {
@@ -90,7 +94,7 @@ function renderUserProfile(user) {
 
   const dateLabel = user.userType === 'startup' ? '설립일: ' : '가입일: ';
   setText('pCreatedAt', user.createdAt ? dateLabel + user.createdAt : '');
-  setText('pUserId', user.userId || '-');
+  setText('pUserId', user.company || '-');
   setText('pEmail', user.email || '-');
 
   const phone = user.phone || '-';
@@ -162,6 +166,122 @@ function renderUserProfile(user) {
 function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
+}
+
+// ── 프로필 편집 ─────────────────────────────────
+
+function enterProfileEdit() {
+  if (!_profileUser) return;
+  // 편집 가능한 필드: [valueId, inputId, currentValue]
+  const fields = [
+    ['pUserId',       'pUserId_e',       _profileUser.company      || ''],
+    ['pPhone',        'pPhone_e',        _profileUser.phone        || ''],
+    ['pCompany',      'pCompany_e',      _profileUser.name         || ''],
+    ['pInvestTarget', 'pInvestTarget_e', _profileUser.investTarget || ''],
+    ['pCeoAge',       'pCeoAge_e',       _profileUser.ceoAge       || ''],
+    ['pGender',       'pGender_e',       _profileUser.gender       || ''],
+  ];
+
+  fields.forEach(([valId, inpId, curVal]) => {
+    const val = document.getElementById(valId);
+    const inp = document.getElementById(inpId);
+    if (val) val.style.display = 'none';
+    if (inp) {
+      inp.style.display = 'block';
+      inp.value = curVal;
+    }
+  });
+
+  // 포트폴리오 (링크 → input)
+  const portWrap = document.getElementById('pPortfolioWrap');
+  if (portWrap) portWrap.style.display = 'block';
+  const portLink = document.getElementById('pPortfolio');
+  const portInp  = document.getElementById('pPortfolio_e');
+  if (portLink) portLink.style.display = 'none';
+  if (portInp) { portInp.style.display = 'block'; portInp.value = _profileUser.portfolio || ''; }
+
+  // 소개 (p → textarea)
+  const bioWrap = document.getElementById('pBioWrap');
+  if (bioWrap) bioWrap.style.display = 'block';
+  const bioPara = document.getElementById('pBio');
+  const bioInp  = document.getElementById('pBio_e');
+  if (bioPara) bioPara.style.display = 'none';
+  if (bioInp) { bioInp.style.display = 'block'; bioInp.value = _profileUser.bio || ''; }
+
+  document.getElementById('profileEditBtn').style.display  = 'none';
+  document.getElementById('profileSaveBtn').style.display  = 'inline-flex';
+  document.getElementById('profileCancelBtn').style.display = 'inline-flex';
+}
+
+async function saveProfileEdit() {
+  const company     = document.getElementById('pUserId_e')?.value.trim()       || '';
+  const phone       = document.getElementById('pPhone_e')?.value.trim()        || '';
+  const name        = document.getElementById('pCompany_e')?.value.trim()      || '';
+  const investTarget= document.getElementById('pInvestTarget_e')?.value.trim() || '';
+  const ceoAge      = document.getElementById('pCeoAge_e')?.value.trim()       || '';
+  const gender      = document.getElementById('pGender_e')?.value.trim()       || '';
+  const portfolio   = document.getElementById('pPortfolio_e')?.value.trim()    || '';
+  const bio         = document.getElementById('pBio_e')?.value.trim()          || '';
+
+  const saveBtn = document.getElementById('profileSaveBtn');
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 저장 중...';
+
+  // 1) Supabase user_metadata 업데이트
+  try {
+    const sb = getSupabase ? getSupabase() : null;
+    if (sb) {
+      await sb.auth.updateUser({
+        data: { company, phone, full_name: name, portfolio, bio }
+      });
+    }
+  } catch (e) {
+    console.warn('Supabase 업데이트 실패:', e);
+  }
+
+  // 2) 백엔드 DB 업데이트 (선택적)
+  try {
+    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    await fetch(API_CONFIG.BASE_URL + '/api/users/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ name, company, phone, portfolio, bio })
+    });
+  } catch (e) { /* 무시 */ }
+
+  // 3) localStorage + 화면 반영
+  _profileUser = Object.assign({}, _profileUser, { company, phone, name, investTarget, ceoAge, gender, portfolio, bio });
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(_profileUser));
+
+  cancelProfileEdit();
+  renderUserProfile(_profileUser);
+
+  saveBtn.disabled = false;
+  saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 저장';
+}
+
+function cancelProfileEdit() {
+  const valIds = ['pUserId','pPhone','pCompany','pInvestTarget','pCeoAge','pGender'];
+  valIds.forEach(id => {
+    const val = document.getElementById(id);
+    const inp = document.getElementById(id + '_e');
+    if (val) val.style.display = 'block';
+    if (inp) inp.style.display = 'none';
+  });
+
+  const portLink = document.getElementById('pPortfolio');
+  const portInp  = document.getElementById('pPortfolio_e');
+  if (portLink) portLink.style.display = 'block';
+  if (portInp)  portInp.style.display  = 'none';
+
+  const bioPara = document.getElementById('pBio');
+  const bioInp  = document.getElementById('pBio_e');
+  if (bioPara) bioPara.style.display = 'block';
+  if (bioInp)  bioInp.style.display  = 'none';
+
+  document.getElementById('profileEditBtn').style.display   = 'inline-flex';
+  document.getElementById('profileSaveBtn').style.display   = 'none';
+  document.getElementById('profileCancelBtn').style.display = 'none';
 }
 
 // 대시보드 섹션 전환
