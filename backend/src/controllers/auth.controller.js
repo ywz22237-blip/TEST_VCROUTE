@@ -271,17 +271,50 @@ const findEmailByUserId = async (req, res, next) => {
     const { userId } = req.body;
     if (!userId) throw createError('아이디를 입력해주세요.', 400);
 
+    // 1차: users 테이블에서 조회
     let user;
     try {
       user = await users.findByEmailOrUserId(userId);
     } catch {
-      return res.status(503).json({ success: false, message: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' });
+      // users 테이블 조회 실패 시 2차 시도로 진행
     }
 
-    if (!user) {
-      return res.json({ success: false, message: '존재하지 않는 아이디입니다.' });
+    if (user) {
+      return res.json({ success: true, email: user.email });
     }
-    res.json({ success: true, email: user.email });
+
+    // 2차: Supabase Auth 메타데이터에서 username으로 조회 (users 테이블에 없는 기존 가입자 대응)
+    try {
+      const supabase = require('../config/supabase');
+      const { data: { users: authUsers }, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      if (!error && authUsers) {
+        const found = authUsers.find(u =>
+          (u.user_metadata && u.user_metadata.username === userId) ||
+          (u.user_metadata && u.user_metadata.full_name === userId)
+        );
+        if (found) {
+          // users 테이블에도 동기화
+          try {
+            await users.create({
+              userId,
+              email: found.email,
+              password: bcrypt.hashSync(Math.random().toString(36), 10),
+              name: userId,
+              userType: found.user_metadata.user_type || 'startup',
+              phone: found.user_metadata.phone || null,
+              company: found.user_metadata.company || null,
+              portfolio: found.user_metadata.portfolio || null,
+              bio: found.user_metadata.bio || null,
+              marketingAgree: false,
+              role: 'user',
+            });
+          } catch { /* 이미 존재하면 무시 */ }
+          return res.json({ success: true, email: found.email });
+        }
+      }
+    } catch { /* 2차 조회 실패 시 아래로 진행 */ }
+
+    res.json({ success: false, message: '존재하지 않는 아이디입니다.' });
   } catch (error) {
     next(error);
   }
