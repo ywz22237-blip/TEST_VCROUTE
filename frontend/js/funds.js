@@ -1474,7 +1474,7 @@ function showNoDataMessage() {
 
 // 페이지 로직
 // 투자펀드 페이지에서만 초기화 (다른 페이지 로드 시 renderFunds 등 불필요한 실행 방지)
-if (document.getElementById('fundsContainer')) {
+if (document.getElementById('fundsGrid')) {
   document.addEventListener("DOMContentLoaded", () => {
     loadFundsFromAPI();
   });

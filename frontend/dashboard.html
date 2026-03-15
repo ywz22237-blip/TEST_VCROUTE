@@ -819,6 +819,12 @@
 
     <!-- Main Content -->
     <main class="investors-page">
+      <!-- Dev Notice Banner: 지원사업/자료보관함/투자히스토리 상단 풀너비 -->
+      <div id="devNoticeBanner" style="display:none; background:linear-gradient(90deg,#2563eb,#3b82f6); color:white; text-align:center; padding:0.75rem 1rem; font-size:0.92rem; font-weight:700; letter-spacing:-0.01em; align-items:center; justify-content:center; gap:0.6rem; width:100%; box-sizing:border-box; position:sticky; top:72px; z-index:80;">
+        <span style="font-size:1.1rem;">🚧</span>
+        본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
+      </div>
+
       <div class="page-header">
         <h1>나의 대시보드</h1>
         <p>관심 정보와 개인 설정을 대시보드에서 효율적으로 관리하세요.</p>
@@ -1102,16 +1108,73 @@
 
           <!-- 지원사업 Section -->
           <section id="supportSection" class="dashboard-section" style="display:none">
-            <h2>지원사업</h2>
-            <div class="dev-notice-banner">
-              <i class="fa-solid fa-code"></i>
-              본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
+              <h2 style="margin:0;">지원사업</h2>
+              <div style="display:flex; gap:0.5rem;">
+                <button onclick="supportChangeMonth(-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border-color);background:white;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="supportMonthLabel" style="font-size:1rem;font-weight:800;color:#1e293b;display:flex;align-items:center;padding:0 0.5rem;min-width:110px;justify-content:center;"></span>
+                <button onclick="supportChangeMonth(1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border-color);background:white;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
             </div>
-            <div class="empty-state">
-              <i class="fa-solid fa-hand-holding-dollar"></i>
-              <h3 style="margin-top:1rem; font-size:1.25rem;">지원사업 준비 중</h3>
-              <p>정부 및 민간 지원사업 정보를 곧 제공할 예정입니다.</p>
+
+            <!-- 2-column layout: 이번주+신청내역 | 월간달력 -->
+            <div style="display:grid; grid-template-columns:300px 1fr; gap:1.5rem; align-items:start;">
+
+              <!-- 왼쪽 패널 -->
+              <div style="display:flex; flex-direction:column; gap:1.25rem;">
+
+                <!-- 섹터1-A: 이번주 일정 -->
+                <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
+                  <div style="padding:1rem 1.25rem 0.75rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:0.5rem;">
+                    <div style="width:28px;height:28px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.8rem;"><i class="fa-solid fa-calendar-week"></i></div>
+                    <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">이번주 일정</span>
+                    <span id="supportWeekRange" style="font-size:0.75rem;color:#94a3b8;margin-left:auto;"></span>
+                  </div>
+                  <div id="supportWeekList" style="padding:0.75rem;"></div>
+                </div>
+
+                <!-- 섹터1-B: 신청내역 -->
+                <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
+                  <div style="padding:1rem 1.25rem 0.75rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:0.5rem;">
+                    <div style="width:28px;height:28px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:0.8rem;"><i class="fa-solid fa-clipboard-list"></i></div>
+                    <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">신청내역</span>
+                  </div>
+                  <div style="padding:0.75rem;">
+                    <!-- 선정 -->
+                    <div style="margin-bottom:0.5rem;">
+                      <div style="font-size:0.72rem;font-weight:700;color:#16a34a;letter-spacing:0.04em;margin-bottom:0.4rem;padding:0 0.25rem;">✅ 선정</div>
+                      <div id="supportSelected" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
+                    </div>
+                    <!-- 미선정 -->
+                    <div>
+                      <div style="font-size:0.72rem;font-weight:700;color:#dc2626;letter-spacing:0.04em;margin-bottom:0.4rem;padding:0 0.25rem;">❌ 미선정</div>
+                      <div id="supportRejected" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- 오른쪽: 섹터2 월간 달력 -->
+              <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
+                <!-- 요일 헤더 -->
+                <div style="display:grid; grid-template-columns:repeat(7,1fr); background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#dc2626;">일</div>
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">월</div>
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">화</div>
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">수</div>
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">목</div>
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">금</div>
+                  <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#2563eb;">토</div>
+                </div>
+                <!-- 날짜 그리드 -->
+                <div id="supportCalendarGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:0; min-height:360px;"></div>
+              </div>
+
             </div>
+
+            <!-- 이벤트 상세 툴팁 -->
+            <div id="supportEventDetail" style="display:none; position:fixed; background:white; border:1.5px solid #bfdbfe; border-radius:14px; padding:1rem 1.25rem; box-shadow:0 8px 32px rgba(37,99,235,0.15); z-index:1000; max-width:280px; font-size:0.85rem; pointer-events:none;"></div>
           </section>
 
           <!-- Notice Section (Mock) (hidden - removed from menu) -->
@@ -1227,10 +1290,6 @@
             class="dashboard-section"
             style="display: none"
           >
-            <div class="dev-notice-banner">
-              <i class="fa-solid fa-code"></i>
-              본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
-            </div>
             <div class="imir-header">
               <h2>나의 자료보관함</h2>
               <button class="btn-upload" onclick="openStorageUploadModal()">
@@ -1312,10 +1371,6 @@
             class="dashboard-section"
             style="display: none"
           >
-            <div class="dev-notice-banner">
-              <i class="fa-solid fa-code"></i>
-              본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
-            </div>
             <div
               style="
                 display: flex;
