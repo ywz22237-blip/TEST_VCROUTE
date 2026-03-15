@@ -1242,15 +1242,9 @@
                   <label class="si-label">주관기관</label>
                   <input id="addEvOrg" class="si-input" type="text" placeholder="주관기관명" />
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
-                  <div class="si-group" style="margin:0;">
-                    <label class="si-label">시작일 <span style="color:#dc2626;">*</span></label>
-                    <input id="addEvStart" class="si-input" type="date" />
-                  </div>
-                  <div class="si-group" style="margin:0;">
-                    <label class="si-label">마감일 <span style="color:#dc2626;">*</span></label>
-                    <input id="addEvEnd" class="si-input" type="date" />
-                  </div>
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">마감일 <span style="color:#dc2626;">*</span></label>
+                  <input id="addEvEnd" class="si-input" type="date" />
                 </div>
                 <div class="si-group" style="margin:0;">
                   <label class="si-label">카테고리</label>
@@ -1262,6 +1256,14 @@
                     <option value="글로벌">글로벌</option>
                     <option value="기타">기타</option>
                   </select>
+                </div>
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">지원금액</label>
+                  <input id="addEvAmount" class="si-input" type="text" placeholder="예: 최대 1억원" />
+                </div>
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">내용</label>
+                  <textarea id="addEvDesc" class="si-input" rows="3" placeholder="지원사업 내용을 입력하세요" style="resize:vertical;"></textarea>
                 </div>
               </div>
               <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
