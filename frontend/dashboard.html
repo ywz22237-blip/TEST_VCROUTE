@@ -762,6 +762,25 @@
       .pef-grid-3, .pef-grid-4 { grid-template-columns: 1fr 1fr; }
       .pef-grid-2 { grid-template-columns: 1fr; }
     }
+    .dev-notice-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1.5px solid #93c5fd;
+      border-radius: 14px;
+      color: #1d4ed8;
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .dev-notice-banner i {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      color: #2563eb;
+    }
     </style>
   </head>
   <body>
@@ -992,12 +1011,16 @@
                     <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:1rem;">
                       <i class="fa-solid fa-chart-bar" style="margin-right:0.4rem; color:var(--primary-color);"></i>현황
                     </div>
+                    <!-- 내 즐겨찾기 소계 라벨 -->
+                    <div id="pMyBmLabel" style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-top:0.75rem; margin-bottom:0.4rem;">
+                      <i class="fa-solid fa-star" style="margin-right:0.3rem; color:#f59e0b;"></i>내 즐겨찾기 <span id="pBmTotal" style="font-weight:800; color:var(--primary-color);">0</span>개
+                    </div>
                     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; text-align:center;">
-                      <!-- 즐겨찾기 -->
+                      <!-- 나를 즐겨찾기한 횟수 -->
                       <div style="padding:0.9rem 0.75rem; background:white; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
                         <i class="fa-solid fa-star" style="font-size:1.2rem; color:#f59e0b;"></i>
-                        <div style="font-size:1.5rem; font-weight:900; color:var(--primary-color);" id="pBmTotal">0</div>
-                        <div style="font-size:0.72rem; color:var(--text-secondary); font-weight:600;">즐겨찾기</div>
+                        <div style="font-size:1.5rem; font-weight:900; color:var(--primary-color);" id="pFavoritedBy">0</div>
+                        <div style="font-size:0.72rem; color:var(--text-secondary); font-weight:600;">나를 즐겨찾기</div>
                       </div>
                       <!-- 클릭 횟수 -->
                       <div style="padding:0.9rem 0.75rem; background:white; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
@@ -1076,6 +1099,10 @@
           <!-- 지원사업 Section -->
           <section id="supportSection" class="dashboard-section" style="display:none">
             <h2>지원사업</h2>
+            <div class="dev-notice-banner">
+              <i class="fa-solid fa-code"></i>
+              본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
+            </div>
             <div class="empty-state">
               <i class="fa-solid fa-hand-holding-dollar"></i>
               <h3 style="margin-top:1rem; font-size:1.25rem;">지원사업 준비 중</h3>
@@ -1196,6 +1223,10 @@
             class="dashboard-section"
             style="display: none"
           >
+            <div class="dev-notice-banner">
+              <i class="fa-solid fa-code"></i>
+              본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
+            </div>
             <div class="imir-header">
               <h2>나의 자료보관함</h2>
               <button class="btn-upload" onclick="openStorageUploadModal()">
@@ -1277,6 +1308,10 @@
             class="dashboard-section"
             style="display: none"
           >
+            <div class="dev-notice-banner">
+              <i class="fa-solid fa-code"></i>
+              본 기능은 개발중에 있습니다. 현재 보고 계신 화면은 기능 이해를 돕기 위한 예시 데이터이며, 정식 출시 후 실제 분석 결과가 반영될 예정입니다.
+            </div>
             <div
               style="
                 display: flex;
@@ -2382,6 +2417,7 @@
     </div>
 
     <script src="js/data.js"></script>
+    <script src="js/funds.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
