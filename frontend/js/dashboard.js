@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDashboard();
   initStoredFiles();
   loadSupportEvents();
+  initExamFileDrop();
 
   const tab = new URLSearchParams(window.location.search).get("tab");
   if (tab) switchSection(tab);
@@ -483,9 +484,10 @@ function switchSection(sectionId) {
     loadRecommendHistory();
   }
 
-  // 투자 히스토리 섹션 진입 시 AI 심사 이력 렌더링
+  // 투자 히스토리 섹션 진입 시 렌더링
   if (sectionId === 'history') {
     _renderInvestorAIHistory();
+    renderReviewList();
   }
 
   // 지원사업 섹션 진입 시 캘린더 초기화
@@ -1776,13 +1778,68 @@ async function submitAddEvent() {
 const AI_EXAM_SCORE_CATS = ['시장성', '팀', '기술력', 'BM', '재무'];
 let _aiExamCurrentResult = null;
 let _aiExamCurrentName   = '';
+const examFileTexts = { 1: '', 2: '', 3: '' };
+
+// 파일 업로드 핸들러
+function onExamFileSelect(input, slot) {
+  const file = input.files[0];
+  if (file) _handleExamFile(file, slot);
+}
+
+function _handleExamFile(file, slot) {
+  const nameEl = document.getElementById(`examFileName${slot}`);
+  const zoneEl = document.getElementById(`examZone${slot}`);
+  if (nameEl) nameEl.textContent = `✅ ${file.name}`;
+  if (zoneEl) zoneEl.classList.add('has-file');
+  const reader = new FileReader();
+  reader.onload = e => { examFileTexts[slot] = e.target.result; };
+  reader.readAsText(file, 'utf-8');
+}
+
+// 드래그앤드롭 초기화 (DOMContentLoaded에서 호출)
+function initExamFileDrop() {
+  [1, 2, 3].forEach(slot => {
+    const zone = document.getElementById(`examZone${slot}`);
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) _handleExamFile(file, slot);
+    });
+  });
+}
+
+function resetAIExamForm() {
+  document.getElementById('aiExamResult').style.display = 'none';
+  [1, 2, 3].forEach(slot => {
+    examFileTexts[slot] = '';
+    const nameEl = document.getElementById(`examFileName${slot}`);
+    const zoneEl = document.getElementById(`examZone${slot}`);
+    if (nameEl) nameEl.textContent = 'PDF 파일 업로드';
+    if (zoneEl) zoneEl.classList.remove('has-file');
+    const inp = document.getElementById(`examFile${slot}`);
+    if (inp) inp.value = '';
+  });
+}
 
 async function requestInvestorAIAnalysis() {
   const name = (document.getElementById('aiExamStartupName')?.value || '').trim();
   const industry = (document.getElementById('aiExamIndustry')?.value || '').trim();
   const desc = (document.getElementById('aiExamDesc')?.value || '').trim();
-  if (!name || !desc) { alert('스타트업명과 사업 설명을 입력해주세요.'); return; }
 
+  const fileText = [
+    examFileTexts[1] ? `[회사소개서]\n${examFileTexts[1]}` : '',
+    examFileTexts[2] ? `[IR 자료]\n${examFileTexts[2]}` : '',
+    examFileTexts[3] ? `[재무제표]\n${examFileTexts[3]}` : '',
+  ].filter(Boolean).join('\n\n');
+
+  if (!name) { alert('스타트업명을 입력해주세요.'); return; }
+  if (!desc && !fileText) { alert('사업 설명을 입력하거나 파일을 업로드해주세요.'); return; }
+
+  const combinedText = fileText + (desc ? `\n사업 설명: ${desc}` : '');
   _aiExamCurrentName = name;
 
   const btn = document.getElementById('aiExamBtn');
@@ -1809,7 +1866,7 @@ async function requestInvestorAIAnalysis() {
     const apiKey = window.ANTHROPIC_API_KEY || window.CLAUDE_API_KEY || '';
     let analysisResult;
     if (apiKey) {
-      analysisResult = await _callInvestorClaudeAPI(name, industry, desc, apiKey);
+      analysisResult = await _callInvestorClaudeAPI(name, industry, combinedText, apiKey);
     } else {
       await new Promise(r => setTimeout(r, 4000));
       analysisResult = _getDemoInvestorAnalysis(name, industry);
@@ -1829,24 +1886,19 @@ async function requestInvestorAIAnalysis() {
   }
 }
 
-async function _callInvestorClaudeAPI(name, industry, desc, apiKey) {
+async function _callInvestorClaudeAPI(name, industry, combinedText, apiKey) {
   const prompt = `당신은 10년 경력의 VC 수석 심사역 "루트 AI"입니다. 아래 스타트업을 투자자 관점에서 엄밀하게 심사해주세요.
 
 스타트업명: ${name}
 업종: ${industry || '미입력'}
-사업 설명: ${desc.slice(0, 3000)}
+자료 내용:
+${combinedText.slice(0, 5000)}
 
 5개 항목을 각각 0~20점으로 채점하고 투자 심사 의견을 제공하세요.
 반드시 아래 JSON 형식으로만 응답하세요:
 
 {
-  "scores": {
-    "시장성": 숫자,
-    "팀": 숫자,
-    "기술력": 숫자,
-    "BM": 숫자,
-    "재무": 숫자
-  },
+  "scores": { "시장성": 숫자, "팀": 숫자, "기술력": 숫자, "BM": 숫자, "재무": 숫자 },
   "opinion": "관심|검토|패스",
   "feedback": [
     {"type": "good|warn|bad", "text": "심사 의견"},
@@ -1890,8 +1942,7 @@ function _getDemoInvestorAnalysis(name, industry) {
   const total = Object.values(scores).reduce((a, b) => a + b, 0);
   const opinion = total >= 75 ? '관심' : total >= 60 ? '검토' : '패스';
   return {
-    scores,
-    opinion,
+    scores, opinion,
     feedback: [
       { type: 'good', text: '핵심 타겟 시장이 명확하고 성장 여력이 충분합니다.' },
       { type: 'warn', text: 'TAM-SAM-SOM 근거 데이터의 신뢰성을 추가 검증해야 합니다.' },
@@ -1916,28 +1967,23 @@ function _getDemoInvestorAnalysis(name, industry) {
 function _renderInvestorAIResult(data, name) {
   const resultEl = document.getElementById('aiExamResult');
   if (!resultEl) return;
-
-  // 투자 의견 뱃지 색상
   const opinionConfig = {
-    '관심': { bg: 'linear-gradient(135deg,#059669,#10b981)', icon: 'fa-thumbs-up',  label: '관심' },
+    '관심': { bg: 'linear-gradient(135deg,#059669,#10b981)', icon: 'fa-thumbs-up', label: '관심' },
     '검토': { bg: 'linear-gradient(135deg,#d97706,#f59e0b)', icon: 'fa-magnifying-glass', label: '검토' },
-    '패스': { bg: 'linear-gradient(135deg,#dc2626,#ef4444)', icon: 'fa-xmark',      label: '패스' },
+    '패스': { bg: 'linear-gradient(135deg,#dc2626,#ef4444)', icon: 'fa-xmark', label: '패스' },
   };
   const oc = opinionConfig[data.opinion] || opinionConfig['검토'];
   const badge = document.getElementById('aiExamOpinionBadge');
   const opText = document.getElementById('aiExamOpinionText');
-  if (badge) badge.style.background = oc.bg;
-  if (badge) badge.querySelector('i').className = `fa-solid ${oc.icon}`;
+  if (badge) { badge.style.background = oc.bg; badge.querySelector('i').className = `fa-solid ${oc.icon}`; }
   if (opText) opText.textContent = oc.label;
 
   const total = Object.values(data.scores).reduce((a, b) => a + b, 0);
   const totalEl = document.getElementById('aiExamTotalScore');
   if (totalEl) totalEl.textContent = total;
-
   const summaryEl = document.getElementById('aiExamSummary');
   if (summaryEl) summaryEl.textContent = data.summary || '';
 
-  // 5개 항목 점수 카드
   const grid = document.getElementById('aiExamScoreGrid');
   if (grid) {
     const catColors = { 시장성: '#3b82f6', 팀: '#8b5cf6', 기술력: '#06b6d4', BM: '#f59e0b', 재무: '#10b981' };
@@ -1956,7 +2002,6 @@ function _renderInvestorAIResult(data, name) {
     }).join('');
   }
 
-  // 피드백
   const feedbackEl = document.getElementById('aiExamFeedbackList');
   if (feedbackEl && data.feedback) {
     const cfg = {
@@ -1973,7 +2018,6 @@ function _renderInvestorAIResult(data, name) {
     }).join('');
   }
 
-  // 레드플래그
   const rfEl = document.getElementById('aiExamRedFlags');
   if (rfEl && data.redFlags) {
     rfEl.innerHTML = data.redFlags.map(rf =>
@@ -1984,18 +2028,15 @@ function _renderInvestorAIResult(data, name) {
     ).join('');
   }
 
-  // 성장 가능성
   const upsideEl = document.getElementById('aiExamUpside');
   if (upsideEl) upsideEl.textContent = data.upside || '';
 
-  // 심사 질문
   const qEl = document.getElementById('aiExamQuestions');
   if (qEl && data.questions) {
     qEl.innerHTML = data.questions.map(q =>
       `<li style="font-size:0.85rem;color:#92400e;line-height:1.6;">${q}</li>`
     ).join('');
   }
-
   resultEl.style.display = '';
 }
 
@@ -2024,10 +2065,8 @@ function _renderInvestorAIHistory() {
   if (!container) return;
   const logs = JSON.parse(localStorage.getItem('investor_ai_exam_log') || '[]');
   if (logs.length === 0) { container.innerHTML = ''; return; }
-
   const opinionColor = { '관심': '#059669', '검토': '#d97706', '패스': '#dc2626' };
   const opinionBg    = { '관심': '#d1fae5', '검토': '#fef3c7', '패스': '#fee2e2' };
-
   container.innerHTML = `
     <div style="border-top:1px solid #e2e8f0;padding-top:1.5rem;margin-top:0.5rem;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -2055,3 +2094,152 @@ function clearInvestorAIHistory() {
   localStorage.removeItem('investor_ai_exam_log');
   _renderInvestorAIHistory();
 }
+
+// ─── 스타트업 검토 내역 (동적, localStorage) ─────────────────────────────
+
+const REVIEW_LIST_KEY = 'investor_review_list';
+
+const REVIEW_SEED = [
+  { id: 1, name: '테크스타트업 D', industry: 'AI · SaaS',            stage: 'DD 진행 중',    date: '2025.02.28', status: 'active' },
+  { id: 2, name: 'AI 스타트업 E',   industry: 'AI · 에듀테크',        stage: '2차 미팅 예정', date: '2025.03.01', status: 'active' },
+  { id: 3, name: '그린테크 스타트업 F', industry: '클린테크 · B2B',   stage: '1차 검토 중',   date: '2025.03.05', status: 'active' },
+  { id: 4, name: '테크스타트업 A',   industry: 'AI · SaaS',           stage: '투자 완료',     date: '2025.01.20', status: 'done' },
+  { id: 5, name: '바이오벤처 B',    industry: '바이오 · 헬스케어',   stage: '투자 완료',     date: '2025.02.10', status: 'done' },
+  { id: 6, name: '핀테크 스타트업 C', industry: '핀테크 · B2B',      stage: '투자 완료',     date: '2025.03.05', status: 'done' },
+  { id: 7, name: '커머스 스타트업 G', industry: '이커머스 · B2C',    stage: '1차 검토 후 패스', date: '2024.12.10', status: 'pass' },
+  { id: 8, name: '게임 스타트업 H',  industry: '게임 · 엔터테인먼트', stage: '2차 미팅 후 패스', date: '2024.11.20', status: 'pass' },
+];
+
+function _loadReviewList() {
+  const stored = localStorage.getItem(REVIEW_LIST_KEY);
+  if (stored) return JSON.parse(stored);
+  // 초기 시드 데이터 저장
+  localStorage.setItem(REVIEW_LIST_KEY, JSON.stringify(REVIEW_SEED));
+  return REVIEW_SEED;
+}
+
+function _saveReviewList(list) {
+  localStorage.setItem(REVIEW_LIST_KEY, JSON.stringify(list));
+}
+
+function renderReviewList() {
+  const list = _loadReviewList();
+  const activeCount = list.filter(r => r.status === 'active').length;
+  const doneCount   = list.filter(r => r.status === 'done').length;
+  const passCount   = list.filter(r => r.status === 'pass').length;
+  const total       = list.length;
+
+  // 요약 통계
+  const statsRow = document.getElementById('reviewStatsRow');
+  if (statsRow) {
+    statsRow.innerHTML = `
+      <div class="stat-card"><div class="value">${total}</div><div class="label">검토한 스타트업</div></div>
+      <div class="stat-card"><div class="value">${activeCount}</div><div class="label">검토 중</div></div>
+      <div class="stat-card"><div class="value">${doneCount}</div><div class="label">투자 완료</div></div>
+      <div class="stat-card"><div class="value">${passCount}</div><div class="label">패스</div></div>`;
+  }
+
+  // 탭 버튼 (현재 필터 유지)
+  const tabRow = document.getElementById('reviewTabRow');
+  const currentFilter = tabRow?.dataset.filter || 'active';
+  if (tabRow) {
+    tabRow.innerHTML = `
+      <button data-f="active" onclick="_setReviewFilter('active')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;cursor:pointer;font-size:0.78rem;font-weight:800;font-family:inherit;background:${currentFilter==='active'?'#f59e0b':'#fef3c7'};color:${currentFilter==='active'?'white':'#92400e'};transition:all 0.15s;">
+        <i class="fa-solid fa-clock"></i> 검토 중 · ${activeCount}건
+      </button>
+      <button data-f="done" onclick="_setReviewFilter('done')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;cursor:pointer;font-size:0.78rem;font-weight:800;font-family:inherit;background:${currentFilter==='done'?'#10b981':'#d1fae5'};color:${currentFilter==='done'?'white':'#065f46'};transition:all 0.15s;">
+        <i class="fa-solid fa-circle-check"></i> 투자 완료 · ${doneCount}건
+      </button>
+      <button data-f="pass" onclick="_setReviewFilter('pass')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;cursor:pointer;font-size:0.78rem;font-weight:800;font-family:inherit;background:${currentFilter==='pass'?'#ef4444':'#fee2e2'};color:${currentFilter==='pass'?'white':'#991b1b'};transition:all 0.15s;">
+        <i class="fa-solid fa-xmark"></i> 패스 · ${passCount}건
+      </button>`;
+    tabRow.dataset.filter = currentFilter;
+  }
+
+  // 리스트 렌더링
+  const itemsEl = document.getElementById('reviewItemsList');
+  if (!itemsEl) return;
+  const filtered = list.filter(r => r.status === currentFilter);
+
+  if (filtered.length === 0) {
+    const msgs = { active: '검토 중인 스타트업이 없습니다.', done: '투자 완료된 스타트업이 없습니다.', pass: '패스한 스타트업이 없습니다.' };
+    itemsEl.innerHTML = `<div style="text-align:center;padding:2.5rem;color:#94a3b8;font-size:0.88rem;">${msgs[currentFilter]||''}</div>`;
+    return;
+  }
+
+  const statusCfg = {
+    active: { bg: '#fef3c7', color: '#92400e', label: '검토 중' },
+    done:   { bg: '#d1fae5', color: '#065f46', label: '투자완료' },
+    pass:   { bg: '#fee2e2', color: '#991b1b', label: '패스' },
+  };
+  const stageIcons = ['소싱','1차 검토 중','2차 미팅 예정','DD 진행 중','투심위 대기','투자 완료','패스'];
+  const iconBg = { active: '#dbeafe', done: '#d1fae5', pass: '#fee2e2' };
+  const iconColor = { active: '#2563eb', done: '#059669', pass: '#dc2626' };
+
+  itemsEl.innerHTML = filtered.map(r => {
+    const sc = statusCfg[r.status] || statusCfg.active;
+    return `<div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr 0.5fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+      <div style="display:flex;align-items:center;gap:0.65rem;">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,${iconBg[r.status]},${iconBg[r.status]});border-radius:10px;display:flex;align-items:center;justify-content:center;color:${iconColor[r.status]};font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-rocket"></i></div>
+        <span style="font-size:0.9rem;font-weight:700;color:#1e293b;">${r.name}</span>
+      </div>
+      <div style="font-size:0.85rem;color:#374151;">${r.industry || '-'}</div>
+      <div style="font-size:0.85rem;color:#374151;">${r.stage || '-'}</div>
+      <div style="font-size:0.82rem;color:#6b7280;">${r.date || '-'}</div>
+      <div style="text-align:center;"><span style="background:${sc.bg};color:${sc.color};font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">${sc.label}</span></div>
+      <div style="text-align:center;">
+        <button onclick="deleteReviewItem(${r.id})" style="border:none;background:none;cursor:pointer;color:#cbd5e1;font-size:0.9rem;padding:0.2rem 0.4rem;transition:color 0.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'" title="삭제"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _setReviewFilter(filter) {
+  const tabRow = document.getElementById('reviewTabRow');
+  if (tabRow) tabRow.dataset.filter = filter;
+  renderReviewList();
+}
+
+function deleteReviewItem(id) {
+  if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+  const list = _loadReviewList().filter(r => r.id !== id);
+  _saveReviewList(list);
+  renderReviewList();
+}
+
+function openAddReviewModal() {
+  document.getElementById('arName').value = '';
+  document.getElementById('arIndustry').value = '';
+  document.getElementById('arStage').value = 'DD 진행 중';
+  document.querySelector('input[name="arStatus"][value="active"]').checked = true;
+  document.getElementById('addReviewModal').classList.add('open');
+  setTimeout(() => document.getElementById('arName')?.focus(), 100);
+}
+
+function closeAddReviewModal() {
+  document.getElementById('addReviewModal').classList.remove('open');
+}
+
+function submitAddReview() {
+  const name = (document.getElementById('arName')?.value || '').trim();
+  if (!name) { alert('스타트업명을 입력해주세요.'); return; }
+  const industry = (document.getElementById('arIndustry')?.value || '').trim();
+  const stage    = document.getElementById('arStage')?.value || '1차 검토 중';
+  const status   = document.querySelector('input[name="arStatus"]:checked')?.value || 'active';
+  const now = new Date();
+  const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const list = _loadReviewList();
+  list.unshift({ id: Date.now(), name, industry, stage, date, status });
+  _saveReviewList(list);
+  closeAddReviewModal();
+  // 추가한 항목의 탭으로 이동
+  const tabRow = document.getElementById('reviewTabRow');
+  if (tabRow) tabRow.dataset.filter = status;
+  renderReviewList();
+}
+
+// 모달 바깥 클릭 시 닫기
+document.addEventListener('click', e => {
+  const modal = document.getElementById('addReviewModal');
+  if (modal && e.target === modal) closeAddReviewModal();
+});
