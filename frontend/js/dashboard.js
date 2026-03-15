@@ -439,6 +439,7 @@ function switchSection(sectionId) {
   // 내정보(settings) 진입 시: 수정 폼 채우기
   if (sectionId === 'myinfo' || sectionId === 'settings') {
     loadSettingsForm();
+  if (sectionId === 'settings') loadSettingsBasicInfo();
   }
 
   // 프로필 섹션 진입 시: 프로필 로드
@@ -1209,4 +1210,170 @@ function showSupportEvent(e, eventId) {
 
   const hide = () => { detail.style.display = 'none'; document.removeEventListener('click', hide); };
   setTimeout(() => document.addEventListener('click', hide), 50);
+}
+
+// ── 기본 정보 수정 (이메일 인증 게이팅) ──────────────────────────
+
+let _siVerified = false;
+let _siTimerInterval = null;
+const SI_TEST_CODE = '123456'; // 개발용 테스트 코드
+
+function loadSettingsBasicInfo() {
+  const user = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const emailInput = document.getElementById('si_email');
+  const usernameInput = document.getElementById('si_username');
+  if (usernameInput) usernameInput.value = user.name || user.email?.split('@')[0] || '';
+  if (emailInput) emailInput.value = user.email || '';
+  // 인증 상태 초기화
+  _siVerified = false;
+  document.getElementById('si_code_wrap').style.display = 'none';
+  document.getElementById('si_verified_badge').style.display = 'none';
+  document.getElementById('si_pw_lock').style.display = 'flex';
+  document.getElementById('si_phone_lock').style.display = 'flex';
+  document.getElementById('si_email_status').style.display = 'none';
+  ['si_cur_pw','si_new_pw','si_new_pw2','si_phone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = true; el.value = ''; }
+  });
+  const btn = document.getElementById('btnEmailVerify');
+  if (btn) { btn.disabled = false; btn.textContent = '인증요청'; }
+}
+
+function requestEmailVerification() {
+  const email = document.getElementById('si_email').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showSiStatus('올바른 이메일 주소를 입력해주세요.', 'error'); return;
+  }
+  // 인증 코드 전송 시뮬레이션
+  document.getElementById('si_code_wrap').style.display = 'block';
+  showSiStatus(`${email}로 인증코드를 발송했습니다. (테스트 코드: ${SI_TEST_CODE})`, 'info');
+  document.getElementById('si_code').value = '';
+  startSiTimer(180);
+
+  const btn = document.getElementById('btnEmailVerify');
+  btn.disabled = true;
+  btn.textContent = '재발송';
+  setTimeout(() => { if (btn) { btn.disabled = false; } }, 30000);
+}
+
+function startSiTimer(seconds) {
+  clearInterval(_siTimerInterval);
+  const timerEl = document.getElementById('si_timer');
+  let remaining = seconds;
+  const update = () => {
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    if (timerEl) timerEl.textContent = `${m}:${String(s).padStart(2,'0')}`;
+    if (remaining <= 0) {
+      clearInterval(_siTimerInterval);
+      if (timerEl) timerEl.textContent = '만료';
+      timerEl.style.color = '#dc2626';
+    }
+    remaining--;
+  };
+  update();
+  _siTimerInterval = setInterval(update, 1000);
+}
+
+function verifyEmailCode() {
+  const code = document.getElementById('si_code').value.trim();
+  if (!code) { showSiStatus('인증코드를 입력해주세요.', 'error'); return; }
+  if (code !== SI_TEST_CODE) {
+    showSiStatus('인증코드가 일치하지 않습니다. 다시 확인해주세요.', 'error'); return;
+  }
+  // 인증 성공
+  _siVerified = true;
+  clearInterval(_siTimerInterval);
+  document.getElementById('si_code_wrap').style.display = 'none';
+  document.getElementById('si_verified_badge').style.display = 'block';
+  showSiStatus('이메일 인증이 완료되었습니다.', 'success');
+
+  // 잠금 해제
+  document.getElementById('si_pw_lock').style.display = 'none';
+  document.getElementById('si_phone_lock').style.display = 'none';
+  ['si_cur_pw','si_new_pw','si_new_pw2','si_phone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = false;
+  });
+  // 연락처 기존 값 로드
+  const user = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const phoneEl = document.getElementById('si_phone');
+  if (phoneEl) phoneEl.value = user.phone || '';
+}
+
+function showSiStatus(msg, type) {
+  const el = document.getElementById('si_email_status');
+  if (!el) return;
+  const colors = { error:'#dc2626', success:'#16a34a', info:'#2563eb' };
+  const bg = { error:'#fef2f2', success:'#f0fdf4', info:'#eff6ff' };
+  el.style.display = 'block';
+  el.style.color = colors[type] || '#64748b';
+  el.style.background = bg[type] || 'transparent';
+  el.style.padding = '0.4rem 0.7rem';
+  el.style.borderRadius = '8px';
+  el.textContent = msg;
+}
+
+function toggleSiPw(inputId, btn) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  const isText = el.type === 'text';
+  el.type = isText ? 'password' : 'text';
+  btn.innerHTML = isText ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
+}
+
+function checkSiPwMatch() {
+  const pw = document.getElementById('si_new_pw').value;
+  const pw2 = document.getElementById('si_new_pw2').value;
+  const msg = document.getElementById('si_pw_match_msg');
+  if (!pw2) { msg.textContent = ''; return; }
+  if (pw === pw2) {
+    msg.textContent = '✓ 비밀번호가 일치합니다';
+    msg.style.color = '#16a34a';
+  } else {
+    msg.textContent = '✗ 비밀번호가 일치하지 않습니다';
+    msg.style.color = '#dc2626';
+  }
+}
+
+async function saveBasicInfo() {
+  if (!_siVerified) {
+    showSiStatus('이메일 인증을 먼저 완료해주세요.', 'error'); return;
+  }
+  const curPw = document.getElementById('si_cur_pw').value;
+  const newPw = document.getElementById('si_new_pw').value;
+  const newPw2 = document.getElementById('si_new_pw2').value;
+  const phone = document.getElementById('si_phone').value.trim();
+
+  // 비밀번호 변경 시 유효성 검사
+  if (newPw || curPw) {
+    if (!curPw) { showSiStatus('현재 비밀번호를 입력해주세요.', 'error'); return; }
+    if (newPw.length < 8) { showSiStatus('새 비밀번호는 8자 이상이어야 합니다.', 'error'); return; }
+    if (newPw !== newPw2) { showSiStatus('새 비밀번호가 일치하지 않습니다.', 'error'); return; }
+  }
+
+  const btn = document.getElementById('siBtnSave');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 저장 중...'; }
+
+  try {
+    const sb = getSupabase ? getSupabase() : null;
+    // 비밀번호 변경
+    if (sb && newPw && curPw) {
+      const { error } = await sb.auth.updateUser({ password: newPw });
+      if (error) { showSiStatus('비밀번호 변경 실패: ' + error.message, 'error'); return; }
+    }
+    // 연락처 업데이트 localStorage
+    const user = JSON.parse(localStorage.getItem('user_info') || '{}');
+    if (phone) user.phone = phone;
+    localStorage.setItem('user_info', JSON.stringify(user));
+
+    showSiStatus('저장되었습니다!', 'success');
+    // 비밀번호 필드 초기화
+    ['si_cur_pw','si_new_pw','si_new_pw2'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('si_pw_match_msg').textContent = '';
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 저장'; }
+  }
 }
