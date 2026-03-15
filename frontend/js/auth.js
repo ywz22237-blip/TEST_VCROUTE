@@ -295,9 +295,13 @@ function goToLoginFromModal() {
 }
 
 async function handleDashboardLinkClick(e) {
+  e.preventDefault();                      // 반드시 동기적으로 먼저 호출
+  const href = e.currentTarget.href;       // await 전에 저장
   const loggedIn = await isLoggedIn();
-  if (loggedIn) return; // 로그인 상태면 기본 동작 유지
-  e.preventDefault();
+  if (loggedIn) {
+    window.location.href = href;           // 로그인 상태면 직접 이동
+    return;
+  }
   const modal = document.getElementById('loginRequiredModal');
   if (modal) modal.style.display = 'flex';
 }
