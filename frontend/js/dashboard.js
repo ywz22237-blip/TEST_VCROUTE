@@ -451,6 +451,18 @@ function switchSection(sectionId) {
     loadRecommendHistory();
   }
 
+  // 지원사업 섹션 진입 시 캘린더 초기화
+  if (sectionId === 'support') {
+    initSupportCalendar();
+  }
+
+  // 개발중 배너 (지원사업/자료보관함/투자히스토리)
+  const devBanner = document.getElementById('devNoticeBanner');
+  if (devBanner) {
+    const showBanner = ['support', 'imir', 'history'].includes(sectionId);
+    devBanner.style.display = showBanner ? 'flex' : 'none';
+  }
+
   // 사이드바 메뉴 활성 상태 업데이트
   document
     .querySelectorAll(".category-sidebar .filter-item")
@@ -1027,4 +1039,174 @@ async function saveProfileInfo() {
 
   alert('저장되었습니다!');
   switchSection('profile');
+}
+
+// ── 지원사업 캘린더 ─────────────────────────────────────────────
+
+let _supportYear = new Date().getFullYear();
+let _supportMonth = new Date().getMonth(); // 0-indexed
+
+// 샘플 지원사업 이벤트 데이터
+const SUPPORT_EVENTS = [
+  { id:1, title:'창업도약패키지', org:'중소벤처기업부', color:'#2563eb', bgColor:'#dbeafe', start:'2026-03-05', end:'2026-03-28', category:'창업지원', apply:true, result:'selected' },
+  { id:2, title:'TIPS 프로그램', org:'중소벤처기업부', color:'#7c3aed', bgColor:'#ede9fe', start:'2026-03-10', end:'2026-04-10', category:'R&D', apply:true, result:'rejected' },
+  { id:3, title:'서울형 강소기업 육성', org:'서울시', color:'#059669', bgColor:'#d1fae5', start:'2026-03-15', end:'2026-03-31', category:'지역지원', apply:false, result:null },
+  { id:4, title:'민간투자 연계형 지원', org:'중기부', color:'#d97706', bgColor:'#fef3c7', start:'2026-03-20', end:'2026-04-20', category:'투자연계', apply:false, result:null },
+  { id:5, title:'K-스타트업 그랜드챌린지', org:'중소벤처기업부', color:'#dc2626', bgColor:'#fee2e2', start:'2026-04-01', end:'2026-04-30', category:'글로벌', apply:false, result:null },
+  { id:6, title:'청년창업사관학교', org:'중소기업진흥공단', color:'#0891b2', bgColor:'#cffafe', start:'2026-03-01', end:'2026-03-20', category:'창업지원', apply:true, result:'selected' },
+];
+
+function initSupportCalendar() {
+  renderSupportCalendar();
+  renderSupportWeek();
+  renderSupportApplications();
+}
+
+function supportChangeMonth(delta) {
+  _supportMonth += delta;
+  if (_supportMonth > 11) { _supportMonth = 0; _supportYear++; }
+  if (_supportMonth < 0) { _supportMonth = 11; _supportYear--; }
+  renderSupportCalendar();
+  renderSupportWeek();
+}
+
+function renderSupportCalendar() {
+  const grid = document.getElementById('supportCalendarGrid');
+  const label = document.getElementById('supportMonthLabel');
+  if (!grid || !label) return;
+
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  label.textContent = `${_supportYear}년 ${monthNames[_supportMonth]}`;
+
+  const firstDay = new Date(_supportYear, _supportMonth, 1).getDay();
+  const daysInMonth = new Date(_supportYear, _supportMonth + 1, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === _supportYear && today.getMonth() === _supportMonth;
+
+  let html = '';
+  // 빈 칸 (이전달)
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div style="min-height:80px; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:0.4rem; background:#fafafa;"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${_supportYear}-${String(_supportMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayOfWeek = new Date(_supportYear, _supportMonth, d).getDay();
+    const isToday = isCurrentMonth && d === today.getDate();
+    const isSun = dayOfWeek === 0;
+    const isSat = dayOfWeek === 6;
+
+    // 해당 날짜의 이벤트 (start~end 범위)
+    const dayEvents = SUPPORT_EVENTS.filter(ev => {
+      return ev.start <= dateStr && ev.end >= dateStr;
+    });
+
+    const todayStyle = isToday ? 'background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-weight:900;' : '';
+    const dayNumColor = isToday ? '' : (isSun ? 'color:#dc2626;' : isSat ? 'color:#2563eb;' : 'color:#475569;');
+
+    const eventsHtml = dayEvents.slice(0,3).map(ev => `
+      <div onclick="showSupportEvent(event,${ev.id})" style="font-size:0.68rem; font-weight:700; color:${ev.color}; background:${ev.bgColor}; border-radius:4px; padding:1px 5px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;" title="${ev.title}">${ev.title}</div>
+    `).join('');
+    const moreHtml = dayEvents.length > 3 ? `<div style="font-size:0.65rem;color:#94a3b8;padding-left:2px;">+${dayEvents.length-3}개 더</div>` : '';
+
+    html += `<div style="min-height:80px; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:0.4rem; ${isSun||isSat?'background:#fafbff;':''}">
+      <div style="${dayNumColor} font-size:0.8rem; font-weight:700; margin-bottom:2px;">
+        <span style="${todayStyle}">${d}</span>
+      </div>
+      ${eventsHtml}${moreHtml}
+    </div>`;
+  }
+
+  // 나머지 빈칸
+  const totalCells = firstDay + daysInMonth;
+  const remainder = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 0; i < remainder; i++) {
+    html += `<div style="min-height:80px; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:0.4rem; background:#fafafa;"></div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function renderSupportWeek() {
+  const listEl = document.getElementById('supportWeekList');
+  const rangeEl = document.getElementById('supportWeekRange');
+  if (!listEl) return;
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - dayOfWeek);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  if (rangeEl) rangeEl.textContent = `${fmt(weekStart)} ~ ${fmt(weekEnd)}`;
+
+  const toDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const wsStr = toDateStr(weekStart);
+  const weStr = toDateStr(weekEnd);
+
+  const weekEvents = SUPPORT_EVENTS.filter(ev => ev.start <= weStr && ev.end >= wsStr);
+
+  if (weekEvents.length === 0) {
+    listEl.innerHTML = `<div style="text-align:center; padding:1rem 0; color:#94a3b8; font-size:0.82rem;">이번주 일정이 없습니다</div>`;
+    return;
+  }
+
+  listEl.innerHTML = weekEvents.map(ev => `
+    <div style="display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.5rem; border-radius:10px; background:${ev.bgColor}; margin-bottom:0.35rem;">
+      <div style="width:4px; height:36px; background:${ev.color}; border-radius:4px; flex-shrink:0;"></div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:0.8rem; font-weight:800; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ev.title}</div>
+        <div style="font-size:0.7rem; color:#64748b; margin-top:1px;">${ev.org}</div>
+      </div>
+      <div style="font-size:0.65rem; color:${ev.color}; font-weight:700; background:white; padding:2px 6px; border-radius:6px; white-space:nowrap;">${ev.category}</div>
+    </div>
+  `).join('');
+}
+
+function renderSupportApplications() {
+  const selectedEl = document.getElementById('supportSelected');
+  const rejectedEl = document.getElementById('supportRejected');
+  if (!selectedEl || !rejectedEl) return;
+
+  const applied = SUPPORT_EVENTS.filter(ev => ev.apply);
+  const selected = applied.filter(ev => ev.result === 'selected');
+  const rejected = applied.filter(ev => ev.result === 'rejected');
+
+  const renderItem = (ev) => `
+    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.6rem; border-radius:10px; border:1px solid ${ev.bgColor}; background:white;">
+      <div style="width:8px;height:8px;border-radius:50%;background:${ev.color};flex-shrink:0;"></div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:0.78rem; font-weight:700; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ev.title}</div>
+        <div style="font-size:0.68rem; color:#94a3b8;">${ev.start.replace(/-/g,'.')}</div>
+      </div>
+    </div>
+  `;
+
+  selectedEl.innerHTML = selected.length ? selected.map(renderItem).join('') : `<div style="font-size:0.78rem;color:#94a3b8;padding:0.25rem;">없음</div>`;
+  rejectedEl.innerHTML = rejected.length ? rejected.map(renderItem).join('') : `<div style="font-size:0.78rem;color:#94a3b8;padding:0.25rem;">없음</div>`;
+}
+
+function showSupportEvent(e, eventId) {
+  e.stopPropagation();
+  const ev = SUPPORT_EVENTS.find(x => x.id === eventId);
+  if (!ev) return;
+  const detail = document.getElementById('supportEventDetail');
+  if (!detail) return;
+
+  detail.innerHTML = `
+    <div style="font-weight:800;color:#1e293b;margin-bottom:0.4rem;font-size:0.95rem;">${ev.title}</div>
+    <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.6rem;">${ev.org}</div>
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+      <span style="font-size:0.7rem;font-weight:700;color:${ev.color};background:${ev.bgColor};padding:2px 8px;border-radius:6px;">${ev.category}</span>
+    </div>
+    <div style="font-size:0.78rem;color:#475569;">📅 ${ev.start.replace(/-/g,'.')} ~ ${ev.end.replace(/-/g,'.')}</div>
+  `;
+  detail.style.display = 'block';
+  detail.style.left = Math.min(e.clientX + 12, window.innerWidth - 300) + 'px';
+  detail.style.top = (e.clientY - 10) + 'px';
+
+  const hide = () => { detail.style.display = 'none'; document.removeEventListener('click', hide); };
+  setTimeout(() => document.addEventListener('click', hide), 50);
 }
