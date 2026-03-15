@@ -139,6 +139,12 @@ function renderUserProfile(user) {
   const hopeIndustriesCard = document.getElementById('pInvHopeIndustriesCard');
   const invBioCard         = document.getElementById('pInvBioCard');
 
+  // 투자자 로그인 시 스타트업 전용 메뉴 숨기기
+  ['menuRecommend', 'menuSupport', 'menuImir'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isInvestorUser ? 'none' : '';
+  });
+
   if (isInvestorUser) {
     // 희망 라운드
     if (hopeRoundCard) hopeRoundCard.style.display = 'block';
@@ -757,6 +763,15 @@ async function clearRecommendHistory() {
 function toggleContactGroup(group) {
   const el = document.getElementById('group-contact-' + group);
   const btn = document.getElementById('btn-contact-' + group);
+  if (!el || !btn) return;
+  const hidden = el.style.display === 'none';
+  el.style.display = hidden ? '' : 'none';
+  btn.style.opacity = hidden ? '1' : '0.45';
+}
+
+function toggleReviewGroup(group) {
+  const el = document.getElementById('group-review-' + group);
+  const btn = document.getElementById('btn-review-' + group);
   if (!el || !btn) return;
   const hidden = el.style.display === 'none';
   el.style.display = hidden ? '' : 'none';
