@@ -462,6 +462,11 @@ async function handleRegisterSubmit(event) {
         }
       });
       if (error) {
+        if (error.message && error.message.toLowerCase().includes('already registered')) {
+          alert('이미 가입된 이메일입니다. 로그인 페이지에서 로그인해주세요.');
+          window.location.href = 'login.html';
+          return;
+        }
         alert('회원가입 실패: ' + error.message);
         resetBtn();
         return;
@@ -486,17 +491,37 @@ async function handleRegisterSubmit(event) {
       const userInfo = { id: userId_, email, name: userId, userType, phone, company, verified: true };
       localStorage.setItem('auth_token', accessToken);
       localStorage.setItem('user_info', JSON.stringify(userInfo));
-      alert('회원가입이 완료되었습니다! 환영합니다 😊');
-      window.location.href = '../index.html';
+      showRegisterComplete(userId, false);
     } else {
-      alert('이메일 인증 링크를 발송했습니다.\n이메일을 확인하여 인증을 완료해주세요.');
-      window.location.href = 'login.html';
+      showRegisterComplete(userId, true);
     }
   } catch (e) {
     console.error('회원가입 처리 오류:', e);
     alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     resetBtn();
   }
+}
+
+function showRegisterComplete(name, needsEmailVerification) {
+  const form = document.getElementById('registerForm');
+  if (!form) return;
+
+  const msg = needsEmailVerification
+    ? `<p style="color:#6b7280;margin-top:8px;">가입하신 이메일로 인증 링크를 발송했습니다.<br>이메일을 확인하여 인증을 완료해주세요.</p>`
+    : `<p style="color:#6b7280;margin-top:8px;">지금 바로 서비스를 이용하실 수 있습니다.</p>`;
+
+  form.innerHTML = `
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="font-size:64px;margin-bottom:16px;">🎉</div>
+      <h2 style="font-size:24px;font-weight:700;color:#111827;margin-bottom:8px;">회원가입이 완료되었습니다!</h2>
+      <p style="color:#374151;font-size:16px;">환영합니다, <strong>${name}</strong>님!</p>
+      ${msg}
+      <div style="margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="login.html" style="display:inline-block;padding:12px 28px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">로그인하기</a>
+        <a href="../index.html" style="display:inline-block;padding:12px 28px;background:#f3f4f6;color:#374151;border-radius:8px;text-decoration:none;font-weight:600;">홈으로</a>
+      </div>
+    </div>
+  `;
 }
 
 // ===== 유틸리티 =====
