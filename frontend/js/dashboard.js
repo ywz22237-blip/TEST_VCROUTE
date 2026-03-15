@@ -188,10 +188,63 @@ function renderUserProfile(user) {
 
   const bioWrap = document.getElementById('pBioWrap');
   const bioEl = document.getElementById('pBio');
-  if (bioWrap && user.bio) {
+  const bio = user.bio || user.su_bio || user.inv_bio || '';
+  if (bioWrap && bio) {
     bioWrap.style.display = 'block';
-    bioEl.textContent = user.bio;
+    bioEl.textContent = bio;
   }
+
+  // 추가 정보 그리드 (회원가입 extra fields)
+  renderExtraInfo(user);
+}
+
+function renderExtraInfo(user) {
+  const wrap = document.getElementById('pExtraInfoWrap');
+  const grid = document.getElementById('pExtraGrid');
+  if (!wrap || !grid) return;
+
+  const isInvestor = user.userType === 'investor';
+  const isStartup  = user.userType === 'startup';
+
+  const items = [];
+
+  if (isInvestor) {
+    if (user.inv_type)     items.push(['형태',   'fa-building',        user.inv_type]);
+    if (user.inv_role)     items.push(['역할',   'fa-id-badge',        user.inv_role]);
+    if (user.inv_homepage) items.push(['홈페이지', 'fa-globe',          user.inv_homepage, true]);
+    if (user.inv_sns)      items.push(['SNS',    'fa-share-nodes',     user.inv_sns, true]);
+  }
+
+  if (isStartup) {
+    if (user.su_nationality) items.push(['국적',     'fa-earth-asia',    user.su_nationality]);
+    if (user.su_age)         items.push(['나이',     'fa-cake-candles',  user.su_age + '세']);
+    if (user.su_job)         items.push(['직무',     'fa-briefcase',     user.su_job]);
+    if (user.su_sns)         items.push(['SNS',      'fa-share-nodes',   user.su_sns, true]);
+    if (user.co_name)        items.push(['회사명',   'fa-building',      user.co_name]);
+    if (user.co_stage)       items.push(['단계',     'fa-flag',          user.co_stage]);
+    if (user.co_address)     items.push(['주소',     'fa-location-dot',  user.co_address]);
+    if (user.co_biz_type)    items.push(['형태',     'fa-file-contract', user.co_biz_type]);
+    if (user.co_keywords)    items.push(['키워드',   'fa-tags',          user.co_keywords]);
+    if (user.co_cofounder)   items.push(['공동창업자','fa-people-group', user.co_cofounder]);
+    if (user.co_cur_invest_stage) items.push(['현재투자단계','fa-chart-line', user.co_cur_invest_stage]);
+    if (user.co_cur_invest_amt)   items.push(['현재투자금액','fa-sack-dollar', user.co_cur_invest_amt + '억원']);
+    if (user.co_hope_invest_stage) items.push(['희망투자단계','fa-bullseye', user.co_hope_invest_stage]);
+    if (user.co_hope_invest_amt)   items.push(['희망투자금액','fa-hand-holding-dollar', user.co_hope_invest_amt + '억원']);
+  }
+
+  if (items.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  grid.innerHTML = items.map(([label, icon, val, isLink]) => `
+    <div style="padding:1rem; background:#f8fafc; border-radius:14px; border:1px solid var(--border-color);">
+      <div style="font-size:0.78rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.4rem;">
+        <i class="fa-solid ${icon}" style="margin-right:0.35rem; color:var(--primary-color);"></i>${label}
+      </div>
+      ${isLink
+        ? `<a href="${/^https?:\/\//i.test(val) ? val : 'https://'+val}" target="_blank" rel="noopener noreferrer" style="font-size:0.9rem; font-weight:700; color:#2563eb; word-break:break-all;">${val}</a>`
+        : `<div style="font-size:0.9rem; font-weight:700; color:var(--text-primary); word-break:break-all;">${val}</div>`
+      }
+    </div>
+  `).join('');
 }
 
 function setText(id, text) {
@@ -385,6 +438,11 @@ function switchSection(sectionId) {
   if (targetSection) {
     targetSection.style.display = "block";
     targetSection.classList.add("active");
+  }
+
+  // 내정보(settings) 진입 시: 수정 폼 채우기
+  if (sectionId === 'settings') {
+    loadSettingsForm();
   }
 
   // 프로필 섹션 진입 시: 프로필 로드
@@ -792,4 +850,185 @@ function saveStorageFile() {
     btn.disabled = false;
   };
   reader.readAsText(file, "utf-8");
+}
+
+// ── 내정보 수정 폼 ──────────────────────────────────
+
+let _peKeywords = [];
+
+function loadSettingsForm() {
+  const user = _profileUser;
+  if (!user) return;
+
+  const isInvestor = user.userType === 'investor';
+  const isStartup  = user.userType === 'startup';
+
+  // 유형별 섹션 표시
+  const invSec  = document.getElementById('peInvestorSection');
+  const suPSec  = document.getElementById('peStartupPersonSection');
+  const suCSec  = document.getElementById('peStartupCompanySection');
+  if (invSec)  invSec.style.display  = isInvestor ? '' : 'none';
+  if (suPSec)  suPSec.style.display  = isStartup  ? '' : 'none';
+  if (suCSec)  suCSec.style.display  = isStartup  ? '' : 'none';
+
+  // 공통
+  setVal('pe_name',    user.name    || user.su_name || '');
+  setVal('pe_company', user.company || user.co_name || '');
+  setVal('pe_phone',   user.phone   || '');
+
+  if (isInvestor) {
+    setVal('pe_inv_type',     user.inv_type     || '');
+    setVal('pe_inv_role',     user.inv_role     || '');
+    setVal('pe_inv_homepage', user.inv_homepage || user.portfolio || '');
+    setVal('pe_inv_sns',      user.inv_sns      || '');
+    setVal('pe_inv_bio',      user.bio || user.inv_bio || '');
+  }
+
+  if (isStartup) {
+    setVal('pe_nationality',        user.su_nationality || '');
+    setVal('pe_age',                user.su_age         || '');
+    setVal('pe_gender',             user.su_gender || user.gender || '');
+    setVal('pe_job',                user.su_job         || '');
+    setVal('pe_su_sns',             user.su_sns         || '');
+    setVal('pe_referral',           user.su_referral    || '');
+    setVal('pe_su_bio',             user.su_bio || user.bio || '');
+
+    setVal('pe_co_name',            user.co_name        || user.company || '');
+    setVal('pe_co_founded',         user.co_founded     || '');
+    setVal('pe_co_homepage',        user.co_homepage || user.portfolio || '');
+    setVal('pe_co_biz_type',        user.co_biz_type    || '');
+    setVal('pe_co_address',         user.co_address     || '');
+    setVal('pe_co_stage',           user.co_stage       || '');
+    setVal('pe_co_cofounder',       user.co_cofounder   || '');
+    setVal('pe_cur_invest_stage',   user.co_cur_invest_stage  || '');
+    setVal('pe_cur_invest_amt',     user.co_cur_invest_amt    || '');
+    setVal('pe_hope_invest_stage',  user.co_hope_invest_stage || '');
+    setVal('pe_hope_invest_amt',    user.co_hope_invest_amt   || '');
+
+    // 키워드 뱃지 초기화
+    _peKeywords = user.co_keywords ? user.co_keywords.split(',').filter(Boolean) : [];
+    renderPeKeywords();
+    initPeKeywordInput();
+  }
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+function initPeKeywordInput() {
+  const inp = document.getElementById('pe_kw_input');
+  if (!inp || inp._peInited) return;
+  inp._peInited = true;
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      const v = this.value.trim();
+      if (v && _peKeywords.length < 3 && !_peKeywords.includes(v)) {
+        _peKeywords.push(v);
+        renderPeKeywords();
+      }
+      this.value = '';
+    } else if (e.key === 'Backspace' && !this.value && _peKeywords.length > 0) {
+      _peKeywords.pop();
+      renderPeKeywords();
+    }
+  });
+  // 클릭 시 input 포커스
+  const wrap = document.getElementById('pe_kw_wrap');
+  if (wrap) wrap.addEventListener('click', () => inp.focus());
+}
+
+function renderPeKeywords() {
+  const badges = document.getElementById('pe_kw_badges');
+  const hidden = document.getElementById('pe_co_keywords');
+  if (!badges) return;
+  badges.innerHTML = _peKeywords.map((kw, i) =>
+    `<span class="pef-kw-badge">${kw}<button type="button" class="pef-kw-remove" onclick="removePeKeyword(${i})">×</button></span>`
+  ).join('');
+  if (hidden) hidden.value = _peKeywords.join(',');
+  const inp = document.getElementById('pe_kw_input');
+  if (inp) inp.disabled = _peKeywords.length >= 3;
+}
+
+function removePeKeyword(idx) {
+  _peKeywords.splice(idx, 1);
+  renderPeKeywords();
+}
+
+async function saveProfileInfo() {
+  const user = _profileUser;
+  if (!user) return;
+
+  const isInvestor = user.userType === 'investor';
+  const isStartup  = user.userType === 'startup';
+
+  const name    = document.getElementById('pe_name')?.value.trim()    || '';
+  const company = document.getElementById('pe_company')?.value.trim() || '';
+  const phone   = document.getElementById('pe_phone')?.value.trim()   || '';
+
+  const updates = { name, company, phone };
+
+  if (isInvestor) {
+    updates.inv_type     = document.getElementById('pe_inv_type')?.value     || '';
+    updates.inv_role     = document.getElementById('pe_inv_role')?.value.trim() || '';
+    updates.inv_homepage = document.getElementById('pe_inv_homepage')?.value.trim() || '';
+    updates.inv_sns      = document.getElementById('pe_inv_sns')?.value.trim() || '';
+    updates.bio          = document.getElementById('pe_inv_bio')?.value.trim()   || '';
+    updates.portfolio    = updates.inv_homepage;
+  }
+
+  if (isStartup) {
+    updates.su_nationality       = document.getElementById('pe_nationality')?.value.trim()       || '';
+    updates.su_age               = document.getElementById('pe_age')?.value                      || '';
+    updates.su_gender            = document.getElementById('pe_gender')?.value                   || '';
+    updates.gender               = updates.su_gender;
+    updates.su_job               = document.getElementById('pe_job')?.value.trim()               || '';
+    updates.su_sns               = document.getElementById('pe_su_sns')?.value.trim()            || '';
+    updates.su_referral          = document.getElementById('pe_referral')?.value                 || '';
+    updates.su_bio               = document.getElementById('pe_su_bio')?.value.trim()            || '';
+    updates.bio                  = updates.su_bio;
+    updates.co_name              = document.getElementById('pe_co_name')?.value.trim()           || '';
+    updates.co_founded           = document.getElementById('pe_co_founded')?.value               || '';
+    updates.co_homepage          = document.getElementById('pe_co_homepage')?.value.trim()       || '';
+    updates.co_biz_type          = document.getElementById('pe_co_biz_type')?.value              || '';
+    updates.co_address           = document.getElementById('pe_co_address')?.value.trim()        || '';
+    updates.co_stage             = document.getElementById('pe_co_stage')?.value                 || '';
+    updates.co_keywords          = _peKeywords.join(',');
+    updates.co_cofounder         = document.getElementById('pe_co_cofounder')?.value             || '';
+    updates.co_cur_invest_stage  = document.getElementById('pe_cur_invest_stage')?.value         || '';
+    updates.co_cur_invest_amt    = document.getElementById('pe_cur_invest_amt')?.value           || '';
+    updates.co_hope_invest_stage = document.getElementById('pe_hope_invest_stage')?.value        || '';
+    updates.co_hope_invest_amt   = document.getElementById('pe_hope_invest_amt')?.value          || '';
+    updates.portfolio            = updates.co_homepage;
+  }
+
+  const btn = document.getElementById('peSubmitBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 저장 중...'; }
+
+  // Supabase 업데이트
+  try {
+    const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+    if (sb) await sb.auth.updateUser({ data: updates });
+  } catch(e) { console.warn('Supabase 저장 실패:', e); }
+
+  // 백엔드 업데이트
+  try {
+    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    await fetch(API_CONFIG.BASE_URL + '/api/users/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(updates),
+    });
+  } catch(e) { /* 무시 */ }
+
+  // localStorage 반영
+  _profileUser = Object.assign({}, _profileUser, updates);
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(_profileUser));
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 저장'; }
+
+  alert('저장되었습니다!');
+  switchSection('profile');
 }
