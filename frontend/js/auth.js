@@ -209,6 +209,7 @@ async function updateAuthUI() {
   const langToggle = container.querySelector(".lang-toggle");
   const langHTML = langToggle ? langToggle.outerHTML : "";
   const base = getBasePath();
+  const dashPath = window.location.pathname.includes("/pages/") ? "../dashboard.html" : "dashboard.html";
 
   const user = await getUserInfo();
 
@@ -217,7 +218,7 @@ async function updateAuthUI() {
       ${langHTML}
       <div class="user-menu">
         <span class="user-name">${user.name || user.email}님</span>
-        <a href="${base}dashboard.html?tab=profile" class="btn-mypage">내정보</a>
+        <a href="${dashPath}?tab=myinfo" class="btn-mypage">내정보</a>
         <button class="logout-btn" onclick="logout()">로그아웃</button>
       </div>
     `;
