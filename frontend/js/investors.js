@@ -809,7 +809,7 @@ function renderInvestors(investors) {
         <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
         <button class="btn-bookmark ${BookmarkMgr.isBookmarked("investors", investor.id) ? "active" : ""}"
                 onclick="event.stopPropagation(); handleBookmarkUpdate('investors', ${investor.id}, this)">
-          <i class="fa-${BookmarkMgr.isBookmarked("investors", investor.id) ? "solid" : "regular"} fa-star"></i>즐겨찾기
+          <i class="fa-${BookmarkMgr.isBookmarked("investors", investor.id) ? "solid" : "regular"} fa-star"></i>
         </button>
       </div>
     </div>

@@ -360,11 +360,11 @@
                   </div>
                   <div class="form-group">
                     <label for="su_nationality">국적</label>
-                    <input type="text" id="su_nationality" name="su_nationality" placeholder="한국" />
+                    <input type="text" id="su_nationality" name="su_nationality" placeholder="대한민국" />
                   </div>
                   <div class="form-group">
                     <label for="su_age">나이</label>
-                    <input type="number" id="su_age" name="su_age" placeholder="30" min="18" max="99" />
+                    <input type="number" id="su_age" name="su_age" placeholder="30" min="18" max="99" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
                   </div>
                   <div class="form-group">
                     <label for="su_gender">성별</label>
@@ -372,7 +372,6 @@
                       <option value="">선택</option>
                       <option value="남성">남성</option>
                       <option value="여성">여성</option>
-                      <option value="기타">기타</option>
                     </select>
                   </div>
                 </div>
@@ -503,6 +502,7 @@
                     <label for="co_cur_invest_stage">현재투자단계</label>
                     <select id="co_cur_invest_stage" name="co_cur_invest_stage" class="form-select">
                       <option value="">선택</option>
+                      <option value="X">X (없음)</option>
                       <option value="Pre-Seed">Pre-Seed</option>
                       <option value="Seed">Seed</option>
                       <option value="Series A">Series A</option>
@@ -526,6 +526,7 @@
                     <label for="co_hope_invest_stage">희망투자단계</label>
                     <select id="co_hope_invest_stage" name="co_hope_invest_stage" class="form-select">
                       <option value="">선택</option>
+                      <option value="X">X (없음)</option>
                       <option value="Pre-Seed">Pre-Seed</option>
                       <option value="Seed">Seed</option>
                       <option value="Series A">Series A</option>

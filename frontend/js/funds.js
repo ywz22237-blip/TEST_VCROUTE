@@ -1570,7 +1570,7 @@ function renderFunds(funds) {
         <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
         <button class="btn-bookmark ${BookmarkMgr.isBookmarked("funds", fund.id) ? "active" : ""}"
                 onclick="event.stopPropagation(); handleBookmarkUpdate('funds', ${fund.id}, this)">
-          <i class="fa-${BookmarkMgr.isBookmarked("funds", fund.id) ? "solid" : "regular"} fa-star"></i>즐겨찾기
+          <i class="fa-${BookmarkMgr.isBookmarked("funds", fund.id) ? "solid" : "regular"} fa-star"></i>
         </button>
       </div>
     </div>

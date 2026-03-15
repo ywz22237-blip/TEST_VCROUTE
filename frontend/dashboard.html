@@ -765,21 +765,21 @@
     .dev-notice-banner {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 1rem 1.25rem;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
       margin-bottom: 1.5rem;
-      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-      border: 1.5px solid #93c5fd;
-      border-radius: 14px;
-      color: #1d4ed8;
-      font-size: 0.88rem;
-      font-weight: 500;
-      line-height: 1.5;
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+      border-radius: 12px;
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-align: center;
     }
     .dev-notice-banner i {
-      font-size: 1.1rem;
+      font-size: 1rem;
       flex-shrink: 0;
-      color: #2563eb;
     }
     </style>
   </head>
@@ -845,6 +845,10 @@
                 <i class="fa-solid fa-id-card" style="width: 20px"></i>
                 <span>내 프로필</span>
               </label>
+              <label class="filter-item" onclick="switchSection('myinfo')">
+                <i class="fa-solid fa-user-pen" style="width: 20px"></i>
+                <span>내 정보</span>
+              </label>
               <label class="filter-item" onclick="switchSection('favorites')">
                 <i class="fa-solid fa-star" style="width: 20px"></i>
                 <span>즐겨찾기</span>
@@ -896,7 +900,7 @@
               <div style="background:white; border-radius:24px; border:1px solid var(--border-color); overflow:hidden; margin-bottom:2rem; position:relative;">
                 <!-- 편집 버튼 영역 -->
                 <div style="position:absolute; top:1rem; right:1rem; z-index:10;">
-                  <button onclick="switchSection('settings')" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#2563eb; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
+                  <button onclick="switchSection('myinfo')" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#2563eb; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
                     <i class="fa-solid fa-pen-to-square"></i> 수정
                   </button>
                 </div>
@@ -1875,9 +1879,9 @@
 
           </section>
 
-          <!-- Settings Section -->
+          <!-- My Info Section -->
           <section
-            id="settingsSection"
+            id="myinfoSection"
             class="dashboard-section"
             style="display: none"
           >
@@ -1954,11 +1958,11 @@
                   <div class="pef-grid-4">
                     <div class="pef-group">
                       <label class="pef-label">국적</label>
-                      <input class="pef-input" id="pe_nationality" type="text" placeholder="한국" />
+                      <input class="pef-input" id="pe_nationality" type="text" placeholder="대한민국" />
                     </div>
                     <div class="pef-group">
                       <label class="pef-label">나이</label>
-                      <input class="pef-input" id="pe_age" type="number" placeholder="30" min="18" max="99" />
+                      <input class="pef-input" id="pe_age" type="number" placeholder="30" min="18" max="99" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
                     </div>
                     <div class="pef-group">
                       <label class="pef-label">성별</label>
@@ -1966,7 +1970,6 @@
                         <option value="">선택</option>
                         <option value="남성">남성</option>
                         <option value="여성">여성</option>
-                        <option value="기타">기타</option>
                       </select>
                     </div>
                     <div class="pef-group">
@@ -2060,6 +2063,7 @@
                       <label class="pef-label">현재 투자단계</label>
                       <select class="pef-select" id="pe_cur_invest_stage">
                         <option value="">선택</option>
+                        <option value="X">X (없음)</option>
                         <option value="Pre-Seed">Pre-Seed</option>
                         <option value="Seed">Seed</option>
                         <option value="Series A">Series A</option>
@@ -2079,6 +2083,7 @@
                       <label class="pef-label">희망 투자단계</label>
                       <select class="pef-select" id="pe_hope_invest_stage">
                         <option value="">선택</option>
+                        <option value="X">X (없음)</option>
                         <option value="Pre-Seed">Pre-Seed</option>
                         <option value="Seed">Seed</option>
                         <option value="Series A">Series A</option>
@@ -2105,6 +2110,16 @@
                 </div>
               </div>
             </div>
+
+          </section>
+
+          <!-- Settings Section -->
+          <section
+            id="settingsSection"
+            class="dashboard-section"
+            style="display: none"
+          >
+            <h2>설정</h2>
 
             <!-- 계정 보안 설정 -->
             <div class="settings-card">
