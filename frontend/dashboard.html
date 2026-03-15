@@ -820,6 +820,21 @@
       cursor: pointer; white-space: nowrap; transition: all 0.2s;
     }
     .si-btn-confirm:hover { background: #1d4ed8; }
+    /* ── AI 심사역 파일 업로드 존 ─────────────── */
+    .exam-upload-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:0.5rem; }
+    .exam-upload-zone { border:2px dashed #cbd5e1; border-radius:12px; padding:1.4rem 1rem; text-align:center; cursor:pointer; transition:all 0.2s; background:#f8fafc; }
+    .exam-upload-zone:hover, .exam-upload-zone.dragover { border-color:#6366f1; background:#f5f3ff; }
+    .exam-upload-zone i { font-size:1.8rem; color:#94a3b8; margin-bottom:0.5rem; display:block; transition:color 0.2s; }
+    .exam-upload-zone .uz-label { font-size:0.88rem; font-weight:700; color:#1e293b; margin:0 0 0.25rem; }
+    .exam-upload-zone .uz-name { font-size:0.78rem; color:#94a3b8; margin:0 0 0.2rem; min-height:1.1em; word-break:break-all; }
+    .exam-upload-zone .hint { font-size:0.72rem; color:#94a3b8; margin:0; }
+    .exam-upload-zone.has-file { border-color:#22c55e; background:#f0fdf4; }
+    .exam-upload-zone.has-file i { color:#22c55e; }
+    .exam-upload-zone.has-file .uz-name { color:#16a34a; font-weight:600; }
+    /* ── 검토 추가 모달 ──────────────────────── */
+    #addReviewModal { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; }
+    #addReviewModal.open { display:flex; }
+    #addReviewModal .modal-box { background:white; border-radius:20px; padding:2rem; width:480px; max-width:94vw; box-shadow:0 20px 60px rgba(0,0,0,0.18); }
     </style>
   </head>
   <body>
@@ -1539,174 +1554,17 @@
             <!-- 헤더 -->
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
               <h2>투자 히스토리</h2>
-              <button style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.55rem 1.1rem;border-radius:12px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;font-size:0.85rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.25);transition:all 0.2s;"
-                onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+              <button onclick="openAddReviewModal()" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.55rem 1.1rem;border-radius:12px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;font-size:0.85rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.25);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
                 <span style="width:18px;height:18px;background:rgba(255,255,255,0.2);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:0.8rem;"><i class="fa-solid fa-plus"></i></span>
-                새 투자 기록
+                스타트업 추가
               </button>
             </div>
 
-            <!-- 요약 통계 -->
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="value">38</div>
-                <div class="label">검토한 스타트업</div>
-              </div>
-              <div class="stat-card">
-                <div class="value">5</div>
-                <div class="label">DD 진행 중</div>
-              </div>
-              <div class="stat-card">
-                <div class="value">7</div>
-                <div class="label">투자 완료</div>
-              </div>
-              <div class="stat-card">
-                <div class="value">42억</div>
-                <div class="label">총 투자 집행액</div>
-              </div>
-            </div>
-
-            <!-- 딜 파이프라인 -->
-            <div class="pipeline-container">
-              <h3 style="margin-top:0;font-size:1.1rem;color:#1e293b;">딜 파이프라인</h3>
-              <div class="pipeline-steps">
-                <div class="pipeline-step completed"><div class="step-dot"></div><div class="step-label">소싱</div></div>
-                <div class="pipeline-step completed"><div class="step-dot"></div><div class="step-label">1차 검토</div></div>
-                <div class="pipeline-step completed"><div class="step-dot"></div><div class="step-label">2차 미팅</div></div>
-                <div class="pipeline-step active"><div class="step-dot"></div><div class="step-label">DD</div></div>
-                <div class="pipeline-step"><div class="step-dot"></div><div class="step-label">투심위</div></div>
-                <div class="pipeline-step"><div class="step-dot"></div><div class="step-label">투자 완료</div></div>
-              </div>
-            </div>
-
-            <!-- 월별 활동 & 최근 업데이트 -->
-            <div class="history-grid-layout">
-              <!-- 월별 딜 활동 차트 -->
-              <div class="activity-box">
-                <h3 style="margin-top:0;font-size:1.1rem;margin-bottom:2rem;">월별 딜 활동</h3>
-                <div style="height:200px;display:flex;align-items:flex-end;gap:2rem;padding:0 1rem;border-bottom:1px solid #e2e8f0;margin-bottom:2rem;">
-                  <div style="flex:1;background:#e2e8f0;height:35%;border-radius:4px 4px 0 0;position:relative;">
-                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#94a3b8;">10월</span>
-                  </div>
-                  <div style="flex:1;background:#e2e8f0;height:55%;border-radius:4px 4px 0 0;position:relative;">
-                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#94a3b8;">11월</span>
-                  </div>
-                  <div style="flex:1;background:#2563eb;height:90%;border-radius:4px 4px 0 0;position:relative;">
-                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#2563eb;font-weight:700;">12월</span>
-                  </div>
-                  <div style="flex:1;background:#cbd5e1;height:45%;border-radius:4px 4px 0 0;position:relative;">
-                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#94a3b8;">1월</span>
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                  <div style="padding:1rem;background:#f0f9ff;border-radius:12px;border:1px solid #bae6fd;">
-                    <div style="font-size:0.85rem;color:#0369a1;margin-bottom:0.5rem;">현재 집중 단계</div>
-                    <div style="font-size:1.1rem;font-weight:800;color:#0c4a6e;">DD 진행 중 (5건)</div>
-                  </div>
-                  <div style="padding:1rem;background:#fdf2f8;border-radius:12px;border:1px solid #fbcfe8;">
-                    <div style="font-size:0.85rem;color:#be185d;margin-bottom:0.5rem;">이번 달 미팅</div>
-                    <div style="font-size:1.1rem;font-weight:800;color:#831843;">7건 완료</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 최근 업데이트 -->
-              <div class="activity-box">
-                <h3 style="margin-top:0;font-size:1.1rem;margin-bottom:1.5rem;">최근 업데이트</h3>
-                <div class="update-list">
-                  <div class="update-item">
-                    <div class="update-i" style="background:#e0f2fe;color:#0369a1;"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
-                    <div class="update-info">
-                      <h4>테크스타트업 A</h4>
-                      <p>DD 착수 · 2시간 전</p>
-                    </div>
-                  </div>
-                  <div class="update-item">
-                    <div class="update-i" style="background:#f0fdf4;color:#166534;"><i class="fa-solid fa-handshake"></i></div>
-                    <div class="update-info">
-                      <h4>바이오벤처 B</h4>
-                      <p>투자 완료 · 어제</p>
-                    </div>
-                  </div>
-                  <div class="update-item">
-                    <div class="update-i" style="background:#fff7ed;color:#9a3412;"><i class="fa-solid fa-file-lines"></i></div>
-                    <div class="update-info">
-                      <h4>핀테크 스타트업 C</h4>
-                      <p>사업계획서 검토 · 2일 전</p>
-                    </div>
-                  </div>
-                  <div class="update-item">
-                    <div class="update-i" style="background:#f5f3ff;color:#6d28d9;"><i class="fa-solid fa-calendar-check"></i></div>
-                    <div class="update-info">
-                      <h4>AI 스타트업 D</h4>
-                      <p>2차 미팅 예정 · 3일 전</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 포트폴리오 (투자 완료) -->
-            <div class="activity-box" style="margin-top:2rem;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-                <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
-                  <span style="width:28px;height:28px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#059669;font-size:0.9rem;"><i class="fa-solid fa-briefcase"></i></span>
-                  포트폴리오
-                </h3>
-                <span style="background:rgba(16,185,129,0.1);color:#059669;font-size:0.8rem;font-weight:800;padding:0.3rem 0.9rem;border-radius:20px;">투자 완료 7건</span>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;">
-                <!-- 포트폴리오 카드 1 -->
-                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;">
-                  <div style="position:absolute;top:-12px;right:-12px;width:70px;height:70px;background:rgba(16,185,129,0.08);border-radius:50%;"></div>
-                  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
-                    <div style="width:44px;height:44px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="fa-solid fa-microchip"></i></div>
-                    <div>
-                      <div style="font-size:0.95rem;font-weight:800;color:#065f46;">테크스타트업 A</div>
-                      <div style="font-size:0.75rem;color:#059669;font-weight:600;">AI · SaaS</div>
-                    </div>
-                  </div>
-                  <div style="font-size:1.5rem;font-weight:900;color:#064e3b;margin-bottom:0.25rem;">5억원</div>
-                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.35rem;">라운드: Series A</div>
-                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.75rem;">투자일: 2025.01.20</div>
-                  <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#10b981;color:white;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;"><i class="fa-solid fa-circle-check"></i> 투자완료</span>
-                </div>
-                <!-- 포트폴리오 카드 2 -->
-                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;">
-                  <div style="position:absolute;top:-12px;right:-12px;width:70px;height:70px;background:rgba(16,185,129,0.08);border-radius:50%;"></div>
-                  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
-                    <div style="width:44px;height:44px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="fa-solid fa-dna"></i></div>
-                    <div>
-                      <div style="font-size:0.95rem;font-weight:800;color:#065f46;">바이오벤처 B</div>
-                      <div style="font-size:0.75rem;color:#059669;font-weight:600;">바이오 · 헬스케어</div>
-                    </div>
-                  </div>
-                  <div style="font-size:1.5rem;font-weight:900;color:#064e3b;margin-bottom:0.25rem;">10억원</div>
-                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.35rem;">라운드: Series B</div>
-                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.75rem;">투자일: 2025.02.10</div>
-                  <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#10b981;color:white;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;"><i class="fa-solid fa-circle-check"></i> 투자완료</span>
-                </div>
-                <!-- 포트폴리오 카드 3 -->
-                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;">
-                  <div style="position:absolute;top:-12px;right:-12px;width:70px;height:70px;background:rgba(16,185,129,0.08);border-radius:50%;"></div>
-                  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
-                    <div style="width:44px;height:44px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="fa-solid fa-credit-card"></i></div>
-                    <div>
-                      <div style="font-size:0.95rem;font-weight:800;color:#065f46;">핀테크 스타트업 C</div>
-                      <div style="font-size:0.75rem;color:#059669;font-weight:600;">핀테크 · B2B</div>
-                    </div>
-                  </div>
-                  <div style="font-size:1.5rem;font-weight:900;color:#064e3b;margin-bottom:0.25rem;">7억원</div>
-                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.35rem;">라운드: Pre-A</div>
-                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.75rem;">투자일: 2025.03.05</div>
-                  <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#10b981;color:white;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;"><i class="fa-solid fa-circle-check"></i> 투자완료</span>
-                </div>
-              </div>
-            </div>
-
+            <!-- 검토 현황 요약 (동적) -->
+            <div id="reviewStatsRow" class="stats-grid" style="margin-bottom:2rem;"></div>
 
             <!-- AI 심사역 보고서 -->
-            <div class="activity-box" style="margin-top:2rem;" id="aiExaminerBox">
+            <div class="activity-box" id="aiExaminerBox">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
                 <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
                   <span style="width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;"><i class="fa-solid fa-robot"></i></span>
@@ -1715,6 +1573,38 @@
                 <span style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:0.75rem;font-weight:800;padding:0.3rem 0.9rem;border-radius:20px;letter-spacing:0.05em;">ROUTE AI</span>
               </div>
               <p style="font-size:0.88rem;color:#6b7280;margin:0 0 1.25rem;line-height:1.6;">스타트업 정보를 입력하면 루트 AI 심사역이 투자자 관점의 심층 분석 보고서를 생성합니다.</p>
+
+              <!-- 파일 업로드 -->
+              <div style="margin-bottom:1.25rem;">
+                <div style="font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.6rem;">자료 업로드 <span style="font-size:0.75rem;font-weight:400;color:#94a3b8;">(선택 · 1개 이상 업로드 시 AI 분석에 반영됩니다)</span></div>
+                <div class="exam-upload-grid">
+                  <!-- 회사소개서 -->
+                  <div class="exam-upload-zone" id="examZone1" onclick="document.getElementById('examFile1').click()">
+                    <i class="fa-solid fa-building"></i>
+                    <p class="uz-label">회사소개서</p>
+                    <p class="uz-name" id="examFileName1">PDF 파일 업로드</p>
+                    <p class="hint">최대 20MB</p>
+                  </div>
+                  <input type="file" id="examFile1" accept=".pdf,.txt" style="display:none;" onchange="onExamFileSelect(this,1)">
+                  <!-- IR 자료 -->
+                  <div class="exam-upload-zone" id="examZone2" onclick="document.getElementById('examFile2').click()">
+                    <i class="fa-solid fa-file-chart-column"></i>
+                    <p class="uz-label">IR 자료</p>
+                    <p class="uz-name" id="examFileName2">PDF 파일 업로드</p>
+                    <p class="hint">최대 20MB</p>
+                  </div>
+                  <input type="file" id="examFile2" accept=".pdf,.txt" style="display:none;" onchange="onExamFileSelect(this,2)">
+                  <!-- 재무제표 -->
+                  <div class="exam-upload-zone" id="examZone3" onclick="document.getElementById('examFile3').click()">
+                    <i class="fa-solid fa-table-cells-large"></i>
+                    <p class="uz-label">재무제표</p>
+                    <p class="uz-name" id="examFileName3">PDF 파일 업로드</p>
+                    <p class="hint">최대 20MB</p>
+                  </div>
+                  <input type="file" id="examFile3" accept=".pdf,.txt" style="display:none;" onchange="onExamFileSelect(this,3)">
+                </div>
+                <p style="font-size:0.75rem;color:#94a3b8;margin:0.3rem 0 0;">드래그 앤 드롭 또는 클릭으로 업로드 · PDF / TXT</p>
+              </div>
 
               <!-- 입력 폼 -->
               <div style="background:#f8fafc;border-radius:16px;padding:1.5rem;border:1px solid #e2e8f0;margin-bottom:1.5rem;">
@@ -1729,7 +1619,7 @@
                   </div>
                 </div>
                 <div style="margin-bottom:1rem;">
-                  <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.4rem;">사업 설명 <span style="color:#ef4444;">*</span></label>
+                  <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.4rem;">사업 설명 <span style="color:#94a3b8;font-weight:400;">(파일 미업로드 시 필수)</span></label>
                   <textarea id="aiExamDesc" rows="4" placeholder="스타트업의 사업 모델, 팀, 시장, 기술력, 현황 등을 자유롭게 입력하세요..." style="width:100%;box-sizing:border-box;padding:0.7rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;resize:vertical;transition:border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'"></textarea>
                 </div>
                 <button onclick="requestInvestorAIAnalysis()" id="aiExamBtn" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.5rem;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:0.88rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all 0.2s;box-shadow:0 4px 12px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
@@ -1737,7 +1627,7 @@
                 </button>
               </div>
 
-              <!-- 로딩 상태 -->
+              <!-- 로딩 -->
               <div id="aiExamLoading" style="display:none;text-align:center;padding:2.5rem;background:#f5f3ff;border-radius:16px;border:1px solid #ddd6fe;margin-bottom:1.5rem;">
                 <div style="width:48px;height:48px;border:3px solid #ddd6fe;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem;"></div>
                 <div id="aiExamLoadingText" style="font-size:0.9rem;font-weight:700;color:#6366f1;">루트 AI 심사역이 분석 중입니다...</div>
@@ -1746,7 +1636,6 @@
 
               <!-- 결과 -->
               <div id="aiExamResult" style="display:none;">
-                <!-- 투자 의견 + 종합 점수 -->
                 <div style="display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1px solid #c4b5fd;border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;">
                   <div id="aiExamOpinionBadge" style="width:90px;height:90px;border-radius:20px;background:#6366f1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-weight:900;gap:0.2rem;flex-shrink:0;">
                     <i class="fa-solid fa-star" style="font-size:1.4rem;"></i>
@@ -1762,11 +1651,7 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- 5개 항목 점수 -->
                 <div id="aiExamScoreGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.75rem;margin-bottom:1.25rem;"></div>
-
-                <!-- 피드백 + 레드플래그 -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
                   <div>
                     <h4 style="font-size:0.9rem;font-weight:800;color:#1e293b;margin:0 0 0.75rem;display:flex;align-items:center;gap:0.4rem;"><i class="fa-solid fa-comment-dots" style="color:#6366f1;"></i> 심사 의견</h4>
@@ -1779,16 +1664,13 @@
                     <div id="aiExamUpside" style="font-size:0.85rem;color:#065f46;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:0.75rem 1rem;"></div>
                   </div>
                 </div>
-
-                <!-- 심사 질문 -->
                 <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
                   <h4 style="font-size:0.9rem;font-weight:800;color:#92400e;margin:0 0 0.75rem;display:flex;align-items:center;gap:0.4rem;"><i class="fa-solid fa-circle-question"></i> 루트 AI 심사 질문</h4>
                   <ol id="aiExamQuestions" style="margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:0.5rem;"></ol>
                 </div>
-
                 <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
                   <button onclick="saveInvestorAIToHistory()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border-radius:10px;border:none;background:#6366f1;color:white;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fa-solid fa-floppy-disk"></i> 이력 저장</button>
-                  <button onclick="document.getElementById('aiExamResult').style.display='none';" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border-radius:10px;border:1.5px solid #e2e8f0;background:white;color:#374151;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fa-solid fa-rotate-left"></i> 새 분석</button>
+                  <button onclick="resetAIExamForm()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border-radius:10px;border:1.5px solid #e2e8f0;background:white;color:#374151;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fa-solid fa-rotate-left"></i> 새 분석</button>
                 </div>
               </div>
 
@@ -1797,99 +1679,30 @@
             </div>
 
             <!-- 스타트업 검토 내역 -->
-            <div class="activity-box" style="margin-top:2rem;">
+            <div class="activity-box" style="margin-top:2rem;" id="reviewListBox">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
                 <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
                   <span style="width:28px;height:28px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;"><i class="fa-solid fa-list-check"></i></span>
                   스타트업 검토 내역
                 </h3>
-                <span style="background:rgba(37,99,235,0.08);color:#2563eb;font-size:0.8rem;font-weight:800;padding:0.3rem 0.9rem;border-radius:20px;">총 38건</span>
+                <button onclick="openAddReviewModal()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(37,99,235,0.25);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                  <i class="fa-solid fa-plus"></i> 추가
+                </button>
               </div>
 
-              <!-- 상태 토글 -->
-              <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem;">
-                <button id="btn-review-active" onclick="toggleReviewGroup('active')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:#fef3c7;color:#92400e;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;">
-                  <i class="fa-solid fa-clock"></i> 검토 중 · 26건
-                </button>
-                <button id="btn-review-done" onclick="toggleReviewGroup('done')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:#d1fae5;color:#065f46;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;">
-                  <i class="fa-solid fa-circle-check"></i> 투자 완료 · 7건
-                </button>
-                <button id="btn-review-pass" onclick="toggleReviewGroup('pass')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:#fee2e2;color:#991b1b;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;">
-                  <i class="fa-solid fa-xmark"></i> 패스 · 5건
-                </button>
-              </div>
+              <!-- 상태 토글 탭 -->
+              <div id="reviewTabRow" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem;"></div>
 
               <!-- 테이블 헤더 -->
-              <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.75rem 1rem;background:rgba(248,250,252,0.8);border-radius:12px;margin-bottom:0.5rem;font-size:0.8rem;font-weight:700;color:#6b7280;">
-                <div>스타트업명</div>
-                <div>업종</div>
-                <div>검토 단계</div>
-                <div>최근 접촉일</div>
-                <div style="text-align:center;">상태</div>
+              <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr 0.5fr;gap:1rem;padding:0.75rem 1rem;background:rgba(248,250,252,0.8);border-radius:12px;margin-bottom:0.5rem;font-size:0.8rem;font-weight:700;color:#6b7280;">
+                <div>스타트업명</div><div>업종</div><div>검토 단계</div><div>등록일</div><div style="text-align:center;">상태</div><div></div>
               </div>
 
-              <!-- 검토 중 그룹 -->
-              <div id="group-review-active">
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-rocket"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">테크스타트업 D</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">AI · SaaS</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#2563eb;font-size:0.5rem;margin-right:0.4rem;"></i>DD 진행 중</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2025.02.28</div>
-                  <div style="text-align:center;"><span style="background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">검토 중</span></div>
-                </div>
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">AI 스타트업 E</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">AI · 에듀테크</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#f59e0b;font-size:0.5rem;margin-right:0.4rem;"></i>2차 미팅 예정</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2025.03.01</div>
-                  <div style="text-align:center;"><span style="background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">검토 중</span></div>
-                </div>
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-leaf"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">그린테크 스타트업 F</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">클린테크 · B2B</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#8b5cf6;font-size:0.5rem;margin-right:0.4rem;"></i>1차 검토 중</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2025.03.05</div>
-                  <div style="text-align:center;"><span style="background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">검토 중</span></div>
-                </div>
-              </div><!-- /group-review-active -->
-
-              <!-- 투자 완료 그룹 -->
-              <div id="group-review-done" style="display:none;">
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#059669;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-microchip"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">테크스타트업 A</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">AI · SaaS</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#10b981;font-size:0.5rem;margin-right:0.4rem;"></i>투자 완료</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2025.01.20</div>
-                  <div style="text-align:center;"><span style="background:#d1fae5;color:#065f46;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">투자완료</span></div>
-                </div>
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#059669;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-dna"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">바이오벤처 B</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">바이오 · 헬스케어</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#10b981;font-size:0.5rem;margin-right:0.4rem;"></i>투자 완료</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2025.02.10</div>
-                  <div style="text-align:center;"><span style="background:#d1fae5;color:#065f46;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">투자완료</span></div>
-                </div>
-              </div><!-- /group-review-done -->
-
-              <!-- 패스 그룹 -->
-              <div id="group-review-pass" style="display:none;">
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-store"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">커머스 스타트업 G</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">이커머스 · B2C</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#dc2626;font-size:0.5rem;margin-right:0.4rem;"></i>1차 검토 후 패스</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2024.12.10</div>
-                  <div style="text-align:center;"><span style="background:#fee2e2;color:#991b1b;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">패스</span></div>
-                </div>
-                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-gamepad"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">게임 스타트업 H</span></div>
-                  <div style="font-size:0.85rem;color:#374151;">게임 · 엔터테인먼트</div>
-                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#dc2626;font-size:0.5rem;margin-right:0.4rem;"></i>2차 미팅 후 패스</div>
-                  <div style="font-size:0.82rem;color:#6b7280;">2024.11.20</div>
-                  <div style="text-align:center;"><span style="background:#fee2e2;color:#991b1b;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">패스</span></div>
-                </div>
-              </div><!-- /group-review-pass -->
-
+              <!-- 동적 리스트 -->
+              <div id="reviewItemsList"></div>
             </div>
+
+          </section>
 
           </section>
 
@@ -2562,6 +2375,62 @@
     <script src="js/script.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
+
+  <!-- 스타트업 검토 추가 모달 -->
+  <div id="addReviewModal">
+    <div class="modal-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h3 style="margin:0;font-size:1.05rem;font-weight:800;color:#1e293b;display:flex;align-items:center;gap:0.5rem;">
+          <i class="fa-solid fa-plus-circle" style="color:#2563eb;"></i> 스타트업 추가
+        </h3>
+        <button onclick="closeAddReviewModal()" style="border:none;background:none;font-size:1.2rem;color:#94a3b8;cursor:pointer;padding:0.2rem 0.4rem;line-height:1;">&times;</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.35rem;">스타트업명 <span style="color:#ef4444;">*</span></label>
+          <input id="arName" type="text" placeholder="예: 테크스타트업 A" style="width:100%;box-sizing:border-box;padding:0.65rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#d1d5db'">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.35rem;">업종/분야</label>
+          <input id="arIndustry" type="text" placeholder="예: AI·SaaS, 바이오, 핀테크" style="width:100%;box-sizing:border-box;padding:0.65rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#d1d5db'">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.35rem;">검토 단계</label>
+          <select id="arStage" style="width:100%;box-sizing:border-box;padding:0.65rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;background:white;transition:border-color 0.2s;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#d1d5db'">
+            <option value="소싱">소싱</option>
+            <option value="1차 검토 중">1차 검토 중</option>
+            <option value="2차 미팅 예정">2차 미팅 예정</option>
+            <option value="DD 진행 중" selected>DD 진행 중</option>
+            <option value="투심위 대기">투심위 대기</option>
+            <option value="투자 완료">투자 완료</option>
+            <option value="패스">패스</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.35rem;">상태</label>
+          <div style="display:flex;gap:0.5rem;">
+            <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border:1.5px solid #fde68a;border-radius:20px;cursor:pointer;font-size:0.82rem;font-weight:700;color:#92400e;background:#fef3c7;">
+              <input type="radio" name="arStatus" value="active" checked style="accent-color:#f59e0b;"> 검토 중
+            </label>
+            <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border:1.5px solid #86efac;border-radius:20px;cursor:pointer;font-size:0.82rem;font-weight:700;color:#065f46;background:#d1fae5;">
+              <input type="radio" name="arStatus" value="done" style="accent-color:#10b981;"> 투자완료
+            </label>
+            <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border:1.5px solid #fecaca;border-radius:20px;cursor:pointer;font-size:0.82rem;font-weight:700;color:#991b1b;background:#fee2e2;">
+              <input type="radio" name="arStatus" value="pass" style="accent-color:#ef4444;"> 패스
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+          <button onclick="submitAddReview()" style="flex:1;padding:0.7rem;border-radius:12px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(37,99,235,0.3);">
+            <i class="fa-solid fa-plus"></i> 추가
+          </button>
+          <button onclick="closeAddReviewModal()" style="flex:1;padding:0.7rem;border-radius:12px;border:1.5px solid #e2e8f0;background:white;color:#374151;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">
+            취소
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   </body>
 </html>
