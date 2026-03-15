@@ -266,9 +266,53 @@ function demoLogin() {
   alert("데모 로그인 성공!");
 }
 
+// ── 대시보드 로그인 필요 모달 ─────────────────────
+
+function injectLoginRequiredModal() {
+  if (document.getElementById('loginRequiredModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'loginRequiredModal';
+  modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:2rem 2.5rem;width:360px;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,0.22);text-align:center;">
+      <div style="width:56px;height:56px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.5rem;">🔒</div>
+      <h3 style="margin:0 0 0.5rem;font-size:1.1rem;font-weight:800;color:#1e293b;">로그인이 필요합니다</h3>
+      <p style="margin:0 0 1.5rem;font-size:0.9rem;color:#64748b;line-height:1.6;">대시보드는 로그인 후 이용하실 수 있습니다.<br>로그인 페이지로 이동하시겠습니까?</p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;">
+        <button onclick="document.getElementById('loginRequiredModal').style.display='none'" style="padding:0.65rem 1.25rem;border:1.5px solid #e2e8f0;border-radius:10px;background:white;color:#64748b;font-size:0.9rem;font-weight:700;cursor:pointer;">취소</button>
+        <button onclick="goToLoginFromModal()" style="padding:0.65rem 1.5rem;background:#2563eb;color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;">확인</button>
+      </div>
+    </div>
+  `;
+  // 배경 클릭 시 닫기
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+  document.body.appendChild(modal);
+}
+
+function goToLoginFromModal() {
+  document.getElementById('loginRequiredModal').style.display = 'none';
+  window.location.href = getBasePath() + 'login.html';
+}
+
+async function handleDashboardLinkClick(e) {
+  const loggedIn = await isLoggedIn();
+  if (loggedIn) return; // 로그인 상태면 기본 동작 유지
+  e.preventDefault();
+  const modal = document.getElementById('loginRequiredModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function interceptDashboardLinks() {
+  injectLoginRequiredModal();
+  document.querySelectorAll('a[href*="dashboard.html"]').forEach(link => {
+    link.addEventListener('click', handleDashboardLinkClick);
+  });
+}
+
 // ── 초기화 ────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
+  interceptDashboardLinks();
   const tryInit = (attempts) => {
     if (window.supabase) {
       initAuthListener();
