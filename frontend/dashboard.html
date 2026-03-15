@@ -1200,7 +1200,6 @@
                 <div style="padding:1rem 1.25rem; display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
                   <div style="width:28px;height:28px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:0.8rem;"><i class="fa-solid fa-clipboard-list"></i></div>
                   <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">신청내역</span>
-                  <button onclick="openAddApplicationModal()" style="margin-left:0.4rem;width:24px;height:24px;border-radius:50%;background:#2563eb;color:white;border:none;cursor:pointer;font-size:1rem;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-weight:700;" title="신청 내역 추가">+</button>
                 </div>
                 <!-- 토글 탭 -->
                 <div style="display:flex; gap:0; margin-left:0.5rem;">
@@ -1212,6 +1211,12 @@
                   </button>
                   <button id="appTab_rejected" onclick="showApplicationTab('rejected')" class="app-tab">
                     <span id="appTabCount_rejected" class="app-tab-badge app-tab-badge-red"></span> 미선정
+                  </button>
+                </div>
+                <!-- 우측 + 내역 추가 버튼 -->
+                <div style="margin-left:auto; padding-right:1rem; flex-shrink:0;">
+                  <button onclick="openAddApplicationModal()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem;background:#2563eb;color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                    <i class="fa-solid fa-plus" style="font-size:0.75rem;"></i> 내역 추가
                   </button>
                 </div>
               </div>
@@ -1270,6 +1275,72 @@
               <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
                 <button onclick="closeAddEventModal()" style="padding:0.65rem 1.25rem; border:1.5px solid var(--border-color); border-radius:10px; background:white; color:var(--text-secondary); font-size:0.9rem; font-weight:700; cursor:pointer;">취소</button>
                 <button onclick="submitAddEvent()" style="padding:0.65rem 1.5rem; background:#2563eb; color:white; border:none; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.4rem;"><i class="fa-solid fa-plus"></i> 추가</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 신청 내역 추가 모달 -->
+          <div id="addApplicationModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9100; backdrop-filter:blur(4px); align-items:center; justify-content:center;" onclick="if(event.target===this)closeAddApplicationModal()">
+            <div style="background:white; border-radius:20px; padding:2rem; width:500px; max-width:92vw; box-shadow:0 24px 60px rgba(0,0,0,0.22);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div style="width:32px;height:32px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:0.85rem;"><i class="fa-solid fa-clipboard-list"></i></div>
+                  <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:#1e293b;">신청 내역 추가</h3>
+                </div>
+                <button onclick="closeAddApplicationModal()" style="background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;padding:0;line-height:1;">&times;</button>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:1rem;">
+                <!-- 기존 일정에서 가져오기 -->
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label" style="display:flex;align-items:center;gap:0.4rem;">
+                    <i class="fa-solid fa-calendar-days" style="color:#2563eb;font-size:0.8rem;"></i>
+                    기존 일정에서 가져오기
+                  </label>
+                  <select id="appModalEventSel" onchange="fillApplicationFromEvent()" class="si-input" style="cursor:pointer;">
+                    <option value="">— 직접 입력 —</option>
+                  </select>
+                  <p style="margin:0.3rem 0 0; font-size:0.78rem; color:#94a3b8;">일정을 선택하면 아래 항목이 자동 채워집니다.</p>
+                </div>
+
+                <!-- 구분선 -->
+                <div style="border-top:1px dashed #e2e8f0; margin:0;"></div>
+
+                <!-- 지원사업명 -->
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">지원사업명 <span style="color:#dc2626;">*</span></label>
+                  <input id="appModalTitle" class="si-input" type="text" placeholder="지원사업명을 입력하세요" />
+                </div>
+
+                <!-- 주관기관 -->
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">주관기관</label>
+                  <input id="appModalOrg" class="si-input" type="text" placeholder="주관기관명" />
+                </div>
+
+                <!-- 마감일 -->
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">마감일</label>
+                  <input id="appModalEnd" class="si-input" type="date" />
+                </div>
+
+                <!-- 신청 결과 -->
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label" style="display:flex;align-items:center;gap:0.4rem;">
+                    <i class="fa-solid fa-flag" style="color:#2563eb;font-size:0.8rem;"></i>
+                    신청 결과
+                  </label>
+                  <select id="appModalStatus" class="si-input" style="cursor:pointer;">
+                    <option value="apply">🔵 신청중</option>
+                    <option value="selected">🟢 선정</option>
+                    <option value="rejected">🔴 미선정</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+                <button onclick="closeAddApplicationModal()" style="padding:0.65rem 1.25rem; border:1.5px solid var(--border-color); border-radius:10px; background:white; color:var(--text-secondary); font-size:0.9rem; font-weight:700; cursor:pointer;">취소</button>
+                <button onclick="submitAddApplication()" style="padding:0.65rem 1.5rem; background:#2563eb; color:white; border:none; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.4rem;"><i class="fa-solid fa-plus"></i> 추가</button>
               </div>
             </div>
           </div>

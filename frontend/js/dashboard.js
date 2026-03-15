@@ -1434,12 +1434,85 @@ function showApplicationTab(tab) {
 // 일정 추가 모달
 let _pendingApply = false;
 
+// ── 신청 내역 추가 전용 모달 ──────────────────────────────────────
 function openAddApplicationModal() {
-  _pendingApply = true;
-  openAddEventModal();
-  // 모달 타이틀 변경
-  const title = document.getElementById('addEventModalTitle');
-  if (title) title.textContent = '신청 내역 추가';
+  const modal = document.getElementById('addApplicationModal');
+  if (!modal) return;
+
+  // 기존 일정 드롭다운 채우기
+  const sel = document.getElementById('appModalEventSel');
+  if (sel) {
+    sel.innerHTML = '<option value="">— 직접 입력 —</option>' +
+      SUPPORT_EVENTS.map(ev => `<option value="${ev.id}">${ev.title}${ev.org ? ' (' + ev.org + ')' : ''}</option>`).join('');
+  }
+
+  // 폼 초기화
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('appModalTitle').value = '';
+  document.getElementById('appModalOrg').value = '';
+  document.getElementById('appModalEnd').value = today;
+  document.getElementById('appModalStatus').value = 'apply';
+
+  modal.style.display = 'flex';
+}
+
+function closeAddApplicationModal() {
+  const modal = document.getElementById('addApplicationModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function fillApplicationFromEvent() {
+  const sel = document.getElementById('appModalEventSel');
+  const evId = parseInt(sel.value);
+  if (!evId) return;
+  const ev = SUPPORT_EVENTS.find(e => e.id === evId);
+  if (!ev) return;
+  document.getElementById('appModalTitle').value = ev.title;
+  document.getElementById('appModalOrg').value = ev.org || '';
+  document.getElementById('appModalEnd').value = ev.end || '';
+  // 이미 신청/선정/미선정 결과가 있으면 반영
+  if (ev.apply) {
+    if (ev.result === 'selected') document.getElementById('appModalStatus').value = 'selected';
+    else if (ev.result === 'rejected') document.getElementById('appModalStatus').value = 'rejected';
+    else document.getElementById('appModalStatus').value = 'apply';
+  }
+}
+
+function submitAddApplication() {
+  const selEvId = parseInt(document.getElementById('appModalEventSel').value);
+  const titleVal = document.getElementById('appModalTitle').value.trim();
+  const orgVal   = document.getElementById('appModalOrg').value.trim() || '직접 추가';
+  const endVal   = document.getElementById('appModalEnd').value;
+  const statusVal = document.getElementById('appModalStatus').value;
+  const resultMap = { apply: null, selected: 'selected', rejected: 'rejected' };
+
+  if (selEvId) {
+    // 기존 일정에 신청 상태 반영
+    const ev = SUPPORT_EVENTS.find(e => e.id === selEvId);
+    if (ev) {
+      ev.apply = true;
+      ev.result = resultMap[statusVal];
+    }
+  } else {
+    // 새 항목 직접 추가
+    if (!titleVal) { alert('지원사업명을 입력해주세요.'); return; }
+    if (!endVal)   { alert('마감일을 입력해주세요.'); return; }
+    const palette  = ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
+    const bgPalette = ['#dbeafe','#ede9fe','#d1fae5','#fef3c7','#fee2e2','#cffafe'];
+    const idx = SUPPORT_EVENTS.length % palette.length;
+    SUPPORT_EVENTS.push({
+      id: Date.now(), title: titleVal, org: orgVal,
+      color: palette[idx], bgColor: bgPalette[idx],
+      start: endVal, end: endVal, category: '기타',
+      apply: true, result: resultMap[statusVal],
+      amount: '', description: '',
+    });
+  }
+
+  closeAddApplicationModal();
+  renderSupportCalendar();
+  renderSupportWeek();
+  renderSupportApplicationsTabbed();
 }
 
 function openAddEventModal() {
@@ -1477,7 +1550,7 @@ function submitAddEvent() {
 
   SUPPORT_EVENTS.push({
     id: Date.now(), title, org, color: palette[idx], bgColor: bgPalette[idx],
-    start: end, end, category, apply: _pendingApply, result: _pendingApply ? null : null, amount, description,
+    start: end, end, category, apply: false, result: null, amount, description,
   });
 
   closeAddEventModal();
@@ -1485,10 +1558,6 @@ function submitAddEvent() {
   document.getElementById('addEvOrg').value = '';
   document.getElementById('addEvAmount').value = '';
   document.getElementById('addEvDesc').value = '';
-  _pendingApply = false;
-  // 모달 타이틀 초기화
-  const titleEl = document.getElementById('addEventModalTitle');
-  if (titleEl) titleEl.textContent = '일정 추가';
   renderSupportCalendar();
   renderSupportWeek();
   renderSupportApplicationsTabbed();
