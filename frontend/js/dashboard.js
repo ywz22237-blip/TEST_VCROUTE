@@ -483,6 +483,11 @@ function switchSection(sectionId) {
     loadRecommendHistory();
   }
 
+  // 투자 히스토리 섹션 진입 시 AI 심사 이력 렌더링
+  if (sectionId === 'history') {
+    _renderInvestorAIHistory();
+  }
+
   // 지원사업 섹션 진입 시 캘린더 초기화
   if (sectionId === 'support') {
     initSupportCalendar();
@@ -1764,4 +1769,289 @@ async function submitAddEvent() {
   renderSupportCalendar();
   renderSupportWeek();
   renderSupportApplicationsTabbed();
+}
+
+// ─── AI 심사역 보고서 (투자자 전용) ───────────────────────────────────────
+
+const AI_EXAM_SCORE_CATS = ['시장성', '팀', '기술력', 'BM', '재무'];
+let _aiExamCurrentResult = null;
+let _aiExamCurrentName   = '';
+
+async function requestInvestorAIAnalysis() {
+  const name = (document.getElementById('aiExamStartupName')?.value || '').trim();
+  const industry = (document.getElementById('aiExamIndustry')?.value || '').trim();
+  const desc = (document.getElementById('aiExamDesc')?.value || '').trim();
+  if (!name || !desc) { alert('스타트업명과 사업 설명을 입력해주세요.'); return; }
+
+  _aiExamCurrentName = name;
+
+  const btn = document.getElementById('aiExamBtn');
+  const loading = document.getElementById('aiExamLoading');
+  const result  = document.getElementById('aiExamResult');
+  if (btn) btn.disabled = true;
+  if (loading) loading.style.display = '';
+  if (result) result.style.display = 'none';
+
+  const steps = [
+    '스타트업 정보를 파악하고 있습니다...',
+    'VC 심사역 프레임워크 적용 중...',
+    '투자 타당성 분석 중...',
+    '레드플래그 및 성장 가능성 평가 중...',
+    '보고서 생성 완료 중...',
+  ];
+  let si = 0;
+  const loadingText = document.getElementById('aiExamLoadingText');
+  const interval = setInterval(() => {
+    if (loadingText) loadingText.textContent = steps[Math.min(si++, steps.length - 1)];
+  }, 2500);
+
+  try {
+    const apiKey = window.ANTHROPIC_API_KEY || window.CLAUDE_API_KEY || '';
+    let analysisResult;
+    if (apiKey) {
+      analysisResult = await _callInvestorClaudeAPI(name, industry, desc, apiKey);
+    } else {
+      await new Promise(r => setTimeout(r, 4000));
+      analysisResult = _getDemoInvestorAnalysis(name, industry);
+    }
+    clearInterval(interval);
+    _aiExamCurrentResult = analysisResult;
+    _renderInvestorAIResult(analysisResult, name);
+  } catch (e) {
+    clearInterval(interval);
+    console.error('AI 심사 오류:', e);
+    const analysisResult = _getDemoInvestorAnalysis(name, industry);
+    _aiExamCurrentResult = analysisResult;
+    _renderInvestorAIResult(analysisResult, name);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+async function _callInvestorClaudeAPI(name, industry, desc, apiKey) {
+  const prompt = `당신은 10년 경력의 VC 수석 심사역 "루트 AI"입니다. 아래 스타트업을 투자자 관점에서 엄밀하게 심사해주세요.
+
+스타트업명: ${name}
+업종: ${industry || '미입력'}
+사업 설명: ${desc.slice(0, 3000)}
+
+5개 항목을 각각 0~20점으로 채점하고 투자 심사 의견을 제공하세요.
+반드시 아래 JSON 형식으로만 응답하세요:
+
+{
+  "scores": {
+    "시장성": 숫자,
+    "팀": 숫자,
+    "기술력": 숫자,
+    "BM": 숫자,
+    "재무": 숫자
+  },
+  "opinion": "관심|검토|패스",
+  "feedback": [
+    {"type": "good|warn|bad", "text": "심사 의견"},
+    {"type": "good|warn|bad", "text": "심사 의견"},
+    {"type": "good|warn|bad", "text": "심사 의견"},
+    {"type": "good|warn|bad", "text": "심사 의견"},
+    {"type": "good|warn|bad", "text": "심사 의견"}
+  ],
+  "redFlags": ["레드플래그 1", "레드플래그 2"],
+  "upside": "성장 가능성 한줄 평가",
+  "summary": "투자 심사 종합 한줄 의견",
+  "questions": ["심사 질문 1", "심사 질문 2", "심사 질문 3"]
+}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1200,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  const data = await res.json();
+  const raw = data.content?.[0]?.text || '';
+  const match = raw.match(/\{[\s\S]*\}/);
+  return JSON.parse(match[0]);
+}
+
+function _getDemoInvestorAnalysis(name, industry) {
+  const base = { 시장성: 15, 팀: 13, 기술력: 14, BM: 12, 재무: 11 };
+  const seed = (name + industry).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const scores = {};
+  AI_EXAM_SCORE_CATS.forEach((cat, i) => {
+    scores[cat] = Math.max(8, Math.min(19, base[cat] + ((seed * (i + 7)) % 7) - 3));
+  });
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  const opinion = total >= 75 ? '관심' : total >= 60 ? '검토' : '패스';
+  return {
+    scores,
+    opinion,
+    feedback: [
+      { type: 'good', text: '핵심 타겟 시장이 명확하고 성장 여력이 충분합니다.' },
+      { type: 'warn', text: 'TAM-SAM-SOM 근거 데이터의 신뢰성을 추가 검증해야 합니다.' },
+      { type: 'good', text: '창업팀의 도메인 전문성이 사업 모델과 잘 연계되어 있습니다.' },
+      { type: 'bad',  text: '경쟁사 대비 기술적 해자(moat)가 아직 충분히 검증되지 않았습니다.' },
+      { type: 'warn', text: '현재 번 레이트와 런웨이를 구체적으로 확인이 필요합니다.' },
+    ],
+    redFlags: [
+      '경쟁사 진입 시 차별화 요소가 빠르게 희석될 가능성',
+      '핵심 매출 발생까지 예상보다 긴 시간 소요 가능',
+    ],
+    upside: '시장 선점 시 네트워크 효과를 통한 높은 방어막 구축 가능.',
+    summary: '기본 가설은 유효하나 시장 검증과 재무 계획을 보강한 후 투자 결정 권장.',
+    questions: [
+      '현재 CAC 대비 LTV 비율과 손익분기점 도달 시점은 언제입니까?',
+      '핵심 기술·특허의 방어 가능성을 구체적인 데이터로 설명해주세요.',
+      '공동창업자 이탈 시나리오에서 사업 지속성 계획은 무엇입니까?',
+    ],
+  };
+}
+
+function _renderInvestorAIResult(data, name) {
+  const resultEl = document.getElementById('aiExamResult');
+  if (!resultEl) return;
+
+  // 투자 의견 뱃지 색상
+  const opinionConfig = {
+    '관심': { bg: 'linear-gradient(135deg,#059669,#10b981)', icon: 'fa-thumbs-up',  label: '관심' },
+    '검토': { bg: 'linear-gradient(135deg,#d97706,#f59e0b)', icon: 'fa-magnifying-glass', label: '검토' },
+    '패스': { bg: 'linear-gradient(135deg,#dc2626,#ef4444)', icon: 'fa-xmark',      label: '패스' },
+  };
+  const oc = opinionConfig[data.opinion] || opinionConfig['검토'];
+  const badge = document.getElementById('aiExamOpinionBadge');
+  const opText = document.getElementById('aiExamOpinionText');
+  if (badge) badge.style.background = oc.bg;
+  if (badge) badge.querySelector('i').className = `fa-solid ${oc.icon}`;
+  if (opText) opText.textContent = oc.label;
+
+  const total = Object.values(data.scores).reduce((a, b) => a + b, 0);
+  const totalEl = document.getElementById('aiExamTotalScore');
+  if (totalEl) totalEl.textContent = total;
+
+  const summaryEl = document.getElementById('aiExamSummary');
+  if (summaryEl) summaryEl.textContent = data.summary || '';
+
+  // 5개 항목 점수 카드
+  const grid = document.getElementById('aiExamScoreGrid');
+  if (grid) {
+    const catColors = { 시장성: '#3b82f6', 팀: '#8b5cf6', 기술력: '#06b6d4', BM: '#f59e0b', 재무: '#10b981' };
+    grid.innerHTML = AI_EXAM_SCORE_CATS.map(cat => {
+      const val = data.scores[cat] || 0;
+      const pct = (val / 20) * 100;
+      const color = catColors[cat] || '#6366f1';
+      return `<div style="background:white;border:1px solid #e2e8f0;border-radius:14px;padding:1rem;text-align:center;">
+        <div style="font-size:0.78rem;font-weight:700;color:#6b7280;margin-bottom:0.5rem;">${cat}</div>
+        <div style="font-size:1.5rem;font-weight:900;color:${color};">${val}</div>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.6rem;">/ 20점</div>
+        <div style="height:4px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 0.6s;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // 피드백
+  const feedbackEl = document.getElementById('aiExamFeedbackList');
+  if (feedbackEl && data.feedback) {
+    const cfg = {
+      good: { bg: '#f0fdf4', border: '#bbf7d0', color: '#166534', icon: '✓' },
+      warn: { bg: '#fffbeb', border: '#fde68a', color: '#92400e', icon: '!' },
+      bad:  { bg: '#fef2f2', border: '#fecaca', color: '#991b1b', icon: '✗' },
+    };
+    feedbackEl.innerHTML = data.feedback.map(f => {
+      const c = cfg[f.type] || cfg.warn;
+      return `<div style="display:flex;gap:0.5rem;align-items:flex-start;background:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:0.65rem 0.85rem;margin-bottom:0.4rem;">
+        <span style="font-weight:900;color:${c.color};flex-shrink:0;">${c.icon}</span>
+        <span style="font-size:0.83rem;color:#1e293b;line-height:1.5;">${f.text}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 레드플래그
+  const rfEl = document.getElementById('aiExamRedFlags');
+  if (rfEl && data.redFlags) {
+    rfEl.innerHTML = data.redFlags.map(rf =>
+      `<div style="display:flex;gap:0.5rem;align-items:flex-start;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:0.65rem 0.85rem;margin-bottom:0.4rem;">
+        <i class="fa-solid fa-flag" style="color:#ef4444;font-size:0.75rem;margin-top:0.15rem;flex-shrink:0;"></i>
+        <span style="font-size:0.83rem;color:#1e293b;line-height:1.5;">${rf}</span>
+      </div>`
+    ).join('');
+  }
+
+  // 성장 가능성
+  const upsideEl = document.getElementById('aiExamUpside');
+  if (upsideEl) upsideEl.textContent = data.upside || '';
+
+  // 심사 질문
+  const qEl = document.getElementById('aiExamQuestions');
+  if (qEl && data.questions) {
+    qEl.innerHTML = data.questions.map(q =>
+      `<li style="font-size:0.85rem;color:#92400e;line-height:1.6;">${q}</li>`
+    ).join('');
+  }
+
+  resultEl.style.display = '';
+}
+
+function saveInvestorAIToHistory() {
+  if (!_aiExamCurrentResult) return;
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const record = {
+    id: Date.now(),
+    name: _aiExamCurrentName,
+    date: dateStr,
+    opinion: _aiExamCurrentResult.opinion,
+    total: Object.values(_aiExamCurrentResult.scores).reduce((a, b) => a + b, 0),
+    summary: _aiExamCurrentResult.summary,
+  };
+  const logs = JSON.parse(localStorage.getItem('investor_ai_exam_log') || '[]');
+  logs.unshift(record);
+  if (logs.length > 30) logs.pop();
+  localStorage.setItem('investor_ai_exam_log', JSON.stringify(logs));
+  _renderInvestorAIHistory();
+  alert('AI 심사 이력이 저장되었습니다.');
+}
+
+function _renderInvestorAIHistory() {
+  const container = document.getElementById('aiExamHistory');
+  if (!container) return;
+  const logs = JSON.parse(localStorage.getItem('investor_ai_exam_log') || '[]');
+  if (logs.length === 0) { container.innerHTML = ''; return; }
+
+  const opinionColor = { '관심': '#059669', '검토': '#d97706', '패스': '#dc2626' };
+  const opinionBg    = { '관심': '#d1fae5', '검토': '#fef3c7', '패스': '#fee2e2' };
+
+  container.innerHTML = `
+    <div style="border-top:1px solid #e2e8f0;padding-top:1.5rem;margin-top:0.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h4 style="margin:0;font-size:0.95rem;font-weight:800;color:#1e293b;display:flex;align-items:center;gap:0.4rem;">
+          <i class="fa-solid fa-clock-rotate-left" style="color:#6366f1;"></i> AI 심사 이력
+        </h4>
+        <button onclick="clearInvestorAIHistory()" style="border:none;background:none;font-size:0.78rem;color:#94a3b8;cursor:pointer;font-family:inherit;padding:0.2rem 0.5rem;">전체 삭제</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        ${logs.map(r => `
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:1rem;align-items:center;padding:0.85rem 1rem;background:white;border:1px solid #f1f5f9;border-radius:12px;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+          <div>
+            <div style="font-size:0.9rem;font-weight:700;color:#1e293b;margin-bottom:0.15rem;">${r.name}</div>
+            <div style="font-size:0.78rem;color:#94a3b8;">${r.date} · ${r.summary}</div>
+          </div>
+          <div style="font-size:1.3rem;font-weight:900;color:#6366f1;">${r.total}<span style="font-size:0.72rem;color:#94a3b8;font-weight:500;">점</span></div>
+          <span style="background:${opinionBg[r.opinion]||'#f1f5f9'};color:${opinionColor[r.opinion]||'#374151'};font-size:0.75rem;font-weight:800;padding:0.25rem 0.75rem;border-radius:20px;">${r.opinion}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function clearInvestorAIHistory() {
+  if (!confirm('AI 심사 이력을 모두 삭제하시겠습니까?')) return;
+  localStorage.removeItem('investor_ai_exam_log');
+  _renderInvestorAIHistory();
 }
