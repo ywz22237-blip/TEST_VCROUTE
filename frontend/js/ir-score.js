@@ -523,29 +523,42 @@ function renderInvestorInFundTab() {
   saveRecommendHistory();
 }
 
-function saveRecommendHistory() {
+async function saveRecommendHistory() {
   if (!selectedFund || !selectedGP) return;
-  const history = JSON.parse(localStorage.getItem("vcroute_recommend_history") || "[]");
   const now = new Date();
   const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-  // 동일 펀드+투자자 중복 저장 방지
-  const isDup = history.some(h => h.fundName === selectedFund.fundName && h.gpName === selectedGP.name);
-  if (isDup) return;
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
 
-  history.push({
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return;
+
+  // 동일 펀드+투자자 중복 저장 방지
+  const { data: existing } = await sb.from('user_ai_history')
+    .select('id').eq('user_id', user.id)
+    .eq('fund_name', selectedFund.fundName).eq('gp_name', selectedGP.name).limit(1);
+  if (existing && existing.length > 0) return;
+
+  await sb.from('user_ai_history').insert({
+    user_id: user.id,
     date: dateStr,
-    fundName: selectedFund.fundName,
-    companyName: selectedFund.companyName,
+    match_score: selectedFund.matchScore || 0,
+    fund_name: selectedFund.fundName,
+    company_name: selectedFund.companyName,
     industry: selectedFund.industry,
-    matchScore: selectedFund.matchScore || 0,
-    gpName: selectedGP.name,
-    gpCompany: selectedGP.company,
-    gpEmail: selectedGP.email,
+    gp_name: selectedGP.name,
+    gp_company: selectedGP.company,
+    gp_email: selectedGP.email,
   });
-  // 최대 20건 유지
-  if (history.length > 20) history.splice(0, history.length - 20);
-  localStorage.setItem("vcroute_recommend_history", JSON.stringify(history));
+
+  // 최대 20건 유지 - 초과분 삭제
+  const { data: all } = await sb.from('user_ai_history')
+    .select('id').eq('user_id', user.id).order('created_at', { ascending: true });
+  if (all && all.length > 20) {
+    const toDelete = all.slice(0, all.length - 20).map(r => r.id);
+    await sb.from('user_ai_history').delete().in('id', toDelete);
+  }
 }
 
 // ─── GP 매칭 (Option C: manager 이름으로 연결) ──────────────────
@@ -666,7 +679,7 @@ function copyMail() {
 }
 
 // ─── 대시보드 자료보관함 가져오기 ─────────────────────────────────
-const VCROUTE_FILES_KEY = "vcroute_stored_files";
+let _importFiles = [];
 
 const SLOT_LABELS = { 1: "회사소개서", 2: "IR 자료", 3: "재무제표" };
 
@@ -679,12 +692,10 @@ function guessSlot(category) {
   return 2;
 }
 
-function openImportModal() {
+function _renderImportModal(files) {
   const overlay = document.getElementById("importModalOverlay");
   const body    = document.getElementById("importModalBody");
   if (!overlay || !body) return;
-
-  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
 
   if (!files.length) {
     body.innerHTML = `<div class="import-empty"><i class="fa-solid fa-folder-open"></i>자료보관함에 저장된 파일이 없습니다.<br><small style="margin-top:0.4rem;display:block;">대시보드 → 자료보관함에서 파일을 먼저 업로드해 주세요.</small></div>`;
@@ -716,13 +727,21 @@ function openImportModal() {
   overlay.classList.add("open");
 }
 
+async function openImportModal() {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) {
+    const { data } = await sb.from('user_files').select('*').order('created_at', { ascending: false });
+    _importFiles = data || [];
+  }
+  _renderImportModal(_importFiles);
+}
+
 function closeImportModal() {
   document.getElementById("importModalOverlay")?.classList.remove("open");
 }
 
 function importFileFromDashboard(fileId, slot) {
-  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
-  const file  = files.find(f => f.id === fileId);
+  const file = _importFiles.find(f => f.id === fileId);
   if (!file || !file.content) return;
 
   irTexts[slot] = file.content;
