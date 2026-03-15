@@ -2,6 +2,7 @@
 
 let currentStep = 1;
 let isIdChecked = false;
+let isEmailChecked = false;
 let emailTimerInterval = null;
 let keywords = [];
 
@@ -107,6 +108,7 @@ function validateStep2() {
   if (password.length < 8)   { alert('비밀번호는 8자 이상이어야 합니다.'); return false; }
   if (password !== pwConfirm){ alert('비밀번호가 일치하지 않습니다.'); return false; }
   if (!email)                { alert('이메일을 입력해주세요.'); return false; }
+  if (!isEmailChecked)       { alert('이메일 중복확인을 해주세요.'); return false; }
   return true;
 }
 
@@ -172,6 +174,49 @@ document.getElementById('userId').addEventListener('input', () => {
   msg.textContent = '';
   msg.className = 'field-msg';
   document.getElementById('userId').classList.remove('success', 'error');
+});
+
+// ===== 이메일 중복 확인 =====
+
+async function checkDuplicateEmail() {
+  const email = document.getElementById('email').value.trim();
+  const msg   = document.getElementById('emailMsg');
+  const input = document.getElementById('email');
+
+  if (!email) {
+    return showFieldMsg(msg, '이메일을 입력해주세요.', 'error');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return showFieldMsg(msg, '올바른 이메일 형식을 입력해주세요.', 'error');
+  }
+
+  showFieldMsg(msg, '확인 중...', '');
+
+  const sb = getSB();
+  if (sb) {
+    const { data, error } = await sb.rpc('check_email_exists', { check_email: email });
+    if (!error) {
+      if (data === true) {
+        isEmailChecked = false;
+        input.classList.remove('success');
+        input.classList.add('error');
+        return showFieldMsg(msg, '이미 사용 중인 이메일입니다.', 'error');
+      }
+    }
+  }
+
+  isEmailChecked = true;
+  input.classList.remove('error');
+  input.classList.add('success');
+  showFieldMsg(msg, '사용 가능한 이메일입니다.', 'success');
+}
+
+document.getElementById('email').addEventListener('input', () => {
+  isEmailChecked = false;
+  const msg = document.getElementById('emailMsg');
+  msg.textContent = '';
+  msg.className = 'field-msg';
+  document.getElementById('email').classList.remove('success', 'error');
 });
 
 // ===== 비밀번호 =====

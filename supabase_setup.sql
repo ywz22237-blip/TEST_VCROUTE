@@ -356,6 +356,20 @@ CREATE OR REPLACE VIEW public.profiles AS
 
 GRANT SELECT ON public.profiles TO anon, authenticated;
 
+-- 이메일 중복 확인용 RPC 함수 (anon에서 호출 가능, SECURITY DEFINER로 RLS 우회)
+CREATE OR REPLACE FUNCTION public.check_email_exists(check_email TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (SELECT 1 FROM public.users WHERE email = check_email);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.check_email_exists TO anon, authenticated;
+
 -- ────────────────────────────────────────────────────────────
 -- 12. Supabase Auth 설정 안내 (SQL Editor에서 직접 실행 불가)
 -- ────────────────────────────────────────────────────────────
