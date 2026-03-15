@@ -781,6 +781,21 @@
       font-size: 1rem;
       flex-shrink: 0;
     }
+    /* ── 신청내역 탭 ── */
+    .app-tab {
+      padding: 0.6rem 1.1rem; background: none; border: none; border-bottom: 2.5px solid transparent;
+      font-size: 0.85rem; font-weight: 700; color: #94a3b8; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;
+    }
+    .app-tab:hover { color: #475569; }
+    .app-tab-active { color: #2563eb !important; border-bottom-color: #2563eb !important; }
+    .app-tab-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 9px; font-size: 0.7rem; font-weight: 800; padding: 0 4px;
+    }
+    .app-tab-badge-blue { background: #dbeafe; color: #2563eb; }
+    .app-tab-badge-green { background: #dcfce7; color: #16a34a; }
+    .app-tab-badge-red { background: #fee2e2; color: #dc2626; }
     /* ── 기본 정보 수정 폼 (si-*) ── */
     .si-group { margin-bottom: 1.1rem; }
     .si-label { display:block; font-size:0.85rem; font-weight:700; color:#374151; margin-bottom:0.4rem; }
@@ -1132,57 +1147,39 @@
 
           <!-- 지원사업 Section -->
           <section id="supportSection" class="dashboard-section" style="display:none">
+            <!-- 헤더 -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
               <h2 style="margin:0;">지원사업</h2>
-              <div style="display:flex; gap:0.5rem;">
-                <button onclick="supportChangeMonth(-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border-color);background:white;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-left"></i></button>
-                <span id="supportMonthLabel" style="font-size:1rem;font-weight:800;color:#1e293b;display:flex;align-items:center;padding:0 0.5rem;min-width:110px;justify-content:center;"></span>
-                <button onclick="supportChangeMonth(1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border-color);background:white;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-right"></i></button>
+              <div style="display:flex; align-items:center; gap:0.75rem;">
+                <!-- 일정 추가 버튼 -->
+                <button onclick="openAddEventModal()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,0.3);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                  <i class="fa-solid fa-plus"></i> 일정 추가
+                </button>
+                <!-- 월 네비게이션 -->
+                <div style="display:flex;gap:0.4rem;align-items:center;">
+                  <button onclick="supportChangeMonth(-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border-color);background:white;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-left"></i></button>
+                  <span id="supportMonthLabel" style="font-size:0.95rem;font-weight:800;color:#1e293b;padding:0 0.4rem;min-width:100px;text-align:center;"></span>
+                  <button onclick="supportChangeMonth(1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border-color);background:white;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
               </div>
             </div>
 
-            <!-- 2-column layout: 이번주+신청내역 | 월간달력 -->
-            <div style="display:grid; grid-template-columns:300px 1fr; gap:1.5rem; align-items:start;">
+            <!-- 상단: 이번주 일정 | 월간 달력 (같은 높이) -->
+            <div style="display:grid; grid-template-columns:300px 1fr; gap:1.5rem; align-items:stretch; margin-bottom:1.5rem;">
 
-              <!-- 왼쪽 패널 -->
-              <div style="display:flex; flex-direction:column; gap:1.25rem;">
-
-                <!-- 섹터1-A: 이번주 일정 -->
-                <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
-                  <div style="padding:1rem 1.25rem 0.75rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:0.5rem;">
-                    <div style="width:28px;height:28px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.8rem;"><i class="fa-solid fa-calendar-week"></i></div>
-                    <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">이번주 일정</span>
-                    <span id="supportWeekRange" style="font-size:0.75rem;color:#94a3b8;margin-left:auto;"></span>
-                  </div>
-                  <div id="supportWeekList" style="padding:0.75rem;"></div>
+              <!-- 이번주 일정 (달력과 동일 높이) -->
+              <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="padding:1rem 1.25rem 0.75rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+                  <div style="width:28px;height:28px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.8rem;"><i class="fa-solid fa-calendar-week"></i></div>
+                  <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">이번주 일정</span>
+                  <span id="supportWeekRange" style="font-size:0.72rem;color:#94a3b8;margin-left:auto;"></span>
                 </div>
-
-                <!-- 섹터1-B: 신청내역 -->
-                <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
-                  <div style="padding:1rem 1.25rem 0.75rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:0.5rem;">
-                    <div style="width:28px;height:28px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:0.8rem;"><i class="fa-solid fa-clipboard-list"></i></div>
-                    <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">신청내역</span>
-                  </div>
-                  <div style="padding:0.75rem;">
-                    <!-- 선정 -->
-                    <div style="margin-bottom:0.5rem;">
-                      <div style="font-size:0.72rem;font-weight:700;color:#16a34a;letter-spacing:0.04em;margin-bottom:0.4rem;padding:0 0.25rem;">✅ 선정</div>
-                      <div id="supportSelected" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
-                    </div>
-                    <!-- 미선정 -->
-                    <div>
-                      <div style="font-size:0.72rem;font-weight:700;color:#dc2626;letter-spacing:0.04em;margin-bottom:0.4rem;padding:0 0.25rem;">❌ 미선정</div>
-                      <div id="supportRejected" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
-                    </div>
-                  </div>
-                </div>
-
+                <div id="supportWeekList" style="padding:0.75rem; flex:1; overflow-y:auto;"></div>
               </div>
 
-              <!-- 오른쪽: 섹터2 월간 달력 -->
-              <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
-                <!-- 요일 헤더 -->
-                <div style="display:grid; grid-template-columns:repeat(7,1fr); background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+              <!-- 월간 달력 -->
+              <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="display:grid; grid-template-columns:repeat(7,1fr); background:#f8fafc; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
                   <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#dc2626;">일</div>
                   <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">월</div>
                   <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">화</div>
@@ -1191,15 +1188,88 @@
                   <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#64748b;">금</div>
                   <div style="text-align:center;padding:0.6rem 0;font-size:0.78rem;font-weight:700;color:#2563eb;">토</div>
                 </div>
-                <!-- 날짜 그리드 -->
-                <div id="supportCalendarGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:0; min-height:360px;"></div>
+                <div id="supportCalendarGrid" style="display:grid; grid-template-columns:repeat(7,1fr); flex:1;"></div>
               </div>
 
+            </div>
+
+            <!-- 하단: 신청내역 (풀너비, 토글 탭) -->
+            <div style="background:white; border:1.5px solid var(--border-color); border-radius:16px; overflow:hidden;">
+              <!-- 탭 헤더 -->
+              <div style="display:flex; align-items:center; border-bottom:1px solid #f1f5f9;">
+                <div style="padding:1rem 1.25rem; display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+                  <div style="width:28px;height:28px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:0.8rem;"><i class="fa-solid fa-clipboard-list"></i></div>
+                  <span style="font-size:0.9rem;font-weight:800;color:#1e293b;">신청내역</span>
+                </div>
+                <!-- 토글 탭 -->
+                <div style="display:flex; gap:0; margin-left:0.5rem;">
+                  <button id="appTab_apply" onclick="showApplicationTab('apply')" class="app-tab app-tab-active">
+                    <span id="appTabCount_apply" class="app-tab-badge app-tab-badge-blue"></span> 신청중
+                  </button>
+                  <button id="appTab_selected" onclick="showApplicationTab('selected')" class="app-tab">
+                    <span id="appTabCount_selected" class="app-tab-badge app-tab-badge-green"></span> 선정
+                  </button>
+                  <button id="appTab_rejected" onclick="showApplicationTab('rejected')" class="app-tab">
+                    <span id="appTabCount_rejected" class="app-tab-badge app-tab-badge-red"></span> 미선정
+                  </button>
+                </div>
+              </div>
+              <!-- 탭 컨텐츠 -->
+              <div style="padding:1rem 1.25rem;">
+                <div id="appContent_apply" style="display:flex; flex-wrap:wrap; gap:0.75rem;"></div>
+                <div id="appContent_selected" style="display:none; flex-wrap:wrap; gap:0.75rem;"></div>
+                <div id="appContent_rejected" style="display:none; flex-wrap:wrap; gap:0.75rem;"></div>
+              </div>
             </div>
 
             <!-- 이벤트 상세 툴팁 -->
             <div id="supportEventDetail" style="display:none; position:fixed; background:white; border:1.5px solid #bfdbfe; border-radius:14px; padding:1rem 1.25rem; box-shadow:0 8px 32px rgba(37,99,235,0.15); z-index:1000; max-width:280px; font-size:0.85rem; pointer-events:none;"></div>
           </section>
+
+          <!-- 일정 추가 모달 -->
+          <div id="addEventModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9000; backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+            <div style="background:white; border-radius:20px; padding:2rem; width:460px; max-width:90vw; box-shadow:0 24px 60px rgba(0,0,0,0.2);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#1e293b;">일정 추가</h3>
+                <button onclick="closeAddEventModal()" style="background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;padding:0;line-height:1;">&times;</button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:1rem;">
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">지원사업명 <span style="color:#dc2626;">*</span></label>
+                  <input id="addEvTitle" class="si-input" type="text" placeholder="지원사업명을 입력하세요" />
+                </div>
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">주관기관</label>
+                  <input id="addEvOrg" class="si-input" type="text" placeholder="주관기관명" />
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                  <div class="si-group" style="margin:0;">
+                    <label class="si-label">시작일 <span style="color:#dc2626;">*</span></label>
+                    <input id="addEvStart" class="si-input" type="date" />
+                  </div>
+                  <div class="si-group" style="margin:0;">
+                    <label class="si-label">마감일 <span style="color:#dc2626;">*</span></label>
+                    <input id="addEvEnd" class="si-input" type="date" />
+                  </div>
+                </div>
+                <div class="si-group" style="margin:0;">
+                  <label class="si-label">카테고리</label>
+                  <select id="addEvCategory" class="si-input" style="cursor:pointer;">
+                    <option value="창업지원">창업지원</option>
+                    <option value="R&D">R&D</option>
+                    <option value="투자연계">투자연계</option>
+                    <option value="지역지원">지역지원</option>
+                    <option value="글로벌">글로벌</option>
+                    <option value="기타">기타</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+                <button onclick="closeAddEventModal()" style="padding:0.65rem 1.25rem; border:1.5px solid var(--border-color); border-radius:10px; background:white; color:var(--text-secondary); font-size:0.9rem; font-weight:700; cursor:pointer;">취소</button>
+                <button onclick="submitAddEvent()" style="padding:0.65rem 1.5rem; background:#2563eb; color:white; border:none; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.4rem;"><i class="fa-solid fa-plus"></i> 추가</button>
+              </div>
+            </div>
+          </div>
 
           <!-- Notice Section (Mock) (hidden - removed from menu) -->
           <section
