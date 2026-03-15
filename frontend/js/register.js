@@ -3,6 +3,7 @@
 let currentStep = 1;
 let isIdChecked = false;
 let emailTimerInterval = null;
+let keywords = [];
 
 // Supabase 클라이언트 (auth.js의 getSupabase 공유)
 function getSB() {
@@ -15,6 +16,30 @@ function getSB() {
   return null;
 }
 
+// ===== 회원 유형 헬퍼 =====
+
+function getSelectedUserType() {
+  const radio = document.querySelector('input[name="userType"]:checked');
+  return radio ? radio.value : null;
+}
+
+// ===== Step Indicator 동적 업데이트 =====
+
+function updateStepIndicator(userType) {
+  const step3Label = document.getElementById('step3Label');
+  const step4Indicator = document.getElementById('step4Indicator');
+  const stepLine3 = document.getElementById('stepLine3');
+  if (userType === 'startup') {
+    if (step3Label) step3Label.textContent = '개인 정보';
+    if (step4Indicator) step4Indicator.style.display = '';
+    if (stepLine3) stepLine3.style.display = '';
+  } else {
+    if (step3Label) step3Label.textContent = '추가 정보';
+    if (step4Indicator) step4Indicator.style.display = 'none';
+    if (stepLine3) stepLine3.style.display = 'none';
+  }
+}
+
 // ===== Step Navigation =====
 
 function goToStep(step) {
@@ -25,11 +50,34 @@ function goToStep(step) {
 
   currentStep = step;
 
-  document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-  document.getElementById('step' + step).classList.add('active');
+  // 모든 form-step 숨기기
+  document.querySelectorAll('.form-step').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
 
+  // 보여줄 step 결정
+  const userType = getSelectedUserType();
+  let targetId;
+  if (step === 3) {
+    targetId = userType === 'startup' ? 'step3startup' : 'step3investor';
+  } else if (step === 4) {
+    targetId = 'step4startup';
+  } else {
+    targetId = 'step' + step;
+  }
+
+  const target = document.getElementById(targetId);
+  if (target) {
+    target.style.display = '';
+    target.classList.add('active');
+  }
+
+  // Step indicator 업데이트
+  const totalSteps = userType === 'startup' ? 4 : 3;
   document.querySelectorAll('.step-indicator .step').forEach((el, i) => {
     const n = i + 1;
+    if (n > totalSteps) return;
     el.classList.remove('active', 'completed');
     if (n === step) el.classList.add('active');
     else if (n < step) el.classList.add('completed');
@@ -41,7 +89,7 @@ function goToStep(step) {
 }
 
 function validateStep1() {
-  if (!document.querySelector('input[name="userType"]:checked')) {
+  if (!getSelectedUserType()) {
     alert('가입 유형을 선택해주세요.');
     return false;
   }
@@ -49,10 +97,10 @@ function validateStep1() {
 }
 
 function validateStep2() {
-  const userId   = document.getElementById('userId').value.trim();
-  const password = document.getElementById('password').value;
-  const pwConfirm= document.getElementById('passwordConfirm').value;
-  const email    = document.getElementById('email').value.trim();
+  const userId    = document.getElementById('userId').value.trim();
+  const password  = document.getElementById('password').value;
+  const pwConfirm = document.getElementById('passwordConfirm').value;
+  const email     = document.getElementById('email').value.trim();
 
   if (!userId)               { alert('아이디를 입력해주세요.'); return false; }
   if (!isIdChecked)          { alert('아이디 중복확인을 해주세요.'); return false; }
@@ -67,10 +115,17 @@ function validateStep2() {
 document.querySelectorAll('input[name="userType"]').forEach(radio => {
   radio.addEventListener('change', () => {
     document.getElementById('btnStep1Next').disabled = false;
+    updateStepIndicator(radio.value);
   });
 });
 
-// ===== ID 중복 확인 (Supabase profiles 테이블 조회) =====
+// step1 초기 활성화
+(function initStep1() {
+  const s1 = document.getElementById('step1');
+  if (s1) { s1.style.display = ''; s1.classList.add('active'); }
+})();
+
+// ===== ID 중복 확인 =====
 
 async function checkDuplicateId() {
   const userId = document.getElementById('userId').value.trim();
@@ -86,7 +141,6 @@ async function checkDuplicateId() {
 
   const sb = getSB();
   if (sb) {
-    // profiles 테이블에 username 컬럼이 있는 경우 조회
     const { data, error } = await sb
       .from('profiles')
       .select('id')
@@ -94,7 +148,6 @@ async function checkDuplicateId() {
       .maybeSingle();
 
     if (error && error.code !== 'PGRST116') {
-      // profiles 테이블이 없거나 접근 불가 → 사용 가능으로 처리
       isIdChecked = true;
       input.classList.add('success');
       return showFieldMsg(msg, '사용 가능한 아이디입니다.', 'success');
@@ -173,7 +226,7 @@ function togglePassword(fieldId) {
   }
 }
 
-// ===== 연락처 인증 (Supabase 무료 플랜 미지원 → 선택 항목으로 처리) =====
+// ===== 연락처 인증 =====
 
 async function sendPhoneVerification() {
   const phone = document.getElementById('phone').value.trim();
@@ -184,10 +237,8 @@ async function sendPhoneVerification() {
     return showFieldMsg(msg, '올바른 연락처를 입력해주세요. (예: 010-0000-0000)', 'error');
   }
 
-  // Supabase 무료 플랜은 SMS 미지원 → 입력만 저장
   showFieldMsg(msg, '연락처가 저장되었습니다. (SMS 인증은 추후 지원 예정)', 'success');
   document.getElementById('phoneVerifyGroup').style.display = 'block';
-  // 자동 인증 처리
   setTimeout(() => completePhoneVerification(), 500);
 }
 
@@ -208,6 +259,80 @@ document.getElementById('phone').addEventListener('input', function () {
   this.value = val;
 });
 
+// ===== 투자자 형태 기타 직접입력 =====
+
+document.addEventListener('DOMContentLoaded', () => {
+  const invType = document.getElementById('inv_type');
+  const invTypeCustom = document.getElementById('inv_type_custom');
+  if (invType) {
+    invType.addEventListener('change', () => {
+      invTypeCustom.style.display = invType.value === '기타' ? '' : 'none';
+    });
+  }
+
+  // 소개 글자수
+  const suBio = document.getElementById('su_bio');
+  if (suBio) {
+    suBio.addEventListener('input', function () {
+      document.getElementById('suBioCount').textContent = this.value.length;
+    });
+  }
+
+  // 키워드 뱃지 입력
+  const kwInput = document.getElementById('co_keywords_input');
+  if (kwInput) {
+    kwInput.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        const val = this.value.trim();
+        if (val && keywords.length < 3 && !keywords.includes(val)) {
+          keywords.push(val);
+          renderKeywordBadges();
+        }
+        this.value = '';
+      } else if (e.key === 'Backspace' && !this.value && keywords.length > 0) {
+        keywords.pop();
+        renderKeywordBadges();
+      }
+    });
+  }
+
+  // 약관4
+  document.querySelectorAll('.term-check4').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const all = document.querySelectorAll('.term-check4');
+      document.getElementById('agreeAll4').checked = Array.from(all).every(c => c.checked);
+    });
+  });
+});
+
+function renderKeywordBadges() {
+  const container = document.getElementById('keywordBadges');
+  const hidden = document.getElementById('co_keywords');
+  if (!container) return;
+  container.innerHTML = keywords.map((kw, i) =>
+    `<span class="keyword-badge">${kw}<button type="button" onclick="removeKeyword(${i})" class="kw-remove">×</button></span>`
+  ).join('');
+  if (hidden) hidden.value = keywords.join(',');
+  // 3개 초과 시 입력 비활성화
+  const inp = document.getElementById('co_keywords_input');
+  if (inp) inp.disabled = keywords.length >= 3;
+}
+
+function removeKeyword(idx) {
+  keywords.splice(idx, 1);
+  renderKeywordBadges();
+}
+
+// ===== 파일 업로드 파일명 표시 =====
+
+function handleFileSelect(input, labelId) {
+  const label = document.getElementById(labelId);
+  if (label && input.files && input.files[0]) {
+    label.textContent = input.files[0].name;
+  }
+}
+
 // ===== 약관 =====
 
 function toggleAllAgree() {
@@ -215,28 +340,33 @@ function toggleAllAgree() {
   document.querySelectorAll('.term-check').forEach(cb => { cb.checked = checked; });
 }
 
+function toggleAllAgree4() {
+  const checked = document.getElementById('agreeAll4').checked;
+  document.querySelectorAll('.term-check4').forEach(cb => { cb.checked = checked; });
+}
+
 document.querySelectorAll('.term-check').forEach(cb => {
   cb.addEventListener('change', () => {
     const all = document.querySelectorAll('.term-check');
-    document.getElementById('agreeAll').checked = Array.from(all).every(c => c.checked);
+    const agreeAll = document.getElementById('agreeAll');
+    if (agreeAll) agreeAll.checked = Array.from(all).every(c => c.checked);
   });
 });
 
-document.getElementById('bio').addEventListener('input', function () {
-  document.getElementById('bioCount').textContent = this.value.length;
-});
-
-// ===== 소셜 로그인 (auth.js 위임) =====
-// socialLogin()은 auth.js에서 처리
-
-// ===== 회원가입 제출 (Supabase signUp) =====
+// ===== 회원가입 제출 =====
 
 async function handleRegisterSubmit(event) {
   event.preventDefault();
   if (!validateStep1() || !validateStep2()) return;
 
-  const requiredTerms = document.querySelectorAll('.term-check[required]');
-  if (!Array.from(requiredTerms).every(cb => cb.checked)) {
+  const userType = getSelectedUserType();
+
+  // 약관 체크 (유형에 따라 다른 체크박스)
+  const isStartup = userType === 'startup';
+  const termChecks = isStartup
+    ? document.querySelectorAll('.term-check4[required]')
+    : document.querySelectorAll('.term-check[required]');
+  if (!Array.from(termChecks).every(cb => cb.checked)) {
     alert('필수 약관에 동의해주세요.');
     return;
   }
@@ -247,35 +377,69 @@ async function handleRegisterSubmit(event) {
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const userId   = document.getElementById('userId').value.trim();
-  const userType = document.querySelector('input[name="userType"]:checked').value;
   const phone    = document.getElementById('phone').value.replace(/[-\s]/g, '');
-  const company  = document.getElementById('company').value.trim() || null;
-  const portfolio= document.getElementById('portfolio').value.trim() || null;
-  const bio      = document.getElementById('bio').value.trim() || null;
 
-  const submitBtn = document.getElementById('btnSubmit');
+  // 투자자 추가정보
+  const inv_company  = document.getElementById('inv_company')?.value.trim() || null;
+  const inv_typeVal  = document.getElementById('inv_type')?.value || null;
+  const inv_typeCustom = document.getElementById('inv_type_custom')?.value.trim() || null;
+  const invType      = inv_typeVal === '기타' ? inv_typeCustom : inv_typeVal;
+  const inv_role     = document.getElementById('inv_role')?.value.trim() || null;
+  const inv_homepage = document.getElementById('inv_homepage')?.value.trim() || null;
+  const inv_sns      = document.getElementById('inv_sns')?.value.trim() || null;
+
+  // 스타트업 개인정보
+  const su_name        = document.getElementById('su_name')?.value.trim() || null;
+  const su_nationality = document.getElementById('su_nationality')?.value.trim() || null;
+  const su_age         = document.getElementById('su_age')?.value || null;
+  const su_gender      = document.getElementById('su_gender')?.value || null;
+  const su_job         = document.getElementById('su_job')?.value.trim() || null;
+  const su_sns         = document.getElementById('su_sns')?.value.trim() || null;
+  const su_bio         = document.getElementById('su_bio')?.value.trim() || null;
+  const su_referral    = document.getElementById('su_referral')?.value || null;
+
+  // 스타트업 회사정보
+  const co_name            = document.getElementById('co_name')?.value.trim() || null;
+  const co_founded         = document.getElementById('co_founded')?.value || null;
+  const co_homepage        = document.getElementById('co_homepage')?.value.trim() || null;
+  const co_biz_type        = document.getElementById('co_biz_type')?.value || null;
+  const co_address         = document.getElementById('co_address')?.value.trim() || null;
+  const co_stage           = document.getElementById('co_stage')?.value || null;
+  const co_keywords_val    = document.getElementById('co_keywords')?.value || null;
+  const co_cofounder       = document.getElementById('co_cofounder')?.value || null;
+  const co_cur_invest_stage= document.getElementById('co_cur_invest_stage')?.value || null;
+  const co_cur_invest_amt  = document.getElementById('co_cur_invest_amt')?.value || null;
+  const co_hope_invest_stage = document.getElementById('co_hope_invest_stage')?.value || null;
+  const co_hope_invest_amt = document.getElementById('co_hope_invest_amt')?.value || null;
+
+  // company / portfolio / bio 공통 매핑
+  const company   = isStartup ? (co_name || su_name) : inv_company;
+  const portfolio = isStartup ? co_homepage : inv_homepage;
+  const bio       = isStartup ? su_bio : null;
+
+  const submitBtnId = isStartup ? 'btnSubmit' : 'btnSubmitInvestor';
+  const submitBtn = document.getElementById(submitBtnId);
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 처리 중...';
 
-  // 이메일 OTP로 이미 세션이 생성된 경우 → updateUser로 비밀번호 설정
   const { data: { session } } = await sb.auth.getSession();
 
   let userId_ = null;
   let accessToken = null;
 
+  const extraMeta = isStartup ? {
+    su_name, su_nationality, su_age, su_gender, su_job, su_sns, su_bio, su_referral,
+    co_name, co_founded, co_homepage, co_biz_type, co_address, co_stage,
+    co_keywords: co_keywords_val, co_cofounder, co_cur_invest_stage, co_cur_invest_amt,
+    co_hope_invest_stage, co_hope_invest_amt,
+  } : {
+    inv_type: invType, inv_role, inv_homepage, inv_sns,
+  };
+
   if (session && session.user.email === email) {
-    // OTP 인증 후 세션이 있는 경우: 비밀번호 & 메타데이터 업데이트
     const { data, error } = await sb.auth.updateUser({
       password,
-      data: {
-        full_name: userId,
-        username: userId,
-        user_type: userType,
-        phone,
-        company,
-        portfolio,
-        bio,
-      }
+      data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
     });
     if (error) {
       alert('회원가입 처리 중 오류가 발생했습니다: ' + error.message);
@@ -286,20 +450,10 @@ async function handleRegisterSubmit(event) {
     userId_ = data.user.id;
     accessToken = session.access_token;
   } else {
-    // 일반 signUp
     const { data, error } = await sb.auth.signUp({
-      email,
-      password,
+      email, password,
       options: {
-        data: {
-          full_name: userId,
-          username: userId,
-          user_type: userType,
-          phone,
-          company,
-          portfolio,
-          bio,
-        }
+        data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
       }
     });
     if (error) {
@@ -312,45 +466,25 @@ async function handleRegisterSubmit(event) {
     accessToken = data.session?.access_token;
   }
 
-  // users 테이블에도 저장 (아이디 기반 로그인을 위해 필수)
   try {
     await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId,
-        email,
-        password,
-        name: userId,
-        userType,
-        phone: phone || null,
-        company: company || null,
-        portfolio: portfolio || null,
-        bio: bio || null,
-        marketingAgree: false,
+        userId, email, password, name: userId, userType,
+        phone: phone || null, company: company || null, portfolio: portfolio || null, bio: bio || null,
+        marketingAgree: false, ...extraMeta,
       }),
     });
-  } catch {
-    // users 테이블 저장 실패는 무시 (Supabase Auth 가입은 완료됨)
-  }
+  } catch { /* 무시 */ }
 
   if (accessToken) {
-    // 바로 로그인 처리
-    const userInfo = {
-      id: userId_,
-      email,
-      name: userId,
-      userType,
-      phone,
-      company,
-      verified: true,
-    };
+    const userInfo = { id: userId_, email, name: userId, userType, phone, company, verified: true };
     localStorage.setItem('auth_token', accessToken);
     localStorage.setItem('user_info', JSON.stringify(userInfo));
     alert('회원가입이 완료되었습니다! 환영합니다 😊');
     window.location.href = '../index.html';
   } else {
-    // 이메일 확인 필요
     alert('이메일 인증 링크를 발송했습니다.\n이메일을 확인하여 인증을 완료해주세요.');
     window.location.href = 'login.html';
   }
@@ -366,9 +500,7 @@ function showFieldMsg(el, message, type) {
 function startTimer(elementId, seconds, onExpire) {
   const el = document.getElementById(elementId);
   let remaining = seconds;
-
   if (elementId === 'emailTimer') clearInterval(emailTimerInterval);
-
   const update = () => {
     const min = Math.floor(remaining / 60);
     const sec = remaining % 60;
@@ -376,7 +508,6 @@ function startTimer(elementId, seconds, onExpire) {
     if (remaining <= 0) { clearInterval(interval); if (onExpire) onExpire(); }
     remaining--;
   };
-
   update();
   const interval = setInterval(update, 1000);
   if (elementId === 'emailTimer') emailTimerInterval = interval;
