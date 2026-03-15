@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   checkDashboardAuth();
   renderDashboard();
   initStoredFiles();
+  loadSupportEvents();
 
   const tab = new URLSearchParams(window.location.search).get("tab");
   if (tab) switchSection(tab);
@@ -149,20 +150,10 @@ function renderUserProfile(user) {
   setText('pBmFunds', bmFunds);
   setText('pBmStartups', bmStartups);
 
-  // 현황 통계: localStorage 기반 실제 카운팅 (샘플 계정 포함)
-  const uid = user.userId || user.username || '';
-  const SAMPLE_STATS = { 'ywz22': { favoritedBy: 12, clickCount: 248, docRequest: 33 } };
-  const isSample = SAMPLE_STATS[uid];
-
-  const storedStats = JSON.parse(localStorage.getItem('vcr_stats_' + uid) || '{}');
-  if (isSample && !storedStats._seeded) {
-    const seeded = { favoritedBy: isSample.favoritedBy, clickCount: isSample.clickCount, docRequest: isSample.docRequest, _seeded: true };
-    localStorage.setItem('vcr_stats_' + uid, JSON.stringify(seeded));
-    Object.assign(storedStats, seeded);
-  }
-  const favoritedBy = user.favoritedBy !== undefined ? user.favoritedBy : (storedStats.favoritedBy || 0);
-  const clickCount  = user.clickCount  !== undefined ? user.clickCount  : (storedStats.clickCount  || 0);
-  const docRequest  = user.docRequest  !== undefined ? user.docRequest  : (storedStats.docRequest  || 0);
+  // 현황 통계: Supabase 계정 메타데이터 기반
+  const favoritedBy = user.favoritedBy || 0;
+  const clickCount  = user.clickCount  || 0;
+  const docRequest  = user.docRequest  || 0;
   setText('pFavoritedBy', favoritedBy);
   setText('pClickCount', clickCount);
   setText('pDocRequest', docRequest);
@@ -671,22 +662,20 @@ function closeModal() {
 }
 
 // ─── AI 매칭 이력 ─────────────────────────────────────────────────
-function loadRecommendHistory() {
-  const list = JSON.parse(localStorage.getItem("vcroute_recommend_history") || "[]");
+function _renderRecommendCards(list) {
   const container = document.getElementById("recommendList");
   const empty = document.getElementById("recommendEmpty");
   if (!container) return;
 
   if (!list.length) {
     if (empty) empty.style.display = "block";
-    // remove any previously rendered cards
     container.querySelectorAll(".recommend-card").forEach(c => c.remove());
     return;
   }
   if (empty) empty.style.display = "none";
   container.querySelectorAll(".recommend-card").forEach(c => c.remove());
 
-  list.slice().reverse().forEach(item => {
+  list.forEach(item => {
     const card = document.createElement("div");
     card.className = "recommend-card";
     card.style.cssText = "background:white;border:1px solid #e2e8f0;border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1rem;";
@@ -713,10 +702,34 @@ function loadRecommendHistory() {
   });
 }
 
-function clearRecommendHistory() {
+async function loadRecommendHistory() {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  let list = [];
+  if (sb) {
+    const { data } = await sb.from('user_ai_history')
+      .select('*').order('created_at', { ascending: false }).limit(20);
+    list = (data || []).map(r => ({
+      date: r.date,
+      matchScore: r.match_score,
+      fundName: r.fund_name,
+      companyName: r.company_name,
+      industry: r.industry,
+      gpName: r.gp_name,
+      gpCompany: r.gp_company,
+      gpEmail: r.gp_email,
+    }));
+  }
+  _renderRecommendCards(list);
+}
+
+async function clearRecommendHistory() {
   if (!confirm("AI 매칭 이력을 모두 삭제하시겠습니까?")) return;
-  localStorage.removeItem("vcroute_recommend_history");
-  loadRecommendHistory();
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) await sb.from('user_ai_history').delete().eq('user_id', user.id);
+  }
+  _renderRecommendCards([]);
 }
 
 // 연락한 투자자 내역 그룹 토글
@@ -729,23 +742,33 @@ function toggleContactGroup(group) {
   btn.style.opacity = hidden ? '1' : '0.45';
 }
 
-// ─── 자료보관함 (localStorage 기반) ───────────────────────────────
-const VCROUTE_FILES_KEY = "vcroute_stored_files";
+// ─── 자료보관함 (Supabase 계정 기반) ───────────────────────────────
+let _storedFiles = [];
 
 const SEED_FILES = [
-  { id:"seed1", name:"2025_Series_A_IR_Deck_v3.pdf",       category:"IR자료",    badge:"IR",     size:"4.2 MB", date:"2025.01.15", content:"" },
-  { id:"seed2", name:"회사소개서_2025_최종.pptx",           category:"회사소개서", badge:"IR",     size:"12.8 MB",date:"2025.01.10", content:"" },
-  { id:"seed3", name:"Investment_Memorandum_Q4.docx",       category:"기타",      badge:"IM",     size:"2.1 MB", date:"2025.01.05", content:"" },
-  { id:"seed4", name:"재무제표_2024_감사완료.pdf",           category:"재무제표",  badge:"IM",     size:"1.5 MB", date:"2024.12.28", content:"" },
-  { id:"seed5", name:"Pitch_Deck_Demo_Day.pptx",            category:"IR자료",    badge:"IR",     size:"8.7 MB", date:"2024.12.20", content:"" },
-  { id:"seed6", name:"특허등록증_제10-2024-0123456호.pdf",   category:"기타",      badge:"인증서류",size:"0.8 MB", date:"2024.09.15", content:"" },
-  { id:"seed7", name:"벤처기업확인서_주식회사벤처플랫폼_2025.pdf", category:"기타", badge:"인증서류",size:"0.5 MB",date:"2025.01.20", content:"" },
-  { id:"seed8", name:"투자확인서_스마트벤처캠퍼스_2025.pdf", category:"기타",      badge:"인증서류",size:"0.3 MB", date:"2025.02.10", content:"" },
+  { name:"2025_Series_A_IR_Deck_v3.pdf",       category:"IR자료",    badge:"IR",     size:"4.2 MB", date:"2025.01.15", content:"" },
+  { name:"회사소개서_2025_최종.pptx",           category:"회사소개서", badge:"IR",     size:"12.8 MB",date:"2025.01.10", content:"" },
+  { name:"Investment_Memorandum_Q4.docx",       category:"기타",      badge:"IM",     size:"2.1 MB", date:"2025.01.05", content:"" },
+  { name:"재무제표_2024_감사완료.pdf",           category:"재무제표",  badge:"IM",     size:"1.5 MB", date:"2024.12.28", content:"" },
+  { name:"Pitch_Deck_Demo_Day.pptx",            category:"IR자료",    badge:"IR",     size:"8.7 MB", date:"2024.12.20", content:"" },
+  { name:"특허등록증_제10-2024-0123456호.pdf",   category:"기타",      badge:"인증서류",size:"0.8 MB", date:"2024.09.15", content:"" },
+  { name:"벤처기업확인서_주식회사벤처플랫폼_2025.pdf", category:"기타", badge:"인증서류",size:"0.5 MB",date:"2025.01.20", content:"" },
+  { name:"투자확인서_스마트벤처캠퍼스_2025.pdf", category:"기타",      badge:"인증서류",size:"0.3 MB", date:"2025.02.10", content:"" },
 ];
 
-function initStoredFiles() {
-  if (!localStorage.getItem(VCROUTE_FILES_KEY)) {
-    localStorage.setItem(VCROUTE_FILES_KEY, JSON.stringify(SEED_FILES));
+async function initStoredFiles() {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) { renderStoredFiles(); return; }
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { renderStoredFiles(); return; }
+
+  const { data } = await sb.from('user_files').select('*').order('created_at', { ascending: false });
+  if (data && data.length > 0) {
+    _storedFiles = data;
+  } else {
+    const seeds = SEED_FILES.map(f => ({ user_id: user.id, ...f }));
+    const { data: inserted } = await sb.from('user_files').insert(seeds).select();
+    _storedFiles = (inserted || []).reverse();
   }
   renderStoredFiles();
 }
@@ -753,7 +776,7 @@ function initStoredFiles() {
 function renderStoredFiles() {
   const list = document.getElementById("imirFilesList");
   if (!list) return;
-  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
+  const files = _storedFiles;
   if (!files.length) {
     list.innerHTML = `<div style="text-align:center;padding:2.5rem;color:#94a3b8;"><i class="fa-solid fa-folder-open" style="font-size:2rem;margin-bottom:0.8rem;display:block;"></i>저장된 파일이 없습니다.</div>`;
     return;
@@ -795,9 +818,10 @@ function renderStoredFiles() {
   if (statEls[3]) statEls[3].textContent = files.length;
 }
 
-function deleteStoredFile(id) {
-  const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
-  localStorage.setItem(VCROUTE_FILES_KEY, JSON.stringify(files.filter(f => f.id !== id)));
+async function deleteStoredFile(id) {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) await sb.from('user_files').delete().eq('id', id);
+  _storedFiles = _storedFiles.filter(f => f.id !== id);
   renderStoredFiles();
 }
 
@@ -836,7 +860,7 @@ function handleStorageDrop(e) {
   document.getElementById("storageSaveBtn").disabled = false;
 }
 
-function saveStorageFile() {
+async function saveStorageFile() {
   if (!_pendingStorageFile) return;
   const file     = _pendingStorageFile;
   const category = document.getElementById("storageCategorySelect").value;
@@ -850,11 +874,20 @@ function saveStorageFile() {
   btn.textContent = "읽는 중...";
   btn.disabled = true;
 
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+
   const reader = new FileReader();
-  reader.onload = e => {
-    const files = JSON.parse(localStorage.getItem(VCROUTE_FILES_KEY) || "[]");
-    files.unshift({ id: Date.now().toString(), name: file.name, category, badge, size: sizeMB, date, content: e.target.result });
-    localStorage.setItem(VCROUTE_FILES_KEY, JSON.stringify(files));
+  reader.onload = async e => {
+    const content = e.target.result || '';
+    if (sb) {
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const { data: inserted } = await sb.from('user_files')
+          .insert({ user_id: user.id, name: file.name, category, badge, size: sizeMB, date, content })
+          .select().single();
+        if (inserted) _storedFiles.unshift(inserted);
+      }
+    }
     renderStoredFiles();
     closeStorageUploadModal();
     btn.textContent = "저장";
@@ -1049,15 +1082,58 @@ async function saveProfileInfo() {
 let _supportYear = new Date().getFullYear();
 let _supportMonth = new Date().getMonth(); // 0-indexed
 
-// 샘플 지원사업 이벤트 데이터
-const SUPPORT_EVENTS = [
-  { id:1, title:'창업도약패키지', org:'중소벤처기업부', color:'#2563eb', bgColor:'#dbeafe', start:'2026-03-05', end:'2026-03-28', category:'창업지원', apply:true, result:'selected', amount:'최대 1억원', description:'초기 창업기업의 사업화 역량 강화를 위한 패키지 지원 프로그램' },
-  { id:2, title:'TIPS 프로그램', org:'중소벤처기업부', color:'#7c3aed', bgColor:'#ede9fe', start:'2026-03-10', end:'2026-04-10', category:'R&D', apply:true, result:'rejected', amount:'최대 5억원', description:'민간투자 주도형 기술창업 지원, 엔젤투자사 추천 필수' },
-  { id:3, title:'서울형 강소기업 육성', org:'서울시', color:'#059669', bgColor:'#d1fae5', start:'2026-03-15', end:'2026-03-31', category:'지역지원', apply:false, result:null, amount:'최대 3,000만원', description:'서울 소재 중소기업 경쟁력 강화를 위한 종합 지원 사업' },
-  { id:4, title:'민간투자 연계형 지원', org:'중기부', color:'#d97706', bgColor:'#fef3c7', start:'2026-03-20', end:'2026-04-20', category:'투자연계', apply:false, result:null, amount:'최대 2억원', description:'민간투자와 연계한 정부 매칭 지원, 투자확약서 필요' },
-  { id:5, title:'K-스타트업 그랜드챌린지', org:'중소벤처기업부', color:'#dc2626', bgColor:'#fee2e2', start:'2026-04-01', end:'2026-04-30', category:'글로벌', apply:false, result:null, amount:'최대 1억원', description:'글로벌 진출을 목표로 하는 스타트업 대상 국제 경진대회' },
-  { id:6, title:'청년창업사관학교', org:'중소기업진흥공단', color:'#0891b2', bgColor:'#cffafe', start:'2026-03-01', end:'2026-03-20', category:'창업지원', apply:true, result:'selected', amount:'최대 1억원', description:'만 39세 이하 청년창업가 대상 창업 교육 및 사업화 지원' },
+// 지원사업 이벤트 (Supabase에서 로드, 기본값 seed 포함)
+let SUPPORT_EVENTS = [];
+
+const DEFAULT_SUPPORT_EVENTS = [
+  { title:'창업도약패키지', org:'중소벤처기업부', color:'#2563eb', bgColor:'#dbeafe', start:'2026-03-05', end:'2026-03-28', category:'창업지원', apply:true, result:'selected', amount:'최대 1억원', description:'초기 창업기업의 사업화 역량 강화를 위한 패키지 지원 프로그램' },
+  { title:'TIPS 프로그램', org:'중소벤처기업부', color:'#7c3aed', bgColor:'#ede9fe', start:'2026-03-10', end:'2026-04-10', category:'R&D', apply:true, result:'rejected', amount:'최대 5억원', description:'민간투자 주도형 기술창업 지원, 엔젤투자사 추천 필수' },
+  { title:'서울형 강소기업 육성', org:'서울시', color:'#059669', bgColor:'#d1fae5', start:'2026-03-15', end:'2026-03-31', category:'지역지원', apply:false, result:null, amount:'최대 3,000만원', description:'서울 소재 중소기업 경쟁력 강화를 위한 종합 지원 사업' },
+  { title:'민간투자 연계형 지원', org:'중기부', color:'#d97706', bgColor:'#fef3c7', start:'2026-03-20', end:'2026-04-20', category:'투자연계', apply:false, result:null, amount:'최대 2억원', description:'민간투자와 연계한 정부 매칭 지원, 투자확약서 필요' },
+  { title:'K-스타트업 그랜드챌린지', org:'중소벤처기업부', color:'#dc2626', bgColor:'#fee2e2', start:'2026-04-01', end:'2026-04-30', category:'글로벌', apply:false, result:null, amount:'최대 1억원', description:'글로벌 진출을 목표로 하는 스타트업 대상 국제 경진대회' },
+  { title:'청년창업사관학교', org:'중소기업진흥공단', color:'#0891b2', bgColor:'#cffafe', start:'2026-03-01', end:'2026-03-20', category:'창업지원', apply:true, result:'selected', amount:'최대 1억원', description:'만 39세 이하 청년창업가 대상 창업 교육 및 사업화 지원' },
 ];
+
+function _dbRowToEvent(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    org: row.org || '',
+    color: row.color || '#2563eb',
+    bgColor: row.bg_color || '#dbeafe',
+    start: row.start_date || '',
+    end: row.end_date || '',
+    category: row.category || '기타',
+    apply: row.apply || false,
+    result: row.result || null,
+    amount: row.amount || '',
+    description: row.description || '',
+  };
+}
+
+async function loadSupportEvents() {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) {
+      const { data } = await sb.from('user_support_events').select('*').order('created_at', { ascending: true });
+      if (data && data.length > 0) {
+        SUPPORT_EVENTS = data.map(_dbRowToEvent);
+      } else {
+        const seeds = DEFAULT_SUPPORT_EVENTS.map(ev => ({
+          user_id: user.id,
+          title: ev.title, org: ev.org, color: ev.color, bg_color: ev.bgColor,
+          start_date: ev.start, end_date: ev.end, category: ev.category,
+          apply: ev.apply, result: ev.result || null,
+          amount: ev.amount || '', description: ev.description || '', is_system: true,
+        }));
+        const { data: inserted } = await sb.from('user_support_events').insert(seeds).select();
+        SUPPORT_EVENTS = (inserted || []).map(_dbRowToEvent);
+      }
+    }
+  }
+  initSupportCalendar();
+}
 
 function initSupportCalendar() {
   renderSupportCalendar();
@@ -1107,7 +1183,7 @@ function renderSupportCalendar() {
     const dayNumColor = isToday ? '' : (isSun ? 'color:#dc2626;' : isSat ? 'color:#2563eb;' : 'color:#475569;');
 
     const eventsHtml = dayEvents.slice(0,3).map(ev => `
-      <div onclick="showSupportEvent(event,${ev.id})" style="font-size:0.65rem; font-weight:700; color:${ev.color}; background:${ev.bgColor}; border-radius:4px; padding:1px 4px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; box-sizing:border-box; display:block;" title="${ev.title}">${ev.title}</div>
+      <div onclick="showSupportEvent(event,'${ev.id}')" style="font-size:0.65rem; font-weight:700; color:${ev.color}; background:${ev.bgColor}; border-radius:4px; padding:1px 4px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; box-sizing:border-box; display:block;" title="${ev.title}">${ev.title}</div>
     `).join('');
     const moreHtml = dayEvents.length > 3 ? `<div style="font-size:0.65rem;color:#94a3b8;padding-left:2px;">+${dayEvents.length-3}개 더</div>` : '';
 
@@ -1222,7 +1298,7 @@ let _siTimerInterval = null;
 const SI_TEST_CODE = '123456'; // 개발용 테스트 코드
 
 function loadSettingsBasicInfo() {
-  const user = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const user = _profileUser || {};
   const emailInput = document.getElementById('si_email');
   const usernameInput = document.getElementById('si_username');
   if (usernameInput) usernameInput.value = user.name || user.email?.split('@')[0] || '';
@@ -1299,9 +1375,8 @@ function verifyEmailCode() {
     if (el) el.disabled = false;
   });
   // 연락처 기존 값 로드
-  const user = JSON.parse(localStorage.getItem('user_info') || '{}');
   const phoneEl = document.getElementById('si_phone');
-  if (phoneEl) phoneEl.value = user.phone || '';
+  if (phoneEl) phoneEl.value = (_profileUser && _profileUser.phone) || '';
 }
 
 function showSiStatus(msg, type) {
@@ -1365,10 +1440,11 @@ async function saveBasicInfo() {
       const { error } = await sb.auth.updateUser({ password: newPw });
       if (error) { showSiStatus('비밀번호 변경 실패: ' + error.message, 'error'); return; }
     }
-    // 연락처 업데이트 localStorage
-    const user = JSON.parse(localStorage.getItem('user_info') || '{}');
-    if (phone) user.phone = phone;
-    localStorage.setItem('user_info', JSON.stringify(user));
+    // 연락처 업데이트 - Supabase Auth 메타데이터
+    if (sb && phone) {
+      await sb.auth.updateUser({ data: { phone } });
+      if (_profileUser) _profileUser.phone = phone;
+    }
 
     showSiStatus('저장되었습니다!', 'success');
     // 비밀번호 필드 초기화
@@ -1463,7 +1539,7 @@ function closeAddApplicationModal() {
 
 function fillApplicationFromEvent() {
   const sel = document.getElementById('appModalEventSel');
-  const evId = parseInt(sel.value);
+  const evId = sel.value;
   if (!evId) return;
   const ev = SUPPORT_EVENTS.find(e => e.id === evId);
   if (!ev) return;
@@ -1478,13 +1554,14 @@ function fillApplicationFromEvent() {
   }
 }
 
-function submitAddApplication() {
-  const selEvId = parseInt(document.getElementById('appModalEventSel').value);
+async function submitAddApplication() {
+  const selEvId = document.getElementById('appModalEventSel').value;
   const titleVal = document.getElementById('appModalTitle').value.trim();
   const orgVal   = document.getElementById('appModalOrg').value.trim() || '직접 추가';
   const endVal   = document.getElementById('appModalEnd').value;
   const statusVal = document.getElementById('appModalStatus').value;
   const resultMap = { apply: null, selected: 'selected', rejected: 'rejected' };
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
 
   if (selEvId) {
     // 기존 일정에 신청 상태 반영
@@ -1492,6 +1569,7 @@ function submitAddApplication() {
     if (ev) {
       ev.apply = true;
       ev.result = resultMap[statusVal];
+      if (sb) await sb.from('user_support_events').update({ apply: true, result: resultMap[statusVal] }).eq('id', selEvId);
     }
   } else {
     // 새 항목 직접 추가
@@ -1500,13 +1578,27 @@ function submitAddApplication() {
     const palette  = ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
     const bgPalette = ['#dbeafe','#ede9fe','#d1fae5','#fef3c7','#fee2e2','#cffafe'];
     const idx = SUPPORT_EVENTS.length % palette.length;
-    SUPPORT_EVENTS.push({
-      id: Date.now(), title: titleVal, org: orgVal,
+    const newEv = {
+      title: titleVal, org: orgVal,
       color: palette[idx], bgColor: bgPalette[idx],
       start: endVal, end: endVal, category: '기타',
       apply: true, result: resultMap[statusVal],
       amount: '', description: '',
-    });
+    };
+    if (sb) {
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const { data: inserted } = await sb.from('user_support_events').insert({
+          user_id: user.id, title: newEv.title, org: newEv.org,
+          color: newEv.color, bg_color: newEv.bgColor,
+          start_date: newEv.start, end_date: newEv.end, category: newEv.category,
+          apply: newEv.apply, result: newEv.result, amount: '', description: '',
+        }).select().single();
+        if (inserted) newEv.id = inserted.id;
+      }
+    }
+    if (!newEv.id) newEv.id = Date.now().toString();
+    SUPPORT_EVENTS.push(newEv);
   }
 
   closeAddApplicationModal();
@@ -1533,7 +1625,7 @@ function closeAddEventModal() {
   if (modal) modal.style.display = 'none';
 }
 
-function submitAddEvent() {
+async function submitAddEvent() {
   const title = document.getElementById('addEvTitle').value.trim();
   const org = document.getElementById('addEvOrg').value.trim() || '직접 추가';
   const end = document.getElementById('addEvEnd').value;
@@ -1548,10 +1640,24 @@ function submitAddEvent() {
   const bgPalette = ['#dbeafe','#ede9fe','#d1fae5','#fef3c7','#fee2e2','#cffafe'];
   const idx = SUPPORT_EVENTS.length % palette.length;
 
-  SUPPORT_EVENTS.push({
-    id: Date.now(), title, org, color: palette[idx], bgColor: bgPalette[idx],
+  const newEv = {
+    title, org, color: palette[idx], bgColor: bgPalette[idx],
     start: end, end, category, apply: false, result: null, amount, description,
-  });
+  };
+
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) {
+      const { data: inserted } = await sb.from('user_support_events').insert({
+        user_id: user.id, title, org, color: newEv.color, bg_color: newEv.bgColor,
+        start_date: end, end_date: end, category, apply: false, result: null, amount, description,
+      }).select().single();
+      if (inserted) newEv.id = inserted.id;
+    }
+  }
+  if (!newEv.id) newEv.id = Date.now().toString();
+  SUPPORT_EVENTS.push(newEv);
 
   closeAddEventModal();
   document.getElementById('addEvTitle').value = '';

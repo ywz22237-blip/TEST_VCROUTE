@@ -381,7 +381,70 @@ GRANT SELECT ON public.profiles TO anon, authenticated;
 */
 
 -- ────────────────────────────────────────────────────────────
--- 13. 완료 확인 쿼리
+-- 13. 사용자 데이터 테이블 (계정 기반 저장)
+-- ────────────────────────────────────────────────────────────
+
+-- AI 매칭 이력
+CREATE TABLE IF NOT EXISTS public.user_ai_history (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  date text,
+  match_score integer DEFAULT 0,
+  fund_name text,
+  company_name text,
+  industry text,
+  gp_name text,
+  gp_company text,
+  gp_email text,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.user_ai_history ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own ai history" ON public.user_ai_history
+  FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_user_ai_history_user ON public.user_ai_history(user_id);
+
+-- 자료보관함
+CREATE TABLE IF NOT EXISTS public.user_files (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name text NOT NULL,
+  category text DEFAULT '기타',
+  badge text DEFAULT 'IR',
+  size text DEFAULT '',
+  date text DEFAULT '',
+  content text DEFAULT '',
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.user_files ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own files" ON public.user_files
+  FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_user_files_user ON public.user_files(user_id);
+
+-- 지원사업 이벤트
+CREATE TABLE IF NOT EXISTS public.user_support_events (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  org text DEFAULT '',
+  color text DEFAULT '#2563eb',
+  bg_color text DEFAULT '#dbeafe',
+  start_date text DEFAULT '',
+  end_date text DEFAULT '',
+  category text DEFAULT '기타',
+  apply boolean DEFAULT false,
+  result text DEFAULT null,
+  amount text DEFAULT '',
+  description text DEFAULT '',
+  is_system boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.user_support_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own support events" ON public.user_support_events
+  FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_user_support_events_user ON public.user_support_events(user_id);
+
+-- ────────────────────────────────────────────────────────────
+-- 14. 완료 확인 쿼리
 -- ────────────────────────────────────────────────────────────
 SELECT
   table_name,
