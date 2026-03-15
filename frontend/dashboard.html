@@ -900,7 +900,7 @@
               </label>
               <label class="filter-item" onclick="switchSection('recommend')">
                 <i class="fa-solid fa-bookmark" style="width: 20px"></i>
-                <span>추천 이력</span>
+                <span>AI 매칭 이력</span>
               </label>
               <label class="filter-item" onclick="switchSection('support')">
                 <i class="fa-solid fa-hand-holding-dollar" style="width: 20px"></i>
@@ -1445,7 +1445,7 @@
           <!-- Recommendation History Section -->
           <section id="recommendSection" class="dashboard-section" style="display:none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-              <h2 style="margin:0;">추천 이력</h2>
+              <h2 style="margin:0;">AI 매칭 이력</h2>
               <button onclick="clearRecommendHistory()" style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;cursor:pointer;color:#64748b;font-family:inherit;">기록 초기화</button>
             </div>
             <div class="content-box highlight" style="margin-bottom:1.5rem;">
@@ -1454,7 +1454,7 @@
             <div id="recommendList">
               <div id="recommendEmpty" style="text-align:center;padding:3rem;color:#94a3b8;">
                 <i class="fa-solid fa-bookmark" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>
-                아직 추천 이력이 없습니다.<br/>투자 진단&추천에서 펀드를 선택해보세요.
+                아직 AI 매칭 이력이 없습니다.<br/>투자 진단&추천에서 펀드를 선택해보세요.
               </div>
             </div>
           </section>
@@ -2262,15 +2262,12 @@
 
           </section>
 
-          <!-- Settings Section -->
+          <!-- Basic Info Section (내정보 헤더 버튼 전용, 사이드바 미노출) -->
           <section
-            id="settingsSection"
+            id="basicinfoSection"
             class="dashboard-section"
             style="display: none"
           >
-            <h2>설정</h2>
-
-            <!-- 계정 보안: 기본 정보 수정 카드 -->
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-icon security">
@@ -2374,6 +2371,15 @@
                 </div>
               </div>
             </div>
+          </section>
+
+          <!-- Settings Section -->
+          <section
+            id="settingsSection"
+            class="dashboard-section"
+            style="display: none"
+          >
+            <h2>설정</h2>
 
             <!-- 알림 설정 -->
             <div class="settings-card">
