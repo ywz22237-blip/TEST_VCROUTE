@@ -356,6 +356,11 @@ CREATE OR REPLACE VIEW public.profiles AS
 
 GRANT SELECT ON public.profiles TO anon, authenticated;
 
+-- 투자자 추가 희망 정보 컬럼
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS inv_hope_round      TEXT;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS inv_hope_amt        TEXT;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS inv_hope_industries TEXT;
+
 -- 이메일 중복 확인용 RPC 함수 (anon에서 호출 가능, SECURITY DEFINER로 RLS 우회)
 CREATE OR REPLACE FUNCTION public.check_email_exists(check_email TEXT)
 RETURNS BOOLEAN

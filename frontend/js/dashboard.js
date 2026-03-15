@@ -133,11 +133,36 @@ function renderUserProfile(user) {
   const investVal = parseFloat(user.investTarget);
   setText('pInvestTarget', (!isNaN(investVal) && investVal > 0) ? investVal + '억원' : (user.investTarget || '-'));
 
-  // 대표자 나이
-  setText('pCeoAge', user.ceoAge ? user.ceoAge + '세' : '-');
+  // 투자자 전용 카드 표시/숨김
+  const isInvestorUser = user.userType === 'investor';
+  const hopeRoundCard      = document.getElementById('pInvHopeRoundCard');
+  const hopeIndustriesCard = document.getElementById('pInvHopeIndustriesCard');
+  const invBioCard         = document.getElementById('pInvBioCard');
 
-  // 성별
-  setText('pGender', user.gender || '-');
+  if (isInvestorUser) {
+    // 희망 라운드
+    if (hopeRoundCard) hopeRoundCard.style.display = 'block';
+    setText('pInvHopeRound', user.inv_hope_round || '-');
+
+    // 희망 산업군 (배지)
+    if (hopeIndustriesCard) hopeIndustriesCard.style.display = 'block';
+    const indEl = document.getElementById('pInvHopeIndustries');
+    if (indEl) {
+      const industries = user.inv_hope_industries ? user.inv_hope_industries.split(',').filter(Boolean) : [];
+      indEl.innerHTML = industries.length
+        ? industries.map(i => `<span style="display:inline-block;padding:0.2rem 0.6rem;background:#dbeafe;color:#1d4ed8;border-radius:999px;font-size:0.82rem;font-weight:700;">${i}</span>`).join('')
+        : '-';
+    }
+
+    // 소개
+    if (invBioCard) invBioCard.style.display = 'block';
+    const invBio = user.bio || user.inv_bio || '';
+    setText('pInvBio', invBio || '-');
+  } else {
+    if (hopeRoundCard)      hopeRoundCard.style.display      = 'none';
+    if (hopeIndustriesCard) hopeIndustriesCard.style.display = 'none';
+    if (invBioCard)         invBioCard.style.display         = 'none';
+  }
 
   // 현황 — 즐겨찾기 실시간 집계
   const bm = BookmarkMgr.getBookmarks();
@@ -245,12 +270,10 @@ function enterProfileEdit() {
   if (!_profileUser) return;
   // 편집 가능한 필드: [valueId, inputId, currentValue]
   const fields = [
-    ['pUserId',       'pUserId_e',       _profileUser.company      || ''],
-    ['pPhone',        'pPhone_e',        _profileUser.phone        || ''],
-    ['pCompany',      'pCompany_e',      _profileUser.name         || ''],
+    ['pUserId',       'pUserId_e',         _profileUser.company      || ''],
+    ['pPhone',        'pPhone_e',          _profileUser.phone        || ''],
+    ['pCompany',      'pCompany_e',        _profileUser.name         || ''],
     ['pInvestTarget', 'pInvestTarget_wrap', _profileUser.investTarget || ''],
-    ['pCeoAge',       'pCeoAge_e',       _profileUser.ceoAge       || ''],
-    ['pGender',       'pGender_e',       _profileUser.gender       || ''],
   ];
 
   fields.forEach(([valId, inpId, curVal]) => {
@@ -292,8 +315,6 @@ async function saveProfileEdit() {
   const phone       = document.getElementById('pPhone_e')?.value.trim()        || '';
   const name        = document.getElementById('pCompany_e')?.value.trim()      || '';
   const investTarget= document.getElementById('pInvestTarget_e')?.value.trim() || '';
-  const ceoAge      = document.getElementById('pCeoAge_e')?.value.trim()       || '';
-  const gender      = document.getElementById('pGender_e')?.value.trim()       || '';
   const portfolio   = document.getElementById('pPortfolio_e')?.value.trim()    || '';
   const bio         = document.getElementById('pBio_e')?.value.trim()          || '';
 
@@ -306,7 +327,7 @@ async function saveProfileEdit() {
     const sb = getSupabase ? getSupabase() : null;
     if (sb) {
       await sb.auth.updateUser({
-        data: { company, phone, full_name: name, portfolio, bio, investTarget, ceoAge, gender }
+        data: { company, phone, full_name: name, portfolio, bio, investTarget }
       });
     }
   } catch (e) {
@@ -324,7 +345,7 @@ async function saveProfileEdit() {
   } catch (e) { /* 무시 */ }
 
   // 3) localStorage + 화면 반영
-  _profileUser = Object.assign({}, _profileUser, { company, phone, name, investTarget, ceoAge, gender, portfolio, bio });
+  _profileUser = Object.assign({}, _profileUser, { company, phone, name, investTarget, portfolio, bio });
   localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(_profileUser));
 
   cancelProfileEdit();
@@ -335,7 +356,7 @@ async function saveProfileEdit() {
 }
 
 function cancelProfileEdit() {
-  const valIds = ['pUserId','pPhone','pCompany','pCeoAge','pGender'];
+  const valIds = ['pUserId','pPhone','pCompany'];
   valIds.forEach(id => {
     const val = document.getElementById(id);
     const inp = document.getElementById(id + '_e');
@@ -899,6 +920,7 @@ async function saveStorageFile() {
 // ── 내정보 수정 폼 ──────────────────────────────────
 
 let _peKeywords = [];
+let _peInvIndustries = [];
 
 function loadSettingsForm() {
   const user = _profileUser;
@@ -921,11 +943,18 @@ function loadSettingsForm() {
   setVal('pe_phone',   user.phone   || '');
 
   if (isInvestor) {
-    setVal('pe_inv_type',     user.inv_type     || '');
-    setVal('pe_inv_role',     user.inv_role     || '');
-    setVal('pe_inv_homepage', user.inv_homepage || user.portfolio || '');
-    setVal('pe_inv_sns',      user.inv_sns      || '');
-    setVal('pe_inv_bio',      user.bio || user.inv_bio || '');
+    setVal('pe_inv_type',       user.inv_type       || '');
+    setVal('pe_inv_role',       user.inv_role       || '');
+    setVal('pe_inv_homepage',   user.inv_homepage || user.portfolio || '');
+    setVal('pe_inv_sns',        user.inv_sns        || '');
+    setVal('pe_inv_bio',        user.bio || user.inv_bio || '');
+    setVal('pe_inv_hope_round', user.inv_hope_round || '');
+    setVal('pe_inv_hope_amt',   user.inv_hope_amt   || '');
+
+    // 희망 산업군 배지 초기화
+    _peInvIndustries = user.inv_hope_industries ? user.inv_hope_industries.split(',').filter(Boolean) : [];
+    renderPeInvIndustries();
+    initPeInvIndustriesInput();
   }
 
   if (isStartup) {
@@ -1001,6 +1030,45 @@ function removePeKeyword(idx) {
   renderPeKeywords();
 }
 
+// ── 희망 산업군 배지 (투자자 내정보 수정) ─────────────
+
+function initPeInvIndustriesInput() {
+  const inp = document.getElementById('pe_inv_ind_input');
+  if (!inp || inp._peInvIndInited) return;
+  inp._peInvIndInited = true;
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      const v = this.value.trim();
+      if (v && !_peInvIndustries.includes(v)) {
+        _peInvIndustries.push(v);
+        renderPeInvIndustries();
+      }
+      this.value = '';
+    } else if (e.key === 'Backspace' && !this.value && _peInvIndustries.length > 0) {
+      _peInvIndustries.pop();
+      renderPeInvIndustries();
+    }
+  });
+  const wrap = document.getElementById('pe_inv_ind_wrap');
+  if (wrap) wrap.addEventListener('click', () => inp.focus());
+}
+
+function renderPeInvIndustries() {
+  const badges = document.getElementById('pe_inv_ind_badges');
+  const hidden  = document.getElementById('pe_inv_hope_industries');
+  if (!badges) return;
+  badges.innerHTML = _peInvIndustries.map((ind, i) =>
+    `<span class="pef-kw-badge">${ind}<button type="button" class="pef-kw-remove" onclick="removePeInvIndustry(${i})">×</button></span>`
+  ).join('');
+  if (hidden) hidden.value = _peInvIndustries.join(',');
+}
+
+function removePeInvIndustry(idx) {
+  _peInvIndustries.splice(idx, 1);
+  renderPeInvIndustries();
+}
+
 async function saveProfileInfo() {
   const user = _profileUser;
   if (!user) return;
@@ -1015,12 +1083,15 @@ async function saveProfileInfo() {
   const updates = { name, company, phone };
 
   if (isInvestor) {
-    updates.inv_type     = document.getElementById('pe_inv_type')?.value     || '';
-    updates.inv_role     = document.getElementById('pe_inv_role')?.value.trim() || '';
-    updates.inv_homepage = document.getElementById('pe_inv_homepage')?.value.trim() || '';
-    updates.inv_sns      = document.getElementById('pe_inv_sns')?.value.trim() || '';
-    updates.bio          = document.getElementById('pe_inv_bio')?.value.trim()   || '';
-    updates.portfolio    = updates.inv_homepage;
+    updates.inv_type             = document.getElementById('pe_inv_type')?.value          || '';
+    updates.inv_role             = document.getElementById('pe_inv_role')?.value.trim()   || '';
+    updates.inv_homepage         = document.getElementById('pe_inv_homepage')?.value.trim() || '';
+    updates.inv_sns              = document.getElementById('pe_inv_sns')?.value.trim()    || '';
+    updates.bio                  = document.getElementById('pe_inv_bio')?.value.trim()    || '';
+    updates.portfolio            = updates.inv_homepage;
+    updates.inv_hope_round       = document.getElementById('pe_inv_hope_round')?.value   || '';
+    updates.inv_hope_amt         = document.getElementById('pe_inv_hope_amt')?.value      || '';
+    updates.inv_hope_industries  = _peInvIndustries.join(',');
   }
 
   if (isStartup) {
