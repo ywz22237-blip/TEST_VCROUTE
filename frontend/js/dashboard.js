@@ -437,7 +437,7 @@ function switchSection(sectionId) {
   }
 
   // 내정보(settings) 진입 시: 수정 폼 채우기
-  if (sectionId === 'settings') {
+  if (sectionId === 'myinfo' || sectionId === 'settings') {
     loadSettingsForm();
   }
 
@@ -520,7 +520,7 @@ function renderBookmarkedInvestors(ids) {
             <div class="card-footer" style="margin-top: auto; display: flex; gap: 0.75rem; align-items: center;">
                 <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
                 <button class="btn-bookmark active" onclick="event.stopPropagation(); handleBookmarkUpdate('investors', ${investor.id}, this); setTimeout(renderDashboard, 100);">
-                    <i class="fa-solid fa-star"></i>즐겨찾기
+                    <i class="fa-solid fa-star"></i>
                 </button>
             </div>
         </div>
@@ -576,7 +576,7 @@ function renderBookmarkedFunds(ids) {
             <div class="card-footer" style="margin-top: auto; display: flex; gap: 0.75rem; align-items: center;">
                 <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
                 <button class="btn-bookmark active" onclick="event.stopPropagation(); handleBookmarkUpdate('funds', ${fund.id}, this); setTimeout(renderDashboard, 100);">
-                    <i class="fa-solid fa-star"></i>즐겨찾기
+                    <i class="fa-solid fa-star"></i>
                 </button>
             </div>
         </div>
@@ -635,7 +635,7 @@ function renderBookmarkedStartups(ids) {
             <div class="card-footer" style="margin-top: auto; display: flex; gap: 0.75rem; align-items: center;">
                 <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
                 <button class="btn-bookmark active" onclick="event.stopPropagation(); handleBookmarkUpdate('startups', ${startup.id}, this); setTimeout(renderDashboard, 100);">
-                    <i class="fa-solid fa-star"></i>즐겨찾기
+                    <i class="fa-solid fa-star"></i>
                 </button>
             </div>
         </div>
