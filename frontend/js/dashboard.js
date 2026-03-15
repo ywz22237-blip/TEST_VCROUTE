@@ -1051,12 +1051,12 @@ let _supportMonth = new Date().getMonth(); // 0-indexed
 
 // 샘플 지원사업 이벤트 데이터
 const SUPPORT_EVENTS = [
-  { id:1, title:'창업도약패키지', org:'중소벤처기업부', color:'#2563eb', bgColor:'#dbeafe', start:'2026-03-05', end:'2026-03-28', category:'창업지원', apply:true, result:'selected' },
-  { id:2, title:'TIPS 프로그램', org:'중소벤처기업부', color:'#7c3aed', bgColor:'#ede9fe', start:'2026-03-10', end:'2026-04-10', category:'R&D', apply:true, result:'rejected' },
-  { id:3, title:'서울형 강소기업 육성', org:'서울시', color:'#059669', bgColor:'#d1fae5', start:'2026-03-15', end:'2026-03-31', category:'지역지원', apply:false, result:null },
-  { id:4, title:'민간투자 연계형 지원', org:'중기부', color:'#d97706', bgColor:'#fef3c7', start:'2026-03-20', end:'2026-04-20', category:'투자연계', apply:false, result:null },
-  { id:5, title:'K-스타트업 그랜드챌린지', org:'중소벤처기업부', color:'#dc2626', bgColor:'#fee2e2', start:'2026-04-01', end:'2026-04-30', category:'글로벌', apply:false, result:null },
-  { id:6, title:'청년창업사관학교', org:'중소기업진흥공단', color:'#0891b2', bgColor:'#cffafe', start:'2026-03-01', end:'2026-03-20', category:'창업지원', apply:true, result:'selected' },
+  { id:1, title:'창업도약패키지', org:'중소벤처기업부', color:'#2563eb', bgColor:'#dbeafe', start:'2026-03-05', end:'2026-03-28', category:'창업지원', apply:true, result:'selected', amount:'최대 1억원', description:'초기 창업기업의 사업화 역량 강화를 위한 패키지 지원 프로그램' },
+  { id:2, title:'TIPS 프로그램', org:'중소벤처기업부', color:'#7c3aed', bgColor:'#ede9fe', start:'2026-03-10', end:'2026-04-10', category:'R&D', apply:true, result:'rejected', amount:'최대 5억원', description:'민간투자 주도형 기술창업 지원, 엔젤투자사 추천 필수' },
+  { id:3, title:'서울형 강소기업 육성', org:'서울시', color:'#059669', bgColor:'#d1fae5', start:'2026-03-15', end:'2026-03-31', category:'지역지원', apply:false, result:null, amount:'최대 3,000만원', description:'서울 소재 중소기업 경쟁력 강화를 위한 종합 지원 사업' },
+  { id:4, title:'민간투자 연계형 지원', org:'중기부', color:'#d97706', bgColor:'#fef3c7', start:'2026-03-20', end:'2026-04-20', category:'투자연계', apply:false, result:null, amount:'최대 2억원', description:'민간투자와 연계한 정부 매칭 지원, 투자확약서 필요' },
+  { id:5, title:'K-스타트업 그랜드챌린지', org:'중소벤처기업부', color:'#dc2626', bgColor:'#fee2e2', start:'2026-04-01', end:'2026-04-30', category:'글로벌', apply:false, result:null, amount:'최대 1억원', description:'글로벌 진출을 목표로 하는 스타트업 대상 국제 경진대회' },
+  { id:6, title:'청년창업사관학교', org:'중소기업진흥공단', color:'#0891b2', bgColor:'#cffafe', start:'2026-03-01', end:'2026-03-20', category:'창업지원', apply:true, result:'selected', amount:'최대 1억원', description:'만 39세 이하 청년창업가 대상 창업 교육 및 사업화 지원' },
 ];
 
 function initSupportCalendar() {
@@ -1100,10 +1100,8 @@ function renderSupportCalendar() {
     const isSun = dayOfWeek === 0;
     const isSat = dayOfWeek === 6;
 
-    // 해당 날짜의 이벤트 (start~end 범위)
-    const dayEvents = SUPPORT_EVENTS.filter(ev => {
-      return ev.start <= dateStr && ev.end >= dateStr;
-    });
+    // 해당 날짜의 이벤트 (마감일 기준)
+    const dayEvents = SUPPORT_EVENTS.filter(ev => ev.end === dateStr);
 
     const todayStyle = isToday ? 'background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-weight:900;' : '';
     const dayNumColor = isToday ? '' : (isSun ? 'color:#dc2626;' : isSat ? 'color:#2563eb;' : 'color:#475569;');
@@ -1150,7 +1148,7 @@ function renderSupportWeek() {
   const wsStr = toDateStr(weekStart);
   const weStr = toDateStr(weekEnd);
 
-  const weekEvents = SUPPORT_EVENTS.filter(ev => ev.start <= weStr && ev.end >= wsStr);
+  const weekEvents = SUPPORT_EVENTS.filter(ev => ev.end >= wsStr && ev.end <= weStr);
 
   if (weekEvents.length === 0) {
     listEl.innerHTML = `<div style="text-align:center; padding:1rem 0; color:#94a3b8; font-size:0.82rem;">이번주 일정이 없습니다</div>`;
@@ -1183,7 +1181,7 @@ function renderSupportApplications() {
       <div style="width:8px;height:8px;border-radius:50%;background:${ev.color};flex-shrink:0;"></div>
       <div style="flex:1; min-width:0;">
         <div style="font-size:0.78rem; font-weight:700; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ev.title}</div>
-        <div style="font-size:0.68rem; color:#94a3b8;">${ev.start.replace(/-/g,'.')}</div>
+        <div style="font-size:0.68rem; color:#94a3b8;">마감: ${ev.end.replace(/-/g,'.')}</div>
       </div>
     </div>
   `;
@@ -1205,7 +1203,9 @@ function showSupportEvent(e, eventId) {
     <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.6rem;">
       <span style="font-size:0.7rem;font-weight:700;color:${ev.color};background:${ev.bgColor};padding:2px 8px;border-radius:6px;">${ev.category}</span>
     </div>
-    <div style="font-size:0.78rem;color:#475569;">📅 ${ev.start.replace(/-/g,'.')} ~ ${ev.end.replace(/-/g,'.')}</div>
+    <div style="font-size:0.78rem;color:#475569;">📅 마감일: ${ev.end.replace(/-/g,'.')}</div>
+    ${ev.amount ? `<div style="font-size:0.78rem;color:#475569;margin-top:0.25rem;">💰 지원금액: ${ev.amount}</div>` : ''}
+    ${ev.description ? `<div style="font-size:0.78rem;color:#64748b;margin-top:0.35rem;line-height:1.5;">${ev.description}</div>` : ''}
   `;
   detail.style.display = 'block';
   detail.style.left = Math.min(e.clientX + 12, window.innerWidth - 300) + 'px';
@@ -1406,7 +1406,7 @@ function renderSupportApplicationsTabbed() {
       <div style="flex:1;min-width:0;">
         <div style="font-size:0.82rem;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.title}</div>
         <div style="font-size:0.7rem;color:#64748b;margin-top:1px;">${ev.org}</div>
-        <div style="font-size:0.68rem;color:#94a3b8;margin-top:1px;">${ev.start.replace(/-/g,'.')} ~ ${ev.end.replace(/-/g,'.')}</div>
+        <div style="font-size:0.68rem;color:#94a3b8;margin-top:1px;">마감: ${ev.end.replace(/-/g,'.')}</div>
       </div>
       <span style="font-size:0.65rem;font-weight:700;color:${ev.color};background:${ev.bgColor};padding:2px 7px;border-radius:6px;white-space:nowrap;">${ev.category}</span>
     </div>
@@ -1438,8 +1438,6 @@ function openAddEventModal() {
   // 기본 날짜 세팅
   const today = new Date().toISOString().slice(0,10);
   const endEl = document.getElementById('addEvEnd');
-  const startEl = document.getElementById('addEvStart');
-  if (startEl) startEl.value = today;
   if (endEl) endEl.value = today;
 }
 
@@ -1451,13 +1449,13 @@ function closeAddEventModal() {
 function submitAddEvent() {
   const title = document.getElementById('addEvTitle').value.trim();
   const org = document.getElementById('addEvOrg').value.trim() || '직접 추가';
-  const start = document.getElementById('addEvStart').value;
   const end = document.getElementById('addEvEnd').value;
   const category = document.getElementById('addEvCategory').value;
+  const amount = document.getElementById('addEvAmount').value.trim();
+  const description = document.getElementById('addEvDesc').value.trim();
 
   if (!title) { alert('지원사업명을 입력해주세요.'); return; }
-  if (!start || !end) { alert('시작일과 마감일을 입력해주세요.'); return; }
-  if (start > end) { alert('마감일은 시작일 이후여야 합니다.'); return; }
+  if (!end) { alert('마감일을 입력해주세요.'); return; }
 
   const palette = ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
   const bgPalette = ['#dbeafe','#ede9fe','#d1fae5','#fef3c7','#fee2e2','#cffafe'];
@@ -1465,12 +1463,14 @@ function submitAddEvent() {
 
   SUPPORT_EVENTS.push({
     id: Date.now(), title, org, color: palette[idx], bgColor: bgPalette[idx],
-    start, end, category, apply: false, result: null,
+    start: end, end, category, apply: false, result: null, amount, description,
   });
 
   closeAddEventModal();
   document.getElementById('addEvTitle').value = '';
   document.getElementById('addEvOrg').value = '';
+  document.getElementById('addEvAmount').value = '';
+  document.getElementById('addEvDesc').value = '';
   renderSupportCalendar();
   renderSupportWeek();
   renderSupportApplicationsTabbed();
