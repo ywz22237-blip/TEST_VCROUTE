@@ -1419,6 +1419,9 @@ const SAMPLE_FUNDS = [
   { id: 1411, fundType: "투자조합", companyName: "한국벤처투자", fundName: "한국벤처투자 제42호 혁신성장 모태자조합", registeredAt: "2025-06-09", expiredAt: "2032-06-09", settlementMonth: 12, manager: "김준호", support: "모태펀드", purpose: "한국벤처투자의 혁신성장 전략에 기반하여 ICT, 바이오, 플랫폼 분야 창업·초기기업을 발굴하고, 모태펀드 연계를 통해 국내 벤처생태계 활성화 및 글로벌 경쟁력 강화에 기여합니다.", industry: "ICT, 바이오, 플랫폼", baseRate: 6.7, totalAmount: 40500000000 },
 ];
 
+// 즉시 초기화: dashboard 등 다른 페이지에서도 fundsData 사용 가능하도록
+fundsData = [...SAMPLE_FUNDS].sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
+
 // API에서 펀드 데이터 로드
 async function loadFundsFromAPI() {
   try {
@@ -1470,9 +1473,12 @@ function showNoDataMessage() {
 }
 
 // 페이지 로직
-document.addEventListener("DOMContentLoaded", () => {
-  loadFundsFromAPI();
-});
+// 투자펀드 페이지에서만 초기화 (다른 페이지 로드 시 renderFunds 등 불필요한 실행 방지)
+if (document.getElementById('fundsContainer')) {
+  document.addEventListener("DOMContentLoaded", () => {
+    loadFundsFromAPI();
+  });
+}
 
 // 페이지네이션 렌더링
 function renderPaginationFunds(total) {
@@ -1564,7 +1570,7 @@ function renderFunds(funds) {
         <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
         <button class="btn-bookmark ${BookmarkMgr.isBookmarked("funds", fund.id) ? "active" : ""}"
                 onclick="event.stopPropagation(); handleBookmarkUpdate('funds', ${fund.id}, this)">
-          <i class="fa-${BookmarkMgr.isBookmarked("funds", fund.id) ? "solid" : "regular"} fa-star"></i>
+          <i class="fa-${BookmarkMgr.isBookmarked("funds", fund.id) ? "solid" : "regular"} fa-star"></i>즐겨찾기
         </button>
       </div>
     </div>

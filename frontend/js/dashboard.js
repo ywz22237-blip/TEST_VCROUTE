@@ -149,25 +149,21 @@ function renderUserProfile(user) {
   setText('pBmFunds', bmFunds);
   setText('pBmStartups', bmStartups);
 
-  // 클릭 횟수 · 자료요청: localStorage 기반 실제 카운팅 (샘플 계정 포함)
+  // 현황 통계: localStorage 기반 실제 카운팅 (샘플 계정 포함)
   const uid = user.userId || user.username || '';
-  const SAMPLE_STATS = { 'ywz22': { clickCount: 248, docRequest: 33, bookmarkTotal: 12 } };
+  const SAMPLE_STATS = { 'ywz22': { favoritedBy: 12, clickCount: 248, docRequest: 33 } };
   const isSample = SAMPLE_STATS[uid];
 
-  // 샘플 계정은 미리 seeded 값 사용, 그 외 localStorage 누적값 사용
   const storedStats = JSON.parse(localStorage.getItem('vcr_stats_' + uid) || '{}');
   if (isSample && !storedStats._seeded) {
-    const seeded = { clickCount: SAMPLE_STATS[uid].clickCount, docRequest: SAMPLE_STATS[uid].docRequest, _seeded: true };
+    const seeded = { favoritedBy: isSample.favoritedBy, clickCount: isSample.clickCount, docRequest: isSample.docRequest, _seeded: true };
     localStorage.setItem('vcr_stats_' + uid, JSON.stringify(seeded));
-    storedStats.clickCount = seeded.clickCount;
-    storedStats.docRequest = seeded.docRequest;
-    if (bmTotal === 0 && isSample.bookmarkTotal > 0) {
-      // 샘플 즐겨찾기 보정: localStorage에 시드된 경우 표시값 덮어쓰기
-      setText('pBmTotal', SAMPLE_STATS[uid].bookmarkTotal);
-    }
+    Object.assign(storedStats, seeded);
   }
-  const clickCount = user.clickCount !== undefined ? user.clickCount : (storedStats.clickCount || 0);
-  const docRequest = user.docRequest !== undefined ? user.docRequest : (storedStats.docRequest || 0);
+  const favoritedBy = user.favoritedBy !== undefined ? user.favoritedBy : (storedStats.favoritedBy || 0);
+  const clickCount  = user.clickCount  !== undefined ? user.clickCount  : (storedStats.clickCount  || 0);
+  const docRequest  = user.docRequest  !== undefined ? user.docRequest  : (storedStats.docRequest  || 0);
+  setText('pFavoritedBy', favoritedBy);
   setText('pClickCount', clickCount);
   setText('pDocRequest', docRequest);
 
@@ -524,7 +520,7 @@ function renderBookmarkedInvestors(ids) {
             <div class="card-footer" style="margin-top: auto; display: flex; gap: 0.75rem; align-items: center;">
                 <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
                 <button class="btn-bookmark active" onclick="event.stopPropagation(); handleBookmarkUpdate('investors', ${investor.id}, this); setTimeout(renderDashboard, 100);">
-                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>즐겨찾기
                 </button>
             </div>
         </div>
@@ -580,7 +576,7 @@ function renderBookmarkedFunds(ids) {
             <div class="card-footer" style="margin-top: auto; display: flex; gap: 0.75rem; align-items: center;">
                 <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
                 <button class="btn-bookmark active" onclick="event.stopPropagation(); handleBookmarkUpdate('funds', ${fund.id}, this); setTimeout(renderDashboard, 100);">
-                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>즐겨찾기
                 </button>
             </div>
         </div>
@@ -639,7 +635,7 @@ function renderBookmarkedStartups(ids) {
             <div class="card-footer" style="margin-top: auto; display: flex; gap: 0.75rem; align-items: center;">
                 <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
                 <button class="btn-bookmark active" onclick="event.stopPropagation(); handleBookmarkUpdate('startups', ${startup.id}, this); setTimeout(renderDashboard, 100);">
-                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>즐겨찾기
                 </button>
             </div>
         </div>

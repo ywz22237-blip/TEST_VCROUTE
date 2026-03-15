@@ -1,6 +1,5 @@
 // Shared Data for VC route
-// (funds.js에서 SAMPLE_FUNDS를 직접 관리하므로 여기서는 빈 배열로 유지)
-const fundsData = [];
+// fundsData는 funds.js에서 선언·초기화됨 (dashboard.html도 funds.js를 로드)
 
 const investorsData = [
   // === 1. LLC (유한회사형 VC) 30명 ===
