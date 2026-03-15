@@ -462,7 +462,7 @@ function switchSection(sectionId) {
   // 개발중 배너 (지원사업/자료보관함/투자히스토리)
   const devBanner = document.getElementById('devNoticeBanner');
   if (devBanner) {
-    const showBanner = ['support', 'imir', 'history'].includes(sectionId);
+    const showBanner = ['support', 'imir', 'history', 'settings'].includes(sectionId);
     devBanner.style.display = showBanner ? 'flex' : 'none';
   }
 
@@ -1107,11 +1107,11 @@ function renderSupportCalendar() {
     const dayNumColor = isToday ? '' : (isSun ? 'color:#dc2626;' : isSat ? 'color:#2563eb;' : 'color:#475569;');
 
     const eventsHtml = dayEvents.slice(0,3).map(ev => `
-      <div onclick="showSupportEvent(event,${ev.id})" style="font-size:0.68rem; font-weight:700; color:${ev.color}; background:${ev.bgColor}; border-radius:4px; padding:1px 5px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;" title="${ev.title}">${ev.title}</div>
+      <div onclick="showSupportEvent(event,${ev.id})" style="font-size:0.65rem; font-weight:700; color:${ev.color}; background:${ev.bgColor}; border-radius:4px; padding:1px 4px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; box-sizing:border-box; display:block;" title="${ev.title}">${ev.title}</div>
     `).join('');
     const moreHtml = dayEvents.length > 3 ? `<div style="font-size:0.65rem;color:#94a3b8;padding-left:2px;">+${dayEvents.length-3}개 더</div>` : '';
 
-    html += `<div style="min-height:80px; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:0.4rem; ${isSun||isSat?'background:#fafbff;':''}">
+    html += `<div style="min-height:80px; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:0.4rem; overflow:hidden; ${isSun||isSat?'background:#fafbff;':''}">
       <div style="${dayNumColor} font-size:0.8rem; font-weight:700; margin-bottom:2px;">
         <span style="${todayStyle}">${d}</span>
       </div>
@@ -1432,13 +1432,27 @@ function showApplicationTab(tab) {
 }
 
 // 일정 추가 모달
+let _pendingApply = false;
+
+function openAddApplicationModal() {
+  _pendingApply = true;
+  openAddEventModal();
+  // 모달 타이틀 변경
+  const title = document.getElementById('addEventModalTitle');
+  if (title) title.textContent = '신청 내역 추가';
+}
+
 function openAddEventModal() {
+  _pendingApply = false;
   const modal = document.getElementById('addEventModal');
   if (modal) modal.style.display = 'flex';
   // 기본 날짜 세팅
   const today = new Date().toISOString().slice(0,10);
   const endEl = document.getElementById('addEvEnd');
   if (endEl) endEl.value = today;
+  // 모달 타이틀 기본값
+  const titleEl = document.getElementById('addEventModalTitle');
+  if (titleEl) titleEl.textContent = '일정 추가';
 }
 
 function closeAddEventModal() {
@@ -1463,7 +1477,7 @@ function submitAddEvent() {
 
   SUPPORT_EVENTS.push({
     id: Date.now(), title, org, color: palette[idx], bgColor: bgPalette[idx],
-    start: end, end, category, apply: false, result: null, amount, description,
+    start: end, end, category, apply: _pendingApply, result: _pendingApply ? null : null, amount, description,
   });
 
   closeAddEventModal();
@@ -1471,6 +1485,10 @@ function submitAddEvent() {
   document.getElementById('addEvOrg').value = '';
   document.getElementById('addEvAmount').value = '';
   document.getElementById('addEvDesc').value = '';
+  _pendingApply = false;
+  // 모달 타이틀 초기화
+  const titleEl = document.getElementById('addEventModalTitle');
+  if (titleEl) titleEl.textContent = '일정 추가';
   renderSupportCalendar();
   renderSupportWeek();
   renderSupportApplicationsTabbed();
