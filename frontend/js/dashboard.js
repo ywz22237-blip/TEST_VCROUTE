@@ -1060,7 +1060,8 @@ const SUPPORT_EVENTS = [
 function initSupportCalendar() {
   renderSupportCalendar();
   renderSupportWeek();
-  renderSupportApplications();
+  renderSupportApplicationsTabbed();
+  showApplicationTab('apply');
 }
 
 function supportChangeMonth(delta) {
@@ -1376,4 +1377,99 @@ async function saveBasicInfo() {
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 저장'; }
   }
+}
+
+// ── 신청내역 탭 (신청중/선정/미선정) ──────────────────────────────
+
+function renderSupportApplicationsTabbed() {
+  const COLORS = { apply:'#2563eb', selected:'#16a34a', rejected:'#dc2626' };
+  const BCOLORS = { apply:'#dbeafe', selected:'#dcfce7', rejected:'#fee2e2' };
+
+  const applied = SUPPORT_EVENTS.filter(ev => ev.apply);
+  const groups = {
+    apply: applied.filter(ev => ev.result === null),
+    selected: applied.filter(ev => ev.result === 'selected'),
+    rejected: applied.filter(ev => ev.result === 'rejected'),
+  };
+
+  // 배지 카운트 업데이트
+  Object.entries(groups).forEach(([key, arr]) => {
+    const badge = document.getElementById('appTabCount_' + key);
+    if (badge) badge.textContent = arr.length;
+  });
+
+  const renderCard = (ev) => `
+    <div style="display:flex;align-items:center;gap:0.65rem;padding:0.7rem 0.9rem;border-radius:12px;border:1.5px solid ${ev.bgColor};background:white;min-width:180px;max-width:260px;flex:1;">
+      <div style="width:10px;height:10px;border-radius:50%;background:${ev.color};flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.82rem;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.title}</div>
+        <div style="font-size:0.7rem;color:#64748b;margin-top:1px;">${ev.org}</div>
+        <div style="font-size:0.68rem;color:#94a3b8;margin-top:1px;">${ev.start.replace(/-/g,'.')} ~ ${ev.end.replace(/-/g,'.')}</div>
+      </div>
+      <span style="font-size:0.65rem;font-weight:700;color:${ev.color};background:${ev.bgColor};padding:2px 7px;border-radius:6px;white-space:nowrap;">${ev.category}</span>
+    </div>
+  `;
+
+  const empty = '<div style="font-size:0.85rem;color:#94a3b8;padding:0.75rem 0;">해당 내역이 없습니다.</div>';
+
+  Object.entries(groups).forEach(([key, arr]) => {
+    const el = document.getElementById('appContent_' + key);
+    if (el) el.innerHTML = arr.length ? arr.map(renderCard).join('') : empty;
+  });
+}
+
+function showApplicationTab(tab) {
+  ['apply','selected','rejected'].forEach(t => {
+    document.getElementById('appContent_' + t).style.display = t === tab ? 'flex' : 'none';
+    const btn = document.getElementById('appTab_' + t);
+    if (btn) {
+      if (t === tab) btn.classList.add('app-tab-active');
+      else btn.classList.remove('app-tab-active');
+    }
+  });
+}
+
+// 일정 추가 모달
+function openAddEventModal() {
+  const modal = document.getElementById('addEventModal');
+  if (modal) modal.style.display = 'flex';
+  // 기본 날짜 세팅
+  const today = new Date().toISOString().slice(0,10);
+  const endEl = document.getElementById('addEvEnd');
+  const startEl = document.getElementById('addEvStart');
+  if (startEl) startEl.value = today;
+  if (endEl) endEl.value = today;
+}
+
+function closeAddEventModal() {
+  const modal = document.getElementById('addEventModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitAddEvent() {
+  const title = document.getElementById('addEvTitle').value.trim();
+  const org = document.getElementById('addEvOrg').value.trim() || '직접 추가';
+  const start = document.getElementById('addEvStart').value;
+  const end = document.getElementById('addEvEnd').value;
+  const category = document.getElementById('addEvCategory').value;
+
+  if (!title) { alert('지원사업명을 입력해주세요.'); return; }
+  if (!start || !end) { alert('시작일과 마감일을 입력해주세요.'); return; }
+  if (start > end) { alert('마감일은 시작일 이후여야 합니다.'); return; }
+
+  const palette = ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
+  const bgPalette = ['#dbeafe','#ede9fe','#d1fae5','#fef3c7','#fee2e2','#cffafe'];
+  const idx = SUPPORT_EVENTS.length % palette.length;
+
+  SUPPORT_EVENTS.push({
+    id: Date.now(), title, org, color: palette[idx], bgColor: bgPalette[idx],
+    start, end, category, apply: false, result: null,
+  });
+
+  closeAddEventModal();
+  document.getElementById('addEvTitle').value = '';
+  document.getElementById('addEvOrg').value = '';
+  renderSupportCalendar();
+  renderSupportWeek();
+  renderSupportApplicationsTabbed();
 }
