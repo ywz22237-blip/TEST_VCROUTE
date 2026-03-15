@@ -419,74 +419,83 @@ async function handleRegisterSubmit(event) {
 
   const submitBtnId = isStartup ? 'btnSubmit' : 'btnSubmitInvestor';
   const submitBtn = document.getElementById(submitBtnId);
+  const resetBtn = () => {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> 회원가입 완료';
+  };
+
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 처리 중...';
 
-  const { data: { session } } = await sb.auth.getSession();
-
-  let userId_ = null;
-  let accessToken = null;
-
-  const extraMeta = isStartup ? {
-    su_name, su_nationality, su_age, su_gender, su_job, su_sns, su_bio, su_referral,
-    co_name, co_founded, co_homepage, co_biz_type, co_address, co_stage,
-    co_keywords: co_keywords_val, co_cofounder, co_cur_invest_stage, co_cur_invest_amt,
-    co_hope_invest_stage, co_hope_invest_amt,
-  } : {
-    inv_type: invType, inv_role, inv_homepage, inv_sns,
-  };
-
-  if (session && session.user.email === email) {
-    const { data, error } = await sb.auth.updateUser({
-      password,
-      data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
-    });
-    if (error) {
-      alert('회원가입 처리 중 오류가 발생했습니다: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> 회원가입 완료';
-      return;
-    }
-    userId_ = data.user.id;
-    accessToken = session.access_token;
-  } else {
-    const { data, error } = await sb.auth.signUp({
-      email, password,
-      options: {
-        data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
-      }
-    });
-    if (error) {
-      alert('회원가입 실패: ' + error.message);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> 회원가입 완료';
-      return;
-    }
-    userId_ = data.user?.id;
-    accessToken = data.session?.access_token;
-  }
-
   try {
-    await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId, email, password, name: userId, userType,
-        phone: phone || null, company: company || null, portfolio: portfolio || null, bio: bio || null,
-        marketingAgree: false, ...extraMeta,
-      }),
-    });
-  } catch { /* 무시 */ }
+    const { data: { session } } = await sb.auth.getSession();
 
-  if (accessToken) {
-    const userInfo = { id: userId_, email, name: userId, userType, phone, company, verified: true };
-    localStorage.setItem('auth_token', accessToken);
-    localStorage.setItem('user_info', JSON.stringify(userInfo));
-    alert('회원가입이 완료되었습니다! 환영합니다 😊');
-    window.location.href = '../index.html';
-  } else {
-    alert('이메일 인증 링크를 발송했습니다.\n이메일을 확인하여 인증을 완료해주세요.');
-    window.location.href = 'login.html';
+    let userId_ = null;
+    let accessToken = null;
+
+    const extraMeta = isStartup ? {
+      su_name, su_nationality, su_age, su_gender, su_job, su_sns, su_bio, su_referral,
+      co_name, co_founded, co_homepage, co_biz_type, co_address, co_stage,
+      co_keywords: co_keywords_val, co_cofounder, co_cur_invest_stage, co_cur_invest_amt,
+      co_hope_invest_stage, co_hope_invest_amt,
+    } : {
+      inv_type: invType, inv_role, inv_homepage, inv_sns,
+    };
+
+    if (session && session.user.email === email) {
+      const { data, error } = await sb.auth.updateUser({
+        password,
+        data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
+      });
+      if (error) {
+        alert('회원가입 처리 중 오류가 발생했습니다: ' + error.message);
+        resetBtn();
+        return;
+      }
+      userId_ = data.user.id;
+      accessToken = session.access_token;
+    } else {
+      const { data, error } = await sb.auth.signUp({
+        email, password,
+        options: {
+          data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
+        }
+      });
+      if (error) {
+        alert('회원가입 실패: ' + error.message);
+        resetBtn();
+        return;
+      }
+      userId_ = data.user?.id;
+      accessToken = data.session?.access_token;
+    }
+
+    try {
+      await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId, email, password, name: userId, userType,
+          phone: phone || null, company: company || null, portfolio: portfolio || null, bio: bio || null,
+          marketingAgree: false, ...extraMeta,
+        }),
+      });
+    } catch { /* 무시 */ }
+
+    if (accessToken) {
+      const userInfo = { id: userId_, email, name: userId, userType, phone, company, verified: true };
+      localStorage.setItem('auth_token', accessToken);
+      localStorage.setItem('user_info', JSON.stringify(userInfo));
+      alert('회원가입이 완료되었습니다! 환영합니다 😊');
+      window.location.href = '../index.html';
+    } else {
+      alert('이메일 인증 링크를 발송했습니다.\n이메일을 확인하여 인증을 완료해주세요.');
+      window.location.href = 'login.html';
+    }
+  } catch (e) {
+    console.error('회원가입 처리 오류:', e);
+    alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    resetBtn();
   }
 }
 
