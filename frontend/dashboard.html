@@ -704,6 +704,64 @@
         }
       }
 
+    /* ── 내정보 수정 폼 ── */
+    .profile-edit-section { margin-top: 1.25rem; }
+    .profile-edit-section-title {
+      font-size: 0.78rem; font-weight: 700; color: #2563eb;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      margin-bottom: 0.75rem; padding-bottom: 0.4rem;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+    .pef-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .pef-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+    .pef-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.75rem; }
+    .pef-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .pef-label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+    .pef-input, .pef-select {
+      padding: 0.6rem 0.85rem;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: 'Noto Sans KR', sans-serif;
+      color: var(--text-primary);
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .pef-select { appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%23666' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.85rem center; padding-right: 2rem; cursor: pointer;
+    }
+    .pef-input:focus, .pef-select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    textarea.pef-input { min-height: 80px; }
+    input[type="date"].pef-input::-webkit-calendar-picker-indicator { opacity:0.5; cursor:pointer; filter:invert(30%) sepia(80%) saturate(400%) hue-rotate(200deg); }
+    input[type="number"].pef-input::-webkit-inner-spin-button,
+    input[type="number"].pef-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+    .pef-unit-wrap {
+      display: flex; align-items: center;
+      border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden;
+    }
+    .pef-unit-wrap:focus-within { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .pef-unit-wrap .pef-input { border: none !important; box-shadow: none !important; border-radius: 0 !important; }
+    .pef-unit { padding: 0.6rem 0.75rem; background: #f1f5f9; color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; white-space: nowrap; border-left: 1.5px solid var(--border-color); }
+    .pef-keyword-wrap {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
+      padding: 0.45rem 0.75rem; border: 1.5px solid var(--border-color);
+      border-radius: 8px; background: white; min-height: 42px; cursor: text;
+    }
+    .pef-keyword-wrap:focus-within { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .pef-kw-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.2rem 0.6rem; background: rgba(37,99,235,0.12);
+      color: #2563eb; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+    }
+    .pef-kw-remove { background:none; border:none; color:#2563eb; font-size:0.95rem; cursor:pointer; padding:0; opacity:0.7; }
+    .pef-kw-remove:hover { opacity:1; }
+    @media (max-width:700px) {
+      .pef-grid-3, .pef-grid-4 { grid-template-columns: 1fr 1fr; }
+      .pef-grid-2 { grid-template-columns: 1fr; }
+    }
     </style>
   </head>
   <body>
@@ -818,15 +876,9 @@
               <!-- 프로필 카드 -->
               <div style="background:white; border-radius:24px; border:1px solid var(--border-color); overflow:hidden; margin-bottom:2rem; position:relative;">
                 <!-- 편집 버튼 영역 -->
-                <div style="position:absolute; top:1rem; right:1rem; z-index:10; display:flex; gap:0.5rem;">
-                  <button id="profileEditBtn" onclick="enterProfileEdit()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#2563eb; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
+                <div style="position:absolute; top:1rem; right:1rem; z-index:10;">
+                  <button onclick="switchSection('settings')" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#2563eb; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
                     <i class="fa-solid fa-pen-to-square"></i> 수정
-                  </button>
-                  <button id="profileSaveBtn" onclick="saveProfileEdit()" style="display:none; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:#2563eb; color:white; border:none; border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.2s;">
-                    <i class="fa-solid fa-floppy-disk"></i> 저장
-                  </button>
-                  <button id="profileCancelBtn" onclick="cancelProfileEdit()" style="display:none; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:rgba(255,255,255,0.9); color:#64748b; border:1.5px solid rgba(255,255,255,0.6); border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; backdrop-filter:blur(8px); transition:all 0.2s;">
-                    <i class="fa-solid fa-xmark"></i> 취소
                   </button>
                 </div>
                 <!-- 프로필 헤더 -->
@@ -925,6 +977,14 @@
                         <option value="기타">기타</option>
                       </select>
                     </div>
+                  </div>
+
+                  <!-- 추가정보 (회원가입 extra fields) -->
+                  <div id="pExtraInfoWrap" style="display:none; margin-top:1.5rem;">
+                    <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.75rem;">
+                      <i class="fa-solid fa-circle-info" style="margin-right:0.4rem; color:var(--primary-color);"></i>추가 정보
+                    </div>
+                    <div id="pExtraGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;"></div>
                   </div>
 
                   <!-- 현황 -->
@@ -1786,7 +1846,230 @@
             class="dashboard-section"
             style="display: none"
           >
-            <h2>계정 및 알림 설정</h2>
+            <h2>내 정보</h2>
+
+            <!-- 내 정보 수정 카드 -->
+            <div class="settings-card" id="profileEditCard">
+              <div class="settings-card-header">
+                <div class="settings-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#2563eb;">
+                  <i class="fa-solid fa-user-pen"></i>
+                </div>
+                <div class="settings-info">
+                  <h3>내 정보 수정</h3>
+                  <p>회원가입 시 입력한 추가 정보를 수정합니다</p>
+                </div>
+              </div>
+              <div class="settings-card-body" style="padding:1.5rem 2rem;">
+
+                <!-- 공통 기본 정보 -->
+                <div class="profile-edit-section">
+                  <div class="profile-edit-section-title">기본 정보</div>
+                  <div class="pef-grid-3">
+                    <div class="pef-group">
+                      <label class="pef-label">이름</label>
+                      <input class="pef-input" id="pe_name" type="text" placeholder="이름" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">회사명</label>
+                      <input class="pef-input" id="pe_company" type="text" placeholder="소속 회사명" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">연락처</label>
+                      <input class="pef-input" id="pe_phone" type="tel" placeholder="010-0000-0000" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 투자자 전용 -->
+                <div class="profile-edit-section" id="peInvestorSection" style="display:none;">
+                  <div class="profile-edit-section-title">투자자 정보</div>
+                  <div class="pef-grid-2">
+                    <div class="pef-group">
+                      <label class="pef-label">형태</label>
+                      <select class="pef-select" id="pe_inv_type">
+                        <option value="">선택</option>
+                        <option value="VC">VC (벤처캐피탈)</option>
+                        <option value="AC">AC (액셀러레이터)</option>
+                        <option value="개인투자자">개인투자자</option>
+                        <option value="기타">기타</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">역할</label>
+                      <input class="pef-input" id="pe_inv_role" type="text" placeholder="대표, 심사역, 스카우트, GP 등" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">홈페이지 URL</label>
+                      <input class="pef-input" id="pe_inv_homepage" type="url" placeholder="https://company.com" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">SNS URL</label>
+                      <input class="pef-input" id="pe_inv_sns" type="url" placeholder="링크드인, 인스타, 블로그 등" />
+                    </div>
+                  </div>
+                  <div class="pef-group" style="margin-top:0.75rem;">
+                    <label class="pef-label">소개</label>
+                    <textarea class="pef-input" id="pe_inv_bio" rows="3" placeholder="간단한 자기소개를 입력하세요" style="resize:vertical;"></textarea>
+                  </div>
+                </div>
+
+                <!-- 스타트업 개인정보 -->
+                <div class="profile-edit-section" id="peStartupPersonSection" style="display:none;">
+                  <div class="profile-edit-section-title">개인 정보</div>
+                  <div class="pef-grid-4">
+                    <div class="pef-group">
+                      <label class="pef-label">국적</label>
+                      <input class="pef-input" id="pe_nationality" type="text" placeholder="한국" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">나이</label>
+                      <input class="pef-input" id="pe_age" type="number" placeholder="30" min="18" max="99" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">성별</label>
+                      <select class="pef-select" id="pe_gender">
+                        <option value="">선택</option>
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
+                        <option value="기타">기타</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">직무</label>
+                      <input class="pef-input" id="pe_job" type="text" placeholder="대표, C레벨, 개발자 등" />
+                    </div>
+                  </div>
+                  <div class="pef-grid-2" style="margin-top:0.75rem;">
+                    <div class="pef-group">
+                      <label class="pef-label">SNS 프로필</label>
+                      <input class="pef-input" id="pe_su_sns" type="url" placeholder="https://www.linkedin.com/in/..." />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">VC-Route 유입경로</label>
+                      <select class="pef-select" id="pe_referral">
+                        <option value="">선택</option>
+                        <option value="소셜미디어">소셜미디어 (링크드인, 인스타 등)</option>
+                        <option value="검색엔진">네이버, 구글 등 검색엔진</option>
+                        <option value="AI">AI (ChatGPT, Claude 등)</option>
+                        <option value="뉴스">뉴스 매체</option>
+                        <option value="블로그/유튜브">블로그나 유튜브에서 언급됨</option>
+                        <option value="기타">기타</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="pef-group" style="margin-top:0.75rem;">
+                    <label class="pef-label">소개</label>
+                    <textarea class="pef-input" id="pe_su_bio" rows="3" placeholder="간단한 자기소개를 입력하세요" style="resize:vertical;"></textarea>
+                  </div>
+                </div>
+
+                <!-- 스타트업 회사정보 -->
+                <div class="profile-edit-section" id="peStartupCompanySection" style="display:none;">
+                  <div class="profile-edit-section-title">회사 정보</div>
+                  <div class="pef-grid-3">
+                    <div class="pef-group">
+                      <label class="pef-label">회사명</label>
+                      <input class="pef-input" id="pe_co_name" type="text" placeholder="(주)VC Route" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">설립일</label>
+                      <input class="pef-input" id="pe_co_founded" type="date" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">홈페이지 URL</label>
+                      <input class="pef-input" id="pe_co_homepage" type="url" placeholder="https://company.com" />
+                    </div>
+                  </div>
+                  <div class="pef-grid-2" style="margin-top:0.75rem;">
+                    <div class="pef-group">
+                      <label class="pef-label">형태</label>
+                      <select class="pef-select" id="pe_co_biz_type">
+                        <option value="">선택</option>
+                        <option value="개인사업자">개인사업자</option>
+                        <option value="법인사업자">법인사업자</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">주소</label>
+                      <input class="pef-input" id="pe_co_address" type="text" placeholder="경기도 xx시" />
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">단계</label>
+                      <select class="pef-select" id="pe_co_stage">
+                        <option value="">선택</option>
+                        <option value="아이디어">아이디어</option>
+                        <option value="프로토타입">프로토타입</option>
+                        <option value="초기수익">초기수익</option>
+                        <option value="확장">확장</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">공동창업자</label>
+                      <select class="pef-select" id="pe_co_cofounder">
+                        <option value="">선택</option>
+                        <option value="O">O (있음)</option>
+                        <option value="X">X (없음)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="pef-group" style="margin-top:0.75rem;">
+                    <label class="pef-label">회사 키워드 <span style="font-size:0.78rem;color:var(--text-secondary);">(스페이스바로 추가, 최대 3개)</span></label>
+                    <div class="pef-keyword-wrap" id="pe_kw_wrap">
+                      <div id="pe_kw_badges"></div>
+                      <input type="text" id="pe_kw_input" placeholder="SaaS, 핀테크, 에듀테크 등" maxlength="20" style="flex:1;border:none;outline:none;font-size:0.9rem;min-width:120px;background:transparent;" />
+                    </div>
+                    <input type="hidden" id="pe_co_keywords" />
+                  </div>
+                  <div class="pef-grid-2" style="margin-top:0.75rem;">
+                    <div class="pef-group">
+                      <label class="pef-label">현재 투자단계</label>
+                      <select class="pef-select" id="pe_cur_invest_stage">
+                        <option value="">선택</option>
+                        <option value="Pre-Seed">Pre-Seed</option>
+                        <option value="Seed">Seed</option>
+                        <option value="Series A">Series A</option>
+                        <option value="Series B">Series B</option>
+                        <option value="Series C+">Series C+</option>
+                        <option value="IPO">IPO</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">현재 투자금액</label>
+                      <div class="pef-unit-wrap">
+                        <input class="pef-input" id="pe_cur_invest_amt" type="number" placeholder="0" min="0" step="0.1" style="border:none!important;box-shadow:none!important;" />
+                        <span class="pef-unit">억원</span>
+                      </div>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">희망 투자단계</label>
+                      <select class="pef-select" id="pe_hope_invest_stage">
+                        <option value="">선택</option>
+                        <option value="Pre-Seed">Pre-Seed</option>
+                        <option value="Seed">Seed</option>
+                        <option value="Series A">Series A</option>
+                        <option value="Series B">Series B</option>
+                        <option value="Series C+">Series C+</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">희망 투자금액</label>
+                      <div class="pef-unit-wrap">
+                        <input class="pef-input" id="pe_hope_invest_amt" type="number" placeholder="0" min="0" step="0.1" style="border:none!important;box-shadow:none!important;" />
+                        <span class="pef-unit">억원</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 저장 버튼 -->
+                <div style="display:flex; justify-content:flex-end; margin-top:1.5rem; gap:0.75rem;">
+                  <button onclick="switchSection('profile')" style="padding:0.65rem 1.5rem; border:1.5px solid var(--border-color); border-radius:12px; background:white; color:var(--text-secondary); font-size:0.9rem; font-weight:700; cursor:pointer;">취소</button>
+                  <button id="peSubmitBtn" onclick="saveProfileInfo()" style="padding:0.65rem 1.75rem; background:#2563eb; color:white; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fa-solid fa-floppy-disk"></i> 저장
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <!-- 계정 보안 설정 -->
             <div class="settings-card">
