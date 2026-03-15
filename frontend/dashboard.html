@@ -1704,6 +1704,98 @@
               </div>
             </div>
 
+
+            <!-- AI 심사역 보고서 -->
+            <div class="activity-box" style="margin-top:2rem;" id="aiExaminerBox">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
+                  <span style="width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;"><i class="fa-solid fa-robot"></i></span>
+                  AI 심사역 보고서
+                </h3>
+                <span style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:0.75rem;font-weight:800;padding:0.3rem 0.9rem;border-radius:20px;letter-spacing:0.05em;">ROUTE AI</span>
+              </div>
+              <p style="font-size:0.88rem;color:#6b7280;margin:0 0 1.25rem;line-height:1.6;">스타트업 정보를 입력하면 루트 AI 심사역이 투자자 관점의 심층 분석 보고서를 생성합니다.</p>
+
+              <!-- 입력 폼 -->
+              <div style="background:#f8fafc;border-radius:16px;padding:1.5rem;border:1px solid #e2e8f0;margin-bottom:1.5rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                  <div>
+                    <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.4rem;">스타트업명 <span style="color:#ef4444;">*</span></label>
+                    <input id="aiExamStartupName" type="text" placeholder="예: 테크스타트업 A" style="width:100%;box-sizing:border-box;padding:0.7rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;transition:border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.4rem;">업종/분야</label>
+                    <input id="aiExamIndustry" type="text" placeholder="예: AI SaaS, 헬스케어, 핀테크" style="width:100%;box-sizing:border-box;padding:0.7rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;transition:border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
+                  </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                  <label style="display:block;font-size:0.8rem;font-weight:700;color:#374151;margin-bottom:0.4rem;">사업 설명 <span style="color:#ef4444;">*</span></label>
+                  <textarea id="aiExamDesc" rows="4" placeholder="스타트업의 사업 모델, 팀, 시장, 기술력, 현황 등을 자유롭게 입력하세요..." style="width:100%;box-sizing:border-box;padding:0.7rem 0.9rem;border:1.5px solid #d1d5db;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;resize:vertical;transition:border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'"></textarea>
+                </div>
+                <button onclick="requestInvestorAIAnalysis()" id="aiExamBtn" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.5rem;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:0.88rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all 0.2s;box-shadow:0 4px 12px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                  <i class="fa-solid fa-magnifying-glass-chart"></i> AI 심사 요청
+                </button>
+              </div>
+
+              <!-- 로딩 상태 -->
+              <div id="aiExamLoading" style="display:none;text-align:center;padding:2.5rem;background:#f5f3ff;border-radius:16px;border:1px solid #ddd6fe;margin-bottom:1.5rem;">
+                <div style="width:48px;height:48px;border:3px solid #ddd6fe;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem;"></div>
+                <div id="aiExamLoadingText" style="font-size:0.9rem;font-weight:700;color:#6366f1;">루트 AI 심사역이 분석 중입니다...</div>
+                <div style="font-size:0.78rem;color:#a78bfa;margin-top:0.4rem;">투자자 프레임워크를 적용하고 있습니다</div>
+              </div>
+
+              <!-- 결과 -->
+              <div id="aiExamResult" style="display:none;">
+                <!-- 투자 의견 + 종합 점수 -->
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1px solid #c4b5fd;border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;">
+                  <div id="aiExamOpinionBadge" style="width:90px;height:90px;border-radius:20px;background:#6366f1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-weight:900;gap:0.2rem;flex-shrink:0;">
+                    <i class="fa-solid fa-star" style="font-size:1.4rem;"></i>
+                    <span id="aiExamOpinionText" style="font-size:0.85rem;">관심</span>
+                  </div>
+                  <div>
+                    <div style="font-size:0.78rem;color:#7c3aed;font-weight:700;margin-bottom:0.3rem;">AI 심사역 루트 투자 의견</div>
+                    <div id="aiExamSummary" style="font-size:0.95rem;color:#1e293b;font-weight:700;line-height:1.6;margin-bottom:0.75rem;"></div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <span style="font-size:0.8rem;color:#6b7280;">종합 점수</span>
+                      <span id="aiExamTotalScore" style="font-size:1.5rem;font-weight:900;color:#6366f1;"></span>
+                      <span style="font-size:0.8rem;color:#6b7280;">/ 100점</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 5개 항목 점수 -->
+                <div id="aiExamScoreGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.75rem;margin-bottom:1.25rem;"></div>
+
+                <!-- 피드백 + 레드플래그 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+                  <div>
+                    <h4 style="font-size:0.9rem;font-weight:800;color:#1e293b;margin:0 0 0.75rem;display:flex;align-items:center;gap:0.4rem;"><i class="fa-solid fa-comment-dots" style="color:#6366f1;"></i> 심사 의견</h4>
+                    <div id="aiExamFeedbackList"></div>
+                  </div>
+                  <div>
+                    <h4 style="font-size:0.9rem;font-weight:800;color:#1e293b;margin:0 0 0.75rem;display:flex;align-items:center;gap:0.4rem;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> 레드플래그</h4>
+                    <div id="aiExamRedFlags"></div>
+                    <h4 style="font-size:0.9rem;font-weight:800;color:#1e293b;margin:1rem 0 0.75rem;display:flex;align-items:center;gap:0.4rem;"><i class="fa-solid fa-arrow-trend-up" style="color:#10b981;"></i> 성장 가능성</h4>
+                    <div id="aiExamUpside" style="font-size:0.85rem;color:#065f46;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:0.75rem 1rem;"></div>
+                  </div>
+                </div>
+
+                <!-- 심사 질문 -->
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+                  <h4 style="font-size:0.9rem;font-weight:800;color:#92400e;margin:0 0 0.75rem;display:flex;align-items:center;gap:0.4rem;"><i class="fa-solid fa-circle-question"></i> 루트 AI 심사 질문</h4>
+                  <ol id="aiExamQuestions" style="margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:0.5rem;"></ol>
+                </div>
+
+                <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                  <button onclick="saveInvestorAIToHistory()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border-radius:10px;border:none;background:#6366f1;color:white;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fa-solid fa-floppy-disk"></i> 이력 저장</button>
+                  <button onclick="document.getElementById('aiExamResult').style.display='none';" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border-radius:10px;border:1.5px solid #e2e8f0;background:white;color:#374151;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;"><i class="fa-solid fa-rotate-left"></i> 새 분석</button>
+                </div>
+              </div>
+
+              <!-- AI 심사 이력 -->
+              <div id="aiExamHistory" style="margin-top:1.75rem;"></div>
+            </div>
+
             <!-- 스타트업 검토 내역 -->
             <div class="activity-box" style="margin-top:2rem;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
