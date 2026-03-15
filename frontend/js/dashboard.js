@@ -1,4 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // 투자자 메뉴 FOUC 방지: localStorage에서 즉시 동기 처리
+  try {
+    const _u = JSON.parse(localStorage.getItem('user_info') || '{}');
+    if (_u.userType === 'investor') {
+      ['menuRecommend', 'menuSupport', 'menuImir'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    }
+  } catch(e) {}
+
   checkDashboardAuth();
   renderDashboard();
   initStoredFiles();
