@@ -436,10 +436,12 @@ function switchSection(sectionId) {
     targetSection.classList.add("active");
   }
 
-  // 내정보(settings) 진입 시: 수정 폼 채우기
+  // 내 정보 수정 폼 (myinfo, basicinfo 진입 시)
   if (sectionId === 'myinfo' || sectionId === 'settings') {
     loadSettingsForm();
-  if (sectionId === 'settings') loadSettingsBasicInfo();
+  }
+  if (sectionId === 'basicinfo') {
+    loadSettingsBasicInfo();
   }
 
   // 프로필 섹션 진입 시: 프로필 로드
@@ -668,7 +670,7 @@ function closeModal() {
   document.getElementById("detailModal").style.display = "none";
 }
 
-// ─── 추천 이력 ─────────────────────────────────────────────────
+// ─── AI 매칭 이력 ─────────────────────────────────────────────────
 function loadRecommendHistory() {
   const list = JSON.parse(localStorage.getItem("vcroute_recommend_history") || "[]");
   const container = document.getElementById("recommendList");
@@ -712,7 +714,7 @@ function loadRecommendHistory() {
 }
 
 function clearRecommendHistory() {
-  if (!confirm("추천 이력을 모두 삭제하시겠습니까?")) return;
+  if (!confirm("AI 매칭 이력을 모두 삭제하시겠습니까?")) return;
   localStorage.removeItem("vcroute_recommend_history");
   loadRecommendHistory();
 }
