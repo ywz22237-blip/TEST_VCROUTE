@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
   checkDashboardAuth();
   renderDashboard();
   initStoredFiles();
+
+  const tab = new URLSearchParams(window.location.search).get("tab");
+  if (tab) switchSection(tab);
 });
 
 // 대시보드 접근 권한 확인 및 프로필 로드
