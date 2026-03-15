@@ -294,22 +294,19 @@ function goToLoginFromModal() {
   window.location.href = getBasePath() + 'login.html';
 }
 
-async function handleDashboardLinkClick(e) {
-  e.preventDefault();                      // 반드시 동기적으로 먼저 호출
-  const href = e.currentTarget.href;       // await 전에 저장
-  const loggedIn = await isLoggedIn();
-  if (loggedIn) {
-    window.location.href = href;           // 로그인 상태면 직접 이동
-    return;
-  }
-  const modal = document.getElementById('loginRequiredModal');
-  if (modal) modal.style.display = 'flex';
-}
-
 function interceptDashboardLinks() {
   injectLoginRequiredModal();
   document.querySelectorAll('a[href*="dashboard.html"]').forEach(link => {
-    link.addEventListener('click', handleDashboardLinkClick);
+    const dashboardHref = link.href;       // 원래 URL 저장
+    link.href = 'javascript:void(0)';      // 기본 이동 자체를 제거
+    link.addEventListener('click', async () => {
+      const loggedIn = await isLoggedIn();
+      if (loggedIn) {
+        window.location.href = dashboardHref;
+      } else {
+        document.getElementById('loginRequiredModal').style.display = 'flex';
+      }
+    });
   });
 }
 
