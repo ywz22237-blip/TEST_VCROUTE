@@ -781,6 +781,30 @@
       font-size: 1rem;
       flex-shrink: 0;
     }
+    /* ── 기본 정보 수정 폼 (si-*) ── */
+    .si-group { margin-bottom: 1.1rem; }
+    .si-label { display:block; font-size:0.85rem; font-weight:700; color:#374151; margin-bottom:0.4rem; }
+    .si-input {
+      width: 100%; padding: 0.7rem 0.9rem; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      font-size: 0.9rem; color: #1e293b; background: white; outline: none; box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .si-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+    .si-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
+    .si-input[readonly] { background: #f8fafc; color: #64748b; cursor: default; }
+    .si-btn-verify {
+      flex-shrink: 0; padding: 0.7rem 1.1rem; background: white; color: #2563eb;
+      border: 1.5px solid #2563eb; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .si-btn-verify:hover { background: #eff6ff; }
+    .si-btn-verify:disabled { border-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; background: #f8fafc; }
+    .si-btn-confirm {
+      flex-shrink: 0; padding: 0.7rem 1.1rem; background: #2563eb; color: white;
+      border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .si-btn-confirm:hover { background: #1d4ed8; }
     </style>
   </head>
   <body>
@@ -2176,29 +2200,106 @@
           >
             <h2>설정</h2>
 
-            <!-- 계정 보안 설정 -->
+            <!-- 계정 보안: 기본 정보 수정 카드 -->
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-icon security">
                   <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div class="settings-info">
-                  <h3>계정 보안</h3>
-                  <p>비밀번호 및 보안 설정을 관리합니다</p>
+                  <h3>기본 정보 수정</h3>
+                  <p>이메일 인증 후 비밀번호 및 연락처를 수정할 수 있습니다</p>
                 </div>
               </div>
-              <div class="settings-card-body">
-                <div class="settings-item">
-                  <div class="settings-item-info">
-                    <i class="fa-solid fa-key"></i>
-                    <div>
-                      <h4>비밀번호 변경</h4>
-                      <p>주기적인 비밀번호 변경으로 계정을 안전하게 보호하세요</p>
+              <div class="settings-card-body" style="padding:1.5rem 2rem;">
+                <p style="font-size:0.8rem; color:#dc2626; font-weight:600; margin-bottom:1.5rem;">* 표시는 필수 입력 항목입니다</p>
+
+                <!-- 아이디 (읽기 전용) -->
+                <div class="si-group">
+                  <label class="si-label">아이디</label>
+                  <input id="si_username" class="si-input" type="text" readonly placeholder="아이디" />
+                </div>
+
+                <!-- 이메일 + 인증요청 -->
+                <div class="si-group">
+                  <label class="si-label">이메일 <span style="color:#dc2626;">*</span></label>
+                  <div style="display:flex; gap:0.6rem;">
+                    <input id="si_email" class="si-input" type="email" placeholder="example@email.com" style="flex:1;" />
+                    <button id="btnEmailVerify" onclick="requestEmailVerification()" class="si-btn-verify">인증요청</button>
+                  </div>
+                  <div id="si_email_status" style="font-size:0.78rem; margin-top:0.35rem; display:none;"></div>
+                </div>
+
+                <!-- 인증코드 입력 (인증요청 후 표시) -->
+                <div id="si_code_wrap" style="display:none;" class="si-group">
+                  <label class="si-label">인증코드 <span style="color:#dc2626;">*</span></label>
+                  <div style="display:flex; gap:0.6rem; align-items:center;">
+                    <div style="position:relative; flex:1;">
+                      <input id="si_code" class="si-input" type="text" placeholder="인증코드 6자리 입력" maxlength="6" style="width:100%; padding-right:4rem;" />
+                      <span id="si_timer" style="position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); font-size:0.8rem; color:#dc2626; font-weight:700; font-variant-numeric:tabular-nums;"></span>
+                    </div>
+                    <button onclick="verifyEmailCode()" class="si-btn-confirm">인증확인</button>
+                  </div>
+                </div>
+
+                <div id="si_verified_badge" style="display:none; margin-bottom:1.25rem;">
+                  <span style="display:inline-flex; align-items:center; gap:0.4rem; background:#dcfce7; color:#16a34a; padding:0.4rem 0.85rem; border-radius:20px; font-size:0.82rem; font-weight:700;">
+                    <i class="fa-solid fa-circle-check"></i> 이메일 인증 완료
+                  </span>
+                </div>
+
+                <div style="height:1px; background:#f1f5f9; margin:1.25rem 0;"></div>
+
+                <!-- 비밀번호 변경 (이메일 인증 전 잠금) -->
+                <div id="si_pw_section" style="position:relative;">
+                  <!-- 잠금 오버레이 -->
+                  <div id="si_pw_lock" style="position:absolute; inset:0; background:rgba(248,250,252,0.88); border-radius:12px; display:flex; align-items:center; justify-content:center; gap:0.5rem; z-index:2; backdrop-filter:blur(2px);">
+                    <i class="fa-solid fa-lock" style="color:#94a3b8; font-size:1rem;"></i>
+                    <span style="font-size:0.83rem; color:#94a3b8; font-weight:600;">이메일 인증 후 수정 가능합니다</span>
+                  </div>
+                  <div class="si-group">
+                    <label class="si-label">현재 비밀번호 <span style="color:#dc2626;">*</span></label>
+                    <div style="position:relative;">
+                      <input id="si_cur_pw" class="si-input" type="password" placeholder="현재 비밀번호 입력" disabled style="width:100%; padding-right:2.5rem;" />
+                      <button onclick="toggleSiPw('si_cur_pw',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;"><i class="fa-regular fa-eye"></i></button>
                     </div>
                   </div>
-                  <button class="btn-settings btn-password">
-                    <i class="fa-solid fa-lock"></i>
-                    비밀번호 변경
+                  <div class="si-group">
+                    <label class="si-label">새 비밀번호 <span style="color:#dc2626;">*</span></label>
+                    <div style="position:relative;">
+                      <input id="si_new_pw" class="si-input" type="password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" disabled style="width:100%; padding-right:2.5rem;" />
+                      <button onclick="toggleSiPw('si_new_pw',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <div id="si_pw_strength" style="height:4px; border-radius:4px; margin-top:0.4rem; background:#e2e8f0; transition:all 0.3s;"></div>
+                  </div>
+                  <div class="si-group" style="padding-bottom:1rem;">
+                    <label class="si-label">새 비밀번호 확인 <span style="color:#dc2626;">*</span></label>
+                    <div style="position:relative;">
+                      <input id="si_new_pw2" class="si-input" type="password" placeholder="비밀번호를 다시 입력하세요" disabled style="width:100%; padding-right:2.5rem;" oninput="checkSiPwMatch()" />
+                      <button onclick="toggleSiPw('si_new_pw2',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <div id="si_pw_match_msg" style="font-size:0.75rem; margin-top:0.3rem;"></div>
+                  </div>
+                </div>
+
+                <div style="height:1px; background:#f1f5f9; margin:0 0 1.25rem;"></div>
+
+                <!-- 연락처 (이메일 인증 전 잠금) -->
+                <div id="si_phone_section" style="position:relative;">
+                  <div id="si_phone_lock" style="position:absolute; inset:0; background:rgba(248,250,252,0.88); border-radius:12px; display:flex; align-items:center; justify-content:center; gap:0.5rem; z-index:2; backdrop-filter:blur(2px);">
+                    <i class="fa-solid fa-lock" style="color:#94a3b8; font-size:1rem;"></i>
+                    <span style="font-size:0.83rem; color:#94a3b8; font-weight:600;">이메일 인증 후 수정 가능합니다</span>
+                  </div>
+                  <div class="si-group" style="padding-bottom:1rem;">
+                    <label class="si-label">연락처</label>
+                    <input id="si_phone" class="si-input" type="tel" placeholder="010-0000-0000" disabled />
+                  </div>
+                </div>
+
+                <!-- 저장 버튼 -->
+                <div style="display:flex; justify-content:flex-end; margin-top:0.5rem;">
+                  <button id="siBtnSave" onclick="saveBasicInfo()" style="padding:0.7rem 2rem; background:#2563eb; color:white; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.5rem; transition:all 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                    <i class="fa-solid fa-floppy-disk"></i> 저장
                   </button>
                 </div>
               </div>
