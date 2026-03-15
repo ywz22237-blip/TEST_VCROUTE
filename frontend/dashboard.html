@@ -998,13 +998,13 @@
                       <div id="pPhone" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
                       <input id="pPhone_e" placeholder="연락처 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
-                    <!-- 대표자 -->
+                    <!-- 이름 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
                       <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.5rem;">
-                        <i class="fa-solid fa-user-tie" style="margin-right:0.4rem; color:var(--primary-color);"></i>대표자
+                        <i class="fa-solid fa-user-tie" style="margin-right:0.4rem; color:var(--primary-color);"></i>이름
                       </div>
                       <div id="pCompany" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
-                      <input id="pCompany_e" placeholder="대표자 이름 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
+                      <input id="pCompany_e" placeholder="이름 입력" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
                     </div>
                     <!-- 인증 -->
                     <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
@@ -1024,26 +1024,26 @@
                         <span style="font-size:0.9rem; font-weight:700; color:var(--text-secondary); white-space:nowrap;">억원</span>
                       </div>
                     </div>
-                    <!-- 대표자 나이 -->
-                    <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
+                    <!-- 희망 라운드 (투자자) -->
+                    <div id="pInvHopeRoundCard" style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color); display:none;">
                       <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.5rem;">
-                        <i class="fa-solid fa-cake-candles" style="margin-right:0.4rem; color:var(--primary-color);"></i>대표자 나이
+                        <i class="fa-solid fa-bullseye" style="margin-right:0.4rem; color:var(--primary-color);"></i>희망 라운드
                       </div>
-                      <div id="pCeoAge" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
-                      <input id="pCeoAge_e" placeholder="나이 입력" type="number" min="1" max="120" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
+                      <div id="pInvHopeRound" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
                     </div>
-                    <!-- 성별 -->
-                    <div style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color);">
+                    <!-- 희망 산업군 (투자자) -->
+                    <div id="pInvHopeIndustriesCard" style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color); display:none;">
                       <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.5rem;">
-                        <i class="fa-solid fa-venus-mars" style="margin-right:0.4rem; color:var(--primary-color);"></i>성별
+                        <i class="fa-solid fa-industry" style="margin-right:0.4rem; color:var(--primary-color);"></i>희망 산업군
                       </div>
-                      <div id="pGender" style="font-size:1rem; font-weight:700; color:var(--text-primary);">-</div>
-                      <select id="pGender_e" style="display:none; width:100%; border:1.5px solid #2563eb; border-radius:8px; padding:0.4rem 0.6rem; font-size:0.95rem; font-weight:600; color:var(--text-primary); background:white; outline:none; box-sizing:border-box;">
-                        <option value="">선택</option>
-                        <option value="남성">남성</option>
-                        <option value="여성">여성</option>
-                        <option value="기타">기타</option>
-                      </select>
+                      <div id="pInvHopeIndustries" style="font-size:1rem; font-weight:700; color:var(--text-primary); display:flex; flex-wrap:wrap; gap:0.3rem;">-</div>
+                    </div>
+                    <!-- 소개 (투자자) -->
+                    <div id="pInvBioCard" style="padding:1.25rem; background:#f8fafc; border-radius:16px; border:1px solid var(--border-color); grid-column:1/-1; display:none;">
+                      <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:600; margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-align-left" style="margin-right:0.4rem; color:var(--primary-color);"></i>소개
+                      </div>
+                      <div id="pInvBio" style="font-size:0.95rem; font-weight:500; color:var(--text-primary); line-height:1.6; white-space:pre-wrap;">-</div>
                     </div>
                   </div>
 
@@ -2167,6 +2167,35 @@
                     <div class="pef-group">
                       <label class="pef-label">SNS URL</label>
                       <input class="pef-input" id="pe_inv_sns" type="url" placeholder="링크드인, 인스타, 블로그 등" />
+                    </div>
+                  </div>
+                  <div class="pef-grid-2" style="margin-top:0.75rem;">
+                    <div class="pef-group">
+                      <label class="pef-label">희망 라운드</label>
+                      <select class="pef-select" id="pe_inv_hope_round">
+                        <option value="">선택</option>
+                        <option value="Pre-Seed">Pre-Seed</option>
+                        <option value="Seed">Seed</option>
+                        <option value="Series A">Series A</option>
+                        <option value="Series B">Series B</option>
+                        <option value="Series C+">Series C+</option>
+                        <option value="IPO">IPO</option>
+                      </select>
+                    </div>
+                    <div class="pef-group">
+                      <label class="pef-label">희망 투자금액</label>
+                      <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <input class="pef-input" id="pe_inv_hope_amt" type="number" min="0" step="0.1" placeholder="0" style="flex:1;" />
+                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-secondary); white-space:nowrap;">억원</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pef-group" style="margin-top:0.75rem;">
+                    <label class="pef-label">희망 산업군</label>
+                    <div class="keyword-input-wrap" id="pe_inv_ind_wrap" style="cursor:text;">
+                      <div id="pe_inv_ind_badges" class="keyword-badges"></div>
+                      <input type="text" id="pe_inv_ind_input" placeholder="IT, 바이오, 핀테크 등 (스페이스바로 추가)" maxlength="20" style="border:none; outline:none; flex:1; min-width:80px; font-size:0.9rem; background:transparent;" />
+                      <input type="hidden" id="pe_inv_hope_industries" />
                     </div>
                   </div>
                   <div class="pef-group" style="margin-top:0.75rem;">
