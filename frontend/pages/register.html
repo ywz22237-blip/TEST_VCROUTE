@@ -106,8 +106,8 @@
 
             <!-- Registration Form -->
             <form id="registerForm" onsubmit="handleRegisterSubmit(event)">
-              <!-- Step Indicator -->
-              <div class="step-indicator">
+              <!-- Step Indicator (동적 업데이트) -->
+              <div class="step-indicator" id="stepIndicator">
                 <div class="step active" data-step="1">
                   <div class="step-circle">1</div>
                   <span>구분 선택</span>
@@ -120,7 +120,13 @@
                 <div class="step-line"></div>
                 <div class="step" data-step="3">
                   <div class="step-circle">3</div>
-                  <span>추가 정보</span>
+                  <span id="step3Label">추가 정보</span>
+                </div>
+                <!-- 스타트업 전용 4번째 스텝 -->
+                <div class="step-line" id="stepLine3" style="display:none;"></div>
+                <div class="step" data-step="4" id="step4Indicator" style="display:none;">
+                  <div class="step-circle">4</div>
+                  <span>회사 정보</span>
                 </div>
               </div>
 
@@ -247,31 +253,59 @@
                 </div>
               </div>
 
-              <!-- Step 3: Optional Info -->
-              <div class="form-step" id="step3">
-                <h3>추가 정보 <span class="optional-badge">선택사항</span></h3>
+              <!-- Step 3: 투자자 추가정보 -->
+              <div class="form-step" id="step3investor" style="display:none;">
+                <h3>투자자 추가 정보 <span class="optional-badge">선택사항</span></h3>
                 <p class="step-desc">나중에 프로필에서 수정할 수 있습니다</p>
 
-                <!-- Company -->
+                <!-- 회사명 -->
                 <div class="form-group">
-                  <label for="company">회사명</label>
-                  <input type="text" id="company" name="company" placeholder="소속 회사명을 입력하세요" />
+                  <label for="inv_company">회사명</label>
+                  <input type="text" id="inv_company" name="inv_company" placeholder="소속 회사명을 입력하세요" />
                 </div>
 
-                <!-- Portfolio -->
+                <!-- 형태 -->
                 <div class="form-group">
-                  <label for="portfolio">포트폴리오 URL</label>
-                  <input type="url" id="portfolio" name="portfolio" placeholder="https://portfolio.com" />
+                  <label for="inv_type">형태</label>
+                  <select id="inv_type" name="inv_type" class="form-select">
+                    <option value="">형태를 선택하세요</option>
+                    <option value="VC">VC (벤처캐피탈)</option>
+                    <option value="AC">AC (액셀러레이터)</option>
+                    <option value="개인투자자">개인투자자</option>
+                    <option value="기타">기타 (직접 입력)</option>
+                  </select>
+                  <input type="text" id="inv_type_custom" name="inv_type_custom" placeholder="형태를 직접 입력하세요" style="display:none; margin-top:0.5rem;" />
                 </div>
 
-                <!-- Bio -->
+                <!-- 역할 -->
                 <div class="form-group">
-                  <label for="bio">소개</label>
-                  <textarea id="bio" name="bio" rows="4" placeholder="간단한 자기소개를 입력하세요" maxlength="500"></textarea>
-                  <span class="char-count"><span id="bioCount">0</span>/500</span>
+                  <label for="inv_role">역할</label>
+                  <input type="text" id="inv_role" name="inv_role" placeholder="대표, 심사역, 스카우트, GP 등" />
                 </div>
 
-                <!-- Terms Agreement -->
+                <!-- 홈페이지 URL -->
+                <div class="form-group">
+                  <label for="inv_homepage">홈페이지 URL</label>
+                  <input type="url" id="inv_homepage" name="inv_homepage" placeholder="https://company.com" />
+                </div>
+
+                <!-- SNS URL -->
+                <div class="form-group">
+                  <label for="inv_sns">SNS URL</label>
+                  <input type="url" id="inv_sns" name="inv_sns" placeholder="링크드인, 인스타, 블로그 등 (https://...)" />
+                </div>
+
+                <!-- 명함 이미지 업로드 -->
+                <div class="form-group">
+                  <label>명함</label>
+                  <label class="file-upload-label" for="inv_card">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span id="inv_card_name">이미지를 업로드하세요 (JPG, PNG)</span>
+                  </label>
+                  <input type="file" id="inv_card" name="inv_card" accept="image/*" style="display:none;" onchange="handleFileSelect(this,'inv_card_name')" />
+                </div>
+
+                <!-- 약관 -->
                 <div class="terms-section">
                   <label class="checkbox-label all-agree">
                     <input type="checkbox" id="agreeAll" onchange="toggleAllAgree()" />
@@ -301,6 +335,249 @@
 
                 <div class="form-actions two-btn">
                   <button type="button" class="btn-prev" onclick="goToStep(2)">
+                    <i class="fa-solid fa-arrow-left"></i> 이전
+                  </button>
+                  <button type="submit" class="btn-submit" id="btnSubmitInvestor">
+                    <i class="fa-solid fa-user-plus"></i> 회원가입 완료
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 3: 스타트업 개인정보 -->
+              <div class="form-step" id="step3startup" style="display:none;">
+                <h3>개인 정보 <span class="optional-badge">선택사항</span></h3>
+                <p class="step-desc">나중에 프로필에서 수정할 수 있습니다</p>
+
+                <!-- 이름·국적·나이·성별 (한 줄) -->
+                <div class="form-row-4">
+                  <div class="form-group">
+                    <label for="su_name">이름</label>
+                    <input type="text" id="su_name" name="su_name" placeholder="홍길동" />
+                  </div>
+                  <div class="form-group">
+                    <label for="su_nationality">국적</label>
+                    <input type="text" id="su_nationality" name="su_nationality" placeholder="한국" />
+                  </div>
+                  <div class="form-group">
+                    <label for="su_age">나이</label>
+                    <input type="number" id="su_age" name="su_age" placeholder="30" min="18" max="99" />
+                  </div>
+                  <div class="form-group">
+                    <label for="su_gender">성별</label>
+                    <select id="su_gender" name="su_gender" class="form-select">
+                      <option value="">선택</option>
+                      <option value="남성">남성</option>
+                      <option value="여성">여성</option>
+                      <option value="기타">기타</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- 직무 -->
+                <div class="form-group">
+                  <label for="su_job">직무</label>
+                  <input type="text" id="su_job" name="su_job" placeholder="대표, C레벨, 개발자, 마케팅 등" />
+                </div>
+
+                <!-- SNS 프로필 -->
+                <div class="form-group">
+                  <label for="su_sns">SNS 프로필</label>
+                  <input type="url" id="su_sns" name="su_sns" placeholder="https://www.linkedin.com/in/... (링크드인, 인스타 등)" />
+                </div>
+
+                <!-- 소개 -->
+                <div class="form-group">
+                  <label for="su_bio">소개</label>
+                  <textarea id="su_bio" name="su_bio" rows="3" placeholder="간단한 자기소개를 입력하세요" maxlength="500"></textarea>
+                  <span class="char-count"><span id="suBioCount">0</span>/500</span>
+                </div>
+
+                <!-- 명함 이미지 업로드 -->
+                <div class="form-group">
+                  <label>명함</label>
+                  <label class="file-upload-label" for="su_card">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span id="su_card_name">이미지를 업로드하세요 (JPG, PNG)</span>
+                  </label>
+                  <input type="file" id="su_card" name="su_card" accept="image/*" style="display:none;" onchange="handleFileSelect(this,'su_card_name')" />
+                </div>
+
+                <!-- VC-Route 알게 된 경로 -->
+                <div class="form-group">
+                  <label for="su_referral">VC-Route를 어떻게 알게 되셨나요?</label>
+                  <select id="su_referral" name="su_referral" class="form-select">
+                    <option value="">옵션을 선택해주세요</option>
+                    <option value="소셜미디어">소셜미디어 (링크드인, 인스타 등)</option>
+                    <option value="검색엔진">네이버, 구글 등 검색엔진</option>
+                    <option value="AI">AI (ChatGPT, Claude 등)</option>
+                    <option value="뉴스">뉴스 매체</option>
+                    <option value="블로그/유튜브">블로그나 유튜브에서 언급됨</option>
+                    <option value="기타">기타</option>
+                  </select>
+                </div>
+
+                <div class="form-actions two-btn">
+                  <button type="button" class="btn-prev" onclick="goToStep(2)">
+                    <i class="fa-solid fa-arrow-left"></i> 이전
+                  </button>
+                  <button type="button" class="btn-next" onclick="goToStep(4)">
+                    다음 단계 <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 4: 스타트업 회사정보 -->
+              <div class="form-step" id="step4startup" style="display:none;">
+                <h3>회사 정보 <span class="optional-badge">선택사항</span></h3>
+                <p class="step-desc">나중에 프로필에서 수정할 수 있습니다</p>
+
+                <!-- 회사명 / 설립일 / 홈페이지 -->
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label for="co_name">회사명</label>
+                    <input type="text" id="co_name" name="co_name" placeholder="(주)VC Route" />
+                  </div>
+                  <div class="form-group">
+                    <label for="co_founded">설립일</label>
+                    <input type="date" id="co_founded" name="co_founded" />
+                  </div>
+                  <div class="form-group">
+                    <label for="co_homepage">홈페이지 URL</label>
+                    <input type="url" id="co_homepage" name="co_homepage" placeholder="https://company.com" />
+                  </div>
+                </div>
+
+                <!-- 형태 / 주소 -->
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label for="co_biz_type">형태</label>
+                    <select id="co_biz_type" name="co_biz_type" class="form-select">
+                      <option value="">선택</option>
+                      <option value="개인사업자">개인사업자</option>
+                      <option value="법인사업자">법인사업자</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="co_address">주소</label>
+                    <input type="text" id="co_address" name="co_address" placeholder="경기도 xx시" />
+                  </div>
+                </div>
+
+                <!-- 단계 -->
+                <div class="form-group">
+                  <label for="co_stage">단계</label>
+                  <select id="co_stage" name="co_stage" class="form-select">
+                    <option value="">현재 단계를 선택하세요</option>
+                    <option value="아이디어">아이디어</option>
+                    <option value="프로토타입">프로토타입</option>
+                    <option value="초기수익">초기수익</option>
+                    <option value="확장">확장</option>
+                  </select>
+                </div>
+
+                <!-- 회사 키워드 (뱃지) -->
+                <div class="form-group">
+                  <label for="co_keywords">회사 키워드 <span style="font-size:0.8rem; color:var(--text-secondary);">(스페이스바로 뱃지 추가, 최대 3개)</span></label>
+                  <div class="keyword-input-wrap">
+                    <div id="keywordBadges" class="keyword-badges"></div>
+                    <input type="text" id="co_keywords_input" placeholder="SaaS, 핀테크, 에듀테크, 프롭테크, B2B 등" maxlength="20" />
+                    <input type="hidden" id="co_keywords" name="co_keywords" />
+                  </div>
+                </div>
+
+                <!-- 공동창업자 / 현재투자단계 / 현재투자금액 -->
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label for="co_cofounder">공동창업자</label>
+                    <select id="co_cofounder" name="co_cofounder" class="form-select">
+                      <option value="">선택</option>
+                      <option value="O">O (있음)</option>
+                      <option value="X">X (없음)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="co_cur_invest_stage">현재투자단계</label>
+                    <select id="co_cur_invest_stage" name="co_cur_invest_stage" class="form-select">
+                      <option value="">선택</option>
+                      <option value="Pre-Seed">Pre-Seed</option>
+                      <option value="Seed">Seed</option>
+                      <option value="Series A">Series A</option>
+                      <option value="Series B">Series B</option>
+                      <option value="Series C+">Series C+</option>
+                      <option value="IPO">IPO</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="co_cur_invest_amt">현재투자금액</label>
+                    <div class="input-unit-wrap">
+                      <input type="number" id="co_cur_invest_amt" name="co_cur_invest_amt" placeholder="0" min="0" step="0.1" />
+                      <span class="input-unit">억원</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 희망투자단계 / 희망투자금액 -->
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label for="co_hope_invest_stage">희망투자단계</label>
+                    <select id="co_hope_invest_stage" name="co_hope_invest_stage" class="form-select">
+                      <option value="">선택</option>
+                      <option value="Pre-Seed">Pre-Seed</option>
+                      <option value="Seed">Seed</option>
+                      <option value="Series A">Series A</option>
+                      <option value="Series B">Series B</option>
+                      <option value="Series C+">Series C+</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="co_hope_invest_amt">희망투자금액</label>
+                    <div class="input-unit-wrap">
+                      <input type="number" id="co_hope_invest_amt" name="co_hope_invest_amt" placeholder="0" min="0" step="0.1" />
+                      <span class="input-unit">억원</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 사업자등록증 -->
+                <div class="form-group">
+                  <label>사업자등록증</label>
+                  <label class="file-upload-label" for="co_biz_reg">
+                    <i class="fa-solid fa-file-image"></i>
+                    <span id="co_biz_reg_name">이미지를 업로드하세요 (JPG, PNG)</span>
+                  </label>
+                  <input type="file" id="co_biz_reg" name="co_biz_reg" accept="image/*" style="display:none;" onchange="handleFileSelect(this,'co_biz_reg_name')" />
+                </div>
+
+                <!-- 약관 -->
+                <div class="terms-section">
+                  <label class="checkbox-label all-agree">
+                    <input type="checkbox" id="agreeAll4" onchange="toggleAllAgree4()" />
+                    <span class="checkmark"></span>
+                    <span>전체 동의</span>
+                  </label>
+                  <div class="terms-list">
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="terms4" class="term-check4" value="service" required />
+                      <span class="checkmark"></span>
+                      <span><span class="required-tag">[필수]</span> 서비스 이용약관 동의</span>
+                      <a href="../legal.html" target="_blank" class="terms-link">보기</a>
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="terms4" class="term-check4" value="privacy" required />
+                      <span class="checkmark"></span>
+                      <span><span class="required-tag">[필수]</span> 개인정보 처리방침 동의</span>
+                      <a href="../legal.html" target="_blank" class="terms-link">보기</a>
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="terms4" class="term-check4" value="marketing" />
+                      <span class="checkmark"></span>
+                      <span><span class="optional-tag">[선택]</span> 마케팅 정보 수신 동의</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-actions two-btn">
+                  <button type="button" class="btn-prev" onclick="goToStep(3)">
                     <i class="fa-solid fa-arrow-left"></i> 이전
                   </button>
                   <button type="submit" class="btn-submit" id="btnSubmit">

@@ -148,9 +148,28 @@ function renderUserProfile(user) {
   setText('pBmInvestors', bmInvestors);
   setText('pBmFunds', bmFunds);
   setText('pBmStartups', bmStartups);
-  // 클릭 횟수·자료요청: user 필드 또는 기본값
-  setText('pClickCount', user.clickCount !== undefined ? user.clickCount : 247);
-  setText('pDocRequest', user.docRequest !== undefined ? user.docRequest : 18);
+
+  // 클릭 횟수 · 자료요청: localStorage 기반 실제 카운팅 (샘플 계정 포함)
+  const uid = user.userId || user.username || '';
+  const SAMPLE_STATS = { 'ywz22': { clickCount: 248, docRequest: 33, bookmarkTotal: 12 } };
+  const isSample = SAMPLE_STATS[uid];
+
+  // 샘플 계정은 미리 seeded 값 사용, 그 외 localStorage 누적값 사용
+  const storedStats = JSON.parse(localStorage.getItem('vcr_stats_' + uid) || '{}');
+  if (isSample && !storedStats._seeded) {
+    const seeded = { clickCount: SAMPLE_STATS[uid].clickCount, docRequest: SAMPLE_STATS[uid].docRequest, _seeded: true };
+    localStorage.setItem('vcr_stats_' + uid, JSON.stringify(seeded));
+    storedStats.clickCount = seeded.clickCount;
+    storedStats.docRequest = seeded.docRequest;
+    if (bmTotal === 0 && isSample.bookmarkTotal > 0) {
+      // 샘플 즐겨찾기 보정: localStorage에 시드된 경우 표시값 덮어쓰기
+      setText('pBmTotal', SAMPLE_STATS[uid].bookmarkTotal);
+    }
+  }
+  const clickCount = user.clickCount !== undefined ? user.clickCount : (storedStats.clickCount || 0);
+  const docRequest = user.docRequest !== undefined ? user.docRequest : (storedStats.docRequest || 0);
+  setText('pClickCount', clickCount);
+  setText('pDocRequest', docRequest);
 
   const portfolioWrap = document.getElementById('pPortfolioWrap');
   const portfolioEl = document.getElementById('pPortfolio');
