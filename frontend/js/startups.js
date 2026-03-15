@@ -169,7 +169,7 @@ function renderStartups(data) {
         <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">상세보기</button>
         <button class="btn-bookmark ${BookmarkMgr.isBookmarked("startups", startup.id) ? "active" : ""}"
                 onclick="event.stopPropagation(); handleBookmarkUpdate('startups', ${startup.id}, this)">
-          <i class="fa-${BookmarkMgr.isBookmarked("startups", startup.id) ? "solid" : "regular"} fa-star"></i>
+          <i class="fa-${BookmarkMgr.isBookmarked("startups", startup.id) ? "solid" : "regular"} fa-star"></i>즐겨찾기
         </button>
       </div>
     `;
