@@ -493,10 +493,15 @@ function switchSection(sectionId) {
     loadRecommendHistory();
   }
 
-  // 투자 히스토리 섹션 진입 시 렌더링
+  // 투자 히스토리 섹션 진입 시 렌더링 (userType별 분기)
   if (sectionId === 'history') {
-    _renderInvestorAIHistory();
-    renderReviewList();
+    const _uInfo = (() => { try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch(e) { return {}; } })();
+    if (_uInfo.userType === 'investor') {
+      _renderInvestorAIHistory();
+      renderReviewList();
+    } else {
+      renderStartupHistory();
+    }
   }
 
   // 지원사업 섹션 진입 시 캘린더 초기화
@@ -2251,4 +2256,236 @@ function submitAddReview() {
 document.addEventListener('click', e => {
   const modal = document.getElementById('addReviewModal');
   if (modal && e.target === modal) closeAddReviewModal();
+});
+
+// ─── 스타트업 투자자 접촉 내역 ────────────────────────────────────────────
+
+const SU_CONTACT_KEY  = 'startup_investor_contacts';
+const SU_FUNDING_KEY  = 'startup_funding_settings';
+
+const SU_CONTACT_SEED = [
+  { id:1, firm:'소프트뱅크벤처스',  manager:'김민준 심사역', type:'VC',  method:'플랫폼',  date:'2025-01-08', status:'connected', memo:'IR 덱 검토 완료, 2차 미팅 진행 중' },
+  { id:2, firm:'카카오벤처스',      manager:'이서연 팀장',   type:'VC',  method:'이메일',  date:'2025-01-15', status:'waiting',   memo:'사업계획서 전달, 회신 대기 중' },
+  { id:3, firm:'스파크랩',          manager:'박지훈',        type:'AC',  method:'행사',    date:'2025-01-22', status:'connected', memo:'데모데이 이후 연락, 미팅 완료' },
+  { id:4, firm:'한국투자파트너스',  manager:'최수진 심사역', type:'VC',  method:'소개',    date:'2025-02-03', status:'rejected',  memo:'현재 포트폴리오와 겹침 이유로 패스' },
+  { id:5, firm:'블루포인트파트너스',manager:'',              type:'AC',  method:'콜드메일',date:'2025-02-10', status:'waiting',   memo:'' },
+  { id:6, firm:'더벤처스',          manager:'오동현 파트너', type:'VC',  method:'플랫폼',  date:'2025-02-17', status:'connected', memo:'텀시트 협의 중' },
+  { id:7, firm:'롯데벤처스',        manager:'',              type:'CVC', method:'행사',    date:'2025-03-01', status:'waiting',   memo:'IR 자료 요청받음' },
+  { id:8, firm:'본엔젤스',          manager:'신재호 심사역', type:'VC',  method:'소개',    date:'2025-03-05', status:'rejected',  memo:'재무 모델 보강 후 재검토 제안' },
+];
+
+function _loadContacts() {
+  const stored = localStorage.getItem(SU_CONTACT_KEY);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(SU_CONTACT_KEY, JSON.stringify(SU_CONTACT_SEED));
+  return SU_CONTACT_SEED;
+}
+function _saveContacts(list) { localStorage.setItem(SU_CONTACT_KEY, JSON.stringify(list)); }
+
+function renderStartupHistory() {
+  const list = _loadContacts();
+  const total     = list.length;
+  const waiting   = list.filter(c => c.status === 'waiting').length;
+  const connected = list.filter(c => c.status === 'connected').length;
+  const rejected  = list.filter(c => c.status === 'rejected').length;
+
+  // ── 4대 카운터
+  const statsEl = document.getElementById('suContactStats');
+  if (statsEl) statsEl.innerHTML = `
+    <div class="stat-card"><div class="value">${total}</div><div class="label">총 연락</div></div>
+    <div class="stat-card" style="border-top:3px solid #f59e0b;"><div class="value" style="color:#d97706;">${waiting}</div><div class="label">대기중</div></div>
+    <div class="stat-card" style="border-top:3px solid #10b981;"><div class="value" style="color:#059669;">${connected}</div><div class="label">연결</div></div>
+    <div class="stat-card" style="border-top:3px solid #ef4444;"><div class="value" style="color:#dc2626;">${rejected}</div><div class="label">거절</div></div>`;
+
+  // ── 월별 차트
+  _renderSuMonthlyChart(list);
+
+  // ── 투자 유치 현황
+  const connEl = document.getElementById('suConnectedCount');
+  if (connEl) connEl.innerHTML = `${connected}<span style="font-size:0.8rem;font-weight:500;color:#6b7280;">명</span>`;
+  const responded = connected + rejected;
+  const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0;
+  const convRate     = total > 0 ? Math.round((connected / total) * 100) : 0;
+  const rrEl = document.getElementById('suResponseRate');
+  if (rrEl) rrEl.textContent = `${responseRate}%`;
+  const rrBar = document.getElementById('suResponseBar');
+  if (rrBar) rrBar.style.width = responseRate + '%';
+  const crEl = document.getElementById('suConvRate');
+  if (crEl) crEl.textContent = `${convRate}%`;
+  const crBar = document.getElementById('suConvBar');
+  if (crBar) crBar.style.width = convRate + '%';
+
+  // 라운드 설정 복원
+  const funding = JSON.parse(localStorage.getItem(SU_FUNDING_KEY) || '{}');
+  const roundEl = document.getElementById('suRound');
+  if (roundEl && funding.round) roundEl.value = funding.round;
+
+  // ── 접촉 내역 리스트
+  _renderSuContactList(list);
+}
+
+function _renderSuMonthlyChart(list) {
+  const chartEl = document.getElementById('suMonthlyChart');
+  const legendEl = document.getElementById('suMonthlyLegend');
+  if (!chartEl) return;
+
+  // 최근 6개월
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = `${d.getMonth()+1}월`;
+    months.push({ key, label, total:0, connected:0, rejected:0, waiting:0 });
+  }
+  list.forEach(c => {
+    const mo = c.date ? c.date.slice(0,7) : '';
+    const m = months.find(m => m.key === mo);
+    if (m) { m.total++; m[c.status]++; }
+  });
+
+  const maxVal = Math.max(...months.map(m => m.total), 1);
+  chartEl.innerHTML = months.map(m => {
+    const h = Math.round((m.total / maxVal) * 100);
+    const isCurrentMonth = m.key === `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0.3rem;">
+      <span style="font-size:0.75rem;font-weight:700;color:${isCurrentMonth?'#2563eb':'#94a3b8'};">${m.total||''}</span>
+      <div style="width:100%;background:${isCurrentMonth?'linear-gradient(180deg,#3b82f6,#2563eb)':'#e2e8f0'};height:${Math.max(h,4)}%;border-radius:6px 6px 0 0;min-height:4px;transition:all 0.4s;"></div>
+      <span style="font-size:0.75rem;color:${isCurrentMonth?'#2563eb':'#94a3b8'};font-weight:${isCurrentMonth?'700':'400'};">${m.label}</span>
+    </div>`;
+  }).join('');
+
+  if (legendEl) legendEl.innerHTML = `
+    <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.75rem;color:#6b7280;"><span style="width:10px;height:10px;background:#10b981;border-radius:2px;"></span>연결</span>
+    <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.75rem;color:#6b7280;"><span style="width:10px;height:10px;background:#f59e0b;border-radius:2px;"></span>대기중</span>
+    <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.75rem;color:#6b7280;"><span style="width:10px;height:10px;background:#ef4444;border-radius:2px;"></span>거절</span>`;
+}
+
+function _renderSuContactList(list) {
+  const tabRow = document.getElementById('suContactTabRow');
+  const listEl = document.getElementById('suContactList');
+  if (!tabRow || !listEl) return;
+
+  const waiting   = list.filter(c => c.status === 'waiting').length;
+  const connected = list.filter(c => c.status === 'connected').length;
+  const rejected  = list.filter(c => c.status === 'rejected').length;
+
+  const currentFilter = tabRow.dataset.filter || 'all';
+
+  tabRow.innerHTML = [
+    { f:'all',       label:`전체 · ${list.length}건`,     bg:'#e2e8f0', ac:'#2563eb', color:'#374151', acColor:'white', icon:'fa-list' },
+    { f:'waiting',   label:`대기중 · ${waiting}건`,        bg:'#fef3c7', ac:'#f59e0b', color:'#92400e', acColor:'white', icon:'fa-clock' },
+    { f:'connected', label:`연결 · ${connected}건`,        bg:'#d1fae5', ac:'#10b981', color:'#065f46', acColor:'white', icon:'fa-link' },
+    { f:'rejected',  label:`거절 · ${rejected}건`,         bg:'#fee2e2', ac:'#ef4444', color:'#991b1b', acColor:'white', icon:'fa-xmark' },
+  ].map(t => {
+    const active = currentFilter === t.f;
+    return `<button onclick="_setSuContactFilter('${t.f}')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;cursor:pointer;font-size:0.78rem;font-weight:800;font-family:inherit;background:${active?t.ac:t.bg};color:${active?t.acColor:t.color};transition:all 0.15s;">
+      <i class="fa-solid ${t.icon}"></i> ${t.label}
+    </button>`;
+  }).join('');
+  tabRow.dataset.filter = currentFilter;
+
+  const filtered = currentFilter === 'all' ? list : list.filter(c => c.status === currentFilter);
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div style="text-align:center;padding:2.5rem;color:#94a3b8;font-size:0.88rem;">해당 상태의 투자자 접촉 내역이 없습니다.</div>`;
+    return;
+  }
+
+  const statusCfg = {
+    waiting:   { bg:'#fef3c7', color:'#92400e', label:'대기중', dot:'#f59e0b' },
+    connected: { bg:'#d1fae5', color:'#065f46', label:'연결',   dot:'#10b981' },
+    rejected:  { bg:'#fee2e2', color:'#991b1b', label:'거절',   dot:'#ef4444' },
+  };
+  const typeCfg = {
+    VC:  { bg:'#dbeafe', color:'#1d4ed8' },
+    AC:  { bg:'#ede9fe', color:'#7c3aed' },
+    엔젤: { bg:'#fef3c7', color:'#b45309' },
+    CVC: { bg:'#d1fae5', color:'#065f46' },
+    기타: { bg:'#f1f5f9', color:'#475569' },
+  };
+
+  listEl.innerHTML = filtered.map(c => {
+    const sc = statusCfg[c.status] || statusCfg.waiting;
+    const tc = typeCfg[c.type] || typeCfg['기타'];
+    const dateStr = c.date ? c.date.replace(/-/g,'.') : '-';
+    return `<div style="display:grid;grid-template-columns:2fr 0.8fr 0.8fr 1fr 1fr 1.5fr 0.4fr;gap:0.75rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+      <div>
+        <div style="font-size:0.9rem;font-weight:700;color:#1e293b;">${c.firm}</div>
+        ${c.manager ? `<div style="font-size:0.75rem;color:#6b7280;margin-top:0.1rem;">${c.manager}</div>` : ''}
+      </div>
+      <div><span style="background:${tc.bg};color:${tc.color};font-size:0.72rem;font-weight:800;padding:0.2rem 0.6rem;border-radius:20px;">${c.type}</span></div>
+      <div style="font-size:0.8rem;color:#374151;">${c.method||'-'}</div>
+      <div style="font-size:0.8rem;color:#6b7280;">${dateStr}</div>
+      <div style="text-align:center;"><span style="background:${sc.bg};color:${sc.color};font-size:0.72rem;font-weight:800;padding:0.25rem 0.65rem;border-radius:20px;">${sc.label}</span></div>
+      <div style="font-size:0.78rem;color:#6b7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.memo||''}">${c.memo || '<span style="color:#cbd5e1;">-</span>'}</div>
+      <div style="text-align:center;">
+        <button onclick="deleteSuContact(${c.id})" style="border:none;background:none;cursor:pointer;color:#cbd5e1;font-size:0.9rem;padding:0.2rem 0.4rem;transition:color 0.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'" title="삭제"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _setSuContactFilter(filter) {
+  const tabRow = document.getElementById('suContactTabRow');
+  if (tabRow) tabRow.dataset.filter = filter;
+  _renderSuContactList(_loadContacts());
+}
+
+function deleteSuContact(id) {
+  if (!confirm('이 연락 내역을 삭제하시겠습니까?')) return;
+  _saveContacts(_loadContacts().filter(c => c.id !== id));
+  renderStartupHistory();
+}
+
+function saveSuFunding() {
+  const round = document.getElementById('suRound')?.value || 'Seed';
+  localStorage.setItem(SU_FUNDING_KEY, JSON.stringify({ round }));
+}
+
+function openAddContactModal() {
+  document.getElementById('acFirm').value = '';
+  document.getElementById('acManager').value = '';
+  document.getElementById('acType').value = 'VC';
+  document.getElementById('acMethod').value = '이메일';
+  const today = new Date();
+  document.getElementById('acDate').value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.querySelector('input[name="acStatus"][value="waiting"]').checked = true;
+  document.getElementById('acMemo').value = '';
+  document.getElementById('addContactModal').classList.add('open');
+  setTimeout(() => document.getElementById('acFirm')?.focus(), 100);
+}
+
+function closeAddContactModal() {
+  document.getElementById('addContactModal').classList.remove('open');
+}
+
+function submitAddContact() {
+  const firm = (document.getElementById('acFirm')?.value || '').trim();
+  const date = document.getElementById('acDate')?.value || '';
+  if (!firm) { alert('투자사명을 입력해주세요.'); return; }
+  if (!date) { alert('연락일을 선택해주세요.'); return; }
+  const status = document.querySelector('input[name="acStatus"]:checked')?.value || 'waiting';
+  const list = _loadContacts();
+  list.unshift({
+    id:       Date.now(),
+    firm,
+    manager:  (document.getElementById('acManager')?.value || '').trim(),
+    type:     document.getElementById('acType')?.value || 'VC',
+    method:   document.getElementById('acMethod')?.value || '이메일',
+    date,
+    status,
+    memo:     (document.getElementById('acMemo')?.value || '').trim(),
+  });
+  _saveContacts(list);
+  // 추가한 상태의 탭으로 이동
+  const tabRow = document.getElementById('suContactTabRow');
+  if (tabRow) tabRow.dataset.filter = status;
+  closeAddContactModal();
+  renderStartupHistory();
+}
+
+// 모달 바깥 클릭 닫기
+document.addEventListener('click', e => {
+  const modal = document.getElementById('addContactModal');
+  if (modal && e.target === modal) closeAddContactModal();
 });
