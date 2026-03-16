@@ -1549,7 +1549,7 @@
           </section>
 
           <!-- History Section -->
-          <section id="historySection" class="dashboard-section" style="display: none">
+          <section id="historyInvestorSection" class="dashboard-section" style="display: none">
 
             <!-- 헤더 -->
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
@@ -1703,6 +1703,276 @@
             </div>
 
           </section>
+
+
+
+          <section id="historyStartupSection" class="dashboard-section" style="display: none">
+
+            <!-- 헤더 -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
+              <h2>투자 히스토리</h2>
+              <button style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.55rem 1.1rem;border-radius:12px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;font-size:0.85rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.25);transition:all 0.2s;"
+                onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                <span style="width:18px;height:18px;background:rgba(255,255,255,0.2);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:0.8rem;"><i class="fa-solid fa-plus"></i></span>
+                새 투자 기록
+              </button>
+            </div>
+
+            <!-- 요약 통계 -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="value">38</div>
+                <div class="label">검토한 스타트업</div>
+              </div>
+              <div class="stat-card">
+                <div class="value">5</div>
+                <div class="label">DD 진행 중</div>
+              </div>
+              <div class="stat-card">
+                <div class="value">7</div>
+                <div class="label">투자 완료</div>
+              </div>
+              <div class="stat-card">
+                <div class="value">42억</div>
+                <div class="label">총 투자 집행액</div>
+              </div>
+            </div>
+
+            <!-- 딜 파이프라인 -->
+            <div class="pipeline-container">
+              <h3 style="margin-top:0;font-size:1.1rem;color:#1e293b;">딜 파이프라인</h3>
+              <div class="pipeline-steps">
+                <div class="pipeline-step completed"><div class="step-dot"></div><div class="step-label">소싱</div></div>
+                <div class="pipeline-step completed"><div class="step-dot"></div><div class="step-label">1차 검토</div></div>
+                <div class="pipeline-step completed"><div class="step-dot"></div><div class="step-label">2차 미팅</div></div>
+                <div class="pipeline-step active"><div class="step-dot"></div><div class="step-label">DD</div></div>
+                <div class="pipeline-step"><div class="step-dot"></div><div class="step-label">투심위</div></div>
+                <div class="pipeline-step"><div class="step-dot"></div><div class="step-label">투자 완료</div></div>
+              </div>
+            </div>
+
+            <!-- 월별 활동 & 최근 업데이트 -->
+            <div class="history-grid-layout">
+              <!-- 월별 딜 활동 차트 -->
+              <div class="activity-box">
+                <h3 style="margin-top:0;font-size:1.1rem;margin-bottom:2rem;">월별 딜 활동</h3>
+                <div style="height:200px;display:flex;align-items:flex-end;gap:2rem;padding:0 1rem;border-bottom:1px solid #e2e8f0;margin-bottom:2rem;">
+                  <div style="flex:1;background:#e2e8f0;height:35%;border-radius:4px 4px 0 0;position:relative;">
+                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#94a3b8;">10월</span>
+                  </div>
+                  <div style="flex:1;background:#e2e8f0;height:55%;border-radius:4px 4px 0 0;position:relative;">
+                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#94a3b8;">11월</span>
+                  </div>
+                  <div style="flex:1;background:#2563eb;height:90%;border-radius:4px 4px 0 0;position:relative;">
+                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#2563eb;font-weight:700;">12월</span>
+                  </div>
+                  <div style="flex:1;background:#cbd5e1;height:45%;border-radius:4px 4px 0 0;position:relative;">
+                    <span style="position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:#94a3b8;">1월</span>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                  <div style="padding:1rem;background:#f0f9ff;border-radius:12px;border:1px solid #bae6fd;">
+                    <div style="font-size:0.85rem;color:#0369a1;margin-bottom:0.5rem;">현재 집중 단계</div>
+                    <div style="font-size:1.1rem;font-weight:800;color:#0c4a6e;">DD 진행 중 (5건)</div>
+                  </div>
+                  <div style="padding:1rem;background:#fdf2f8;border-radius:12px;border:1px solid #fbcfe8;">
+                    <div style="font-size:0.85rem;color:#be185d;margin-bottom:0.5rem;">이번 달 미팅</div>
+                    <div style="font-size:1.1rem;font-weight:800;color:#831843;">7건 완료</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 최근 업데이트 -->
+              <div class="activity-box">
+                <h3 style="margin-top:0;font-size:1.1rem;margin-bottom:1.5rem;">최근 업데이트</h3>
+                <div class="update-list">
+                  <div class="update-item">
+                    <div class="update-i" style="background:#e0f2fe;color:#0369a1;"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                    <div class="update-info">
+                      <h4>테크스타트업 A</h4>
+                      <p>DD 착수 · 2시간 전</p>
+                    </div>
+                  </div>
+                  <div class="update-item">
+                    <div class="update-i" style="background:#f0fdf4;color:#166534;"><i class="fa-solid fa-handshake"></i></div>
+                    <div class="update-info">
+                      <h4>바이오벤처 B</h4>
+                      <p>투자 완료 · 어제</p>
+                    </div>
+                  </div>
+                  <div class="update-item">
+                    <div class="update-i" style="background:#fff7ed;color:#9a3412;"><i class="fa-solid fa-file-lines"></i></div>
+                    <div class="update-info">
+                      <h4>핀테크 스타트업 C</h4>
+                      <p>사업계획서 검토 · 2일 전</p>
+                    </div>
+                  </div>
+                  <div class="update-item">
+                    <div class="update-i" style="background:#f5f3ff;color:#6d28d9;"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="update-info">
+                      <h4>AI 스타트업 D</h4>
+                      <p>2차 미팅 예정 · 3일 전</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 포트폴리오 (투자 완료) -->
+            <div class="activity-box" style="margin-top:2rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
+                  <span style="width:28px;height:28px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#059669;font-size:0.9rem;"><i class="fa-solid fa-briefcase"></i></span>
+                  포트폴리오
+                </h3>
+                <span style="background:rgba(16,185,129,0.1);color:#059669;font-size:0.8rem;font-weight:800;padding:0.3rem 0.9rem;border-radius:20px;">투자 완료 7건</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;">
+                <!-- 포트폴리오 카드 1 -->
+                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;">
+                  <div style="position:absolute;top:-12px;right:-12px;width:70px;height:70px;background:rgba(16,185,129,0.08);border-radius:50%;"></div>
+                  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+                    <div style="width:44px;height:44px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="fa-solid fa-microchip"></i></div>
+                    <div>
+                      <div style="font-size:0.95rem;font-weight:800;color:#065f46;">테크스타트업 A</div>
+                      <div style="font-size:0.75rem;color:#059669;font-weight:600;">AI · SaaS</div>
+                    </div>
+                  </div>
+                  <div style="font-size:1.5rem;font-weight:900;color:#064e3b;margin-bottom:0.25rem;">5억원</div>
+                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.35rem;">라운드: Series A</div>
+                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.75rem;">투자일: 2025.01.20</div>
+                  <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#10b981;color:white;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;"><i class="fa-solid fa-circle-check"></i> 투자완료</span>
+                </div>
+                <!-- 포트폴리오 카드 2 -->
+                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;">
+                  <div style="position:absolute;top:-12px;right:-12px;width:70px;height:70px;background:rgba(16,185,129,0.08);border-radius:50%;"></div>
+                  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+                    <div style="width:44px;height:44px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="fa-solid fa-dna"></i></div>
+                    <div>
+                      <div style="font-size:0.95rem;font-weight:800;color:#065f46;">바이오벤처 B</div>
+                      <div style="font-size:0.75rem;color:#059669;font-weight:600;">바이오 · 헬스케어</div>
+                    </div>
+                  </div>
+                  <div style="font-size:1.5rem;font-weight:900;color:#064e3b;margin-bottom:0.25rem;">10억원</div>
+                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.35rem;">라운드: Series B</div>
+                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.75rem;">투자일: 2025.02.10</div>
+                  <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#10b981;color:white;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;"><i class="fa-solid fa-circle-check"></i> 투자완료</span>
+                </div>
+                <!-- 포트폴리오 카드 3 -->
+                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;">
+                  <div style="position:absolute;top:-12px;right:-12px;width:70px;height:70px;background:rgba(16,185,129,0.08);border-radius:50%;"></div>
+                  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+                    <div style="width:44px;height:44px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="fa-solid fa-credit-card"></i></div>
+                    <div>
+                      <div style="font-size:0.95rem;font-weight:800;color:#065f46;">핀테크 스타트업 C</div>
+                      <div style="font-size:0.75rem;color:#059669;font-weight:600;">핀테크 · B2B</div>
+                    </div>
+                  </div>
+                  <div style="font-size:1.5rem;font-weight:900;color:#064e3b;margin-bottom:0.25rem;">7억원</div>
+                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.35rem;">라운드: Pre-A</div>
+                  <div style="font-size:0.78rem;color:#6b7280;margin-bottom:0.75rem;">투자일: 2025.03.05</div>
+                  <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#10b981;color:white;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;"><i class="fa-solid fa-circle-check"></i> 투자완료</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 스타트업 검토 내역 -->
+            <div class="activity-box" style="margin-top:2rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
+                  <span style="width:28px;height:28px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;"><i class="fa-solid fa-list-check"></i></span>
+                  스타트업 검토 내역
+                </h3>
+                <span style="background:rgba(37,99,235,0.08);color:#2563eb;font-size:0.8rem;font-weight:800;padding:0.3rem 0.9rem;border-radius:20px;">총 38건</span>
+              </div>
+
+              <!-- 상태 토글 -->
+              <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem;">
+                <button id="btn-review-active" onclick="toggleReviewGroup('active')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:#fef3c7;color:#92400e;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;">
+                  <i class="fa-solid fa-clock"></i> 검토 중 · 26건
+                </button>
+                <button id="btn-review-done" onclick="toggleReviewGroup('done')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:#d1fae5;color:#065f46;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;">
+                  <i class="fa-solid fa-circle-check"></i> 투자 완료 · 7건
+                </button>
+                <button id="btn-review-pass" onclick="toggleReviewGroup('pass')" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:20px;border:none;background:#fee2e2;color:#991b1b;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:inherit;">
+                  <i class="fa-solid fa-xmark"></i> 패스 · 5건
+                </button>
+              </div>
+
+              <!-- 테이블 헤더 -->
+              <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.75rem 1rem;background:rgba(248,250,252,0.8);border-radius:12px;margin-bottom:0.5rem;font-size:0.8rem;font-weight:700;color:#6b7280;">
+                <div>스타트업명</div>
+                <div>업종</div>
+                <div>검토 단계</div>
+                <div>최근 접촉일</div>
+                <div style="text-align:center;">상태</div>
+              </div>
+
+              <!-- 검토 중 그룹 -->
+              <div id="group-review-active">
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-rocket"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">테크스타트업 D</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">AI · SaaS</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#2563eb;font-size:0.5rem;margin-right:0.4rem;"></i>DD 진행 중</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2025.02.28</div>
+                  <div style="text-align:center;"><span style="background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">검토 중</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">AI 스타트업 E</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">AI · 에듀테크</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#f59e0b;font-size:0.5rem;margin-right:0.4rem;"></i>2차 미팅 예정</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2025.03.01</div>
+                  <div style="text-align:center;"><span style="background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">검토 중</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-leaf"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">그린테크 스타트업 F</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">클린테크 · B2B</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#8b5cf6;font-size:0.5rem;margin-right:0.4rem;"></i>1차 검토 중</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2025.03.05</div>
+                  <div style="text-align:center;"><span style="background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">검토 중</span></div>
+                </div>
+              </div><!-- /group-review-active -->
+
+              <!-- 투자 완료 그룹 -->
+              <div id="group-review-done" style="display:none;">
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#059669;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-microchip"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">테크스타트업 A</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">AI · SaaS</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#10b981;font-size:0.5rem;margin-right:0.4rem;"></i>투자 완료</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2025.01.20</div>
+                  <div style="text-align:center;"><span style="background:#d1fae5;color:#065f46;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">투자완료</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#059669;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-dna"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">바이오벤처 B</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">바이오 · 헬스케어</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#10b981;font-size:0.5rem;margin-right:0.4rem;"></i>투자 완료</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2025.02.10</div>
+                  <div style="text-align:center;"><span style="background:#d1fae5;color:#065f46;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">투자완료</span></div>
+                </div>
+              </div><!-- /group-review-done -->
+
+              <!-- 패스 그룹 -->
+              <div id="group-review-pass" style="display:none;">
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-store"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">커머스 스타트업 G</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">이커머스 · B2C</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#dc2626;font-size:0.5rem;margin-right:0.4rem;"></i>1차 검토 후 패스</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2024.12.10</div>
+                  <div style="text-align:center;"><span style="background:#fee2e2;color:#991b1b;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">패스</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr 1fr;gap:1rem;padding:0.9rem 1rem;border-radius:12px;align-items:center;background:white;border:1px solid #f1f5f9;margin-bottom:0.4rem;transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                  <div style="display:flex;align-items:center;gap:0.65rem;"><div style="width:36px;height:36px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:0.9rem;flex-shrink:0;"><i class="fa-solid fa-gamepad"></i></div><span style="font-size:0.9rem;font-weight:700;color:#1e293b;">게임 스타트업 H</span></div>
+                  <div style="font-size:0.85rem;color:#374151;">게임 · 엔터테인먼트</div>
+                  <div style="font-size:0.85rem;color:#374151;"><i class="fa-solid fa-circle" style="color:#dc2626;font-size:0.5rem;margin-right:0.4rem;"></i>2차 미팅 후 패스</div>
+                  <div style="font-size:0.82rem;color:#6b7280;">2024.11.20</div>
+                  <div style="text-align:center;"><span style="background:#fee2e2;color:#991b1b;font-size:0.75rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;">패스</span></div>
+                </div>
+              </div><!-- /group-review-pass -->
+
+            </div>
+
+
+
 
           </section>
 

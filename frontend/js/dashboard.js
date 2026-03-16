@@ -460,10 +460,19 @@ function switchSection(sectionId) {
     section.classList.remove("active");
   });
 
-  const targetSection = document.getElementById(`${sectionId}Section`);
-  if (targetSection) {
-    targetSection.style.display = "block";
-    targetSection.classList.add("active");
+  // 투자 히스토리: userType에 따라 다른 섹션 표시
+  if (sectionId === 'history') {
+    const userInfo = (() => { try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch(e) { return {}; } })();
+    const isInvestor = userInfo.userType === 'investor';
+    const targetId = isInvestor ? 'historyInvestorSection' : 'historyStartupSection';
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) { targetSection.style.display = 'block'; targetSection.classList.add('active'); }
+  } else {
+    const targetSection = document.getElementById(`${sectionId}Section`);
+    if (targetSection) {
+      targetSection.style.display = "block";
+      targetSection.classList.add("active");
+    }
   }
 
   // 내 정보 수정 폼 (myinfo, basicinfo 진입 시)
