@@ -83,7 +83,7 @@ async function socialLogin(provider) {
     );
     window.location.href =
       `https://nid.naver.com/oauth2.0/authorize?response_type=code` +
-      `&client_id=__NAVER_CLIENT_ID__` +
+      `&client_id=MdbdFYElb0drlGKghFX0` +
       `&redirect_uri=${redirectUri}` +
       `&state=${state}`;
     return;
