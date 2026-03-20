@@ -66,11 +66,18 @@
 
       /* 스타트업 플랜 */
       .startup-plans-wrap { display: flex; justify-content: center; }
-      .startup-plans-grid { grid-template-columns: repeat(2, 1fr); max-width: 800px; width: 100%; }
+      .startup-plans-grid { grid-template-columns: repeat(3, 1fr); max-width: 1100px; width: 100%; }
       .feature-category { font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 0.5rem; margin-top: 0.25rem; border-top: 1px solid #f1f5f9; display: block; }
       .feature-category:first-child { border-top: none; padding-top: 0; }
       .highlight-feature { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.88rem; font-weight: 600; color: var(--primary-color); background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 0.5rem 0.7rem; margin-top: 0.25rem; }
       .highlight-feature i { color: var(--primary-color); font-size: 0.85rem; margin-top: 0.1rem; flex-shrink: 0; }
+
+      /* 1+1 Pass 카드 */
+      .plan-card.pass { border-color: #f97316; }
+      .plan-card.pass:hover { box-shadow: 0 8px 32px rgba(249,115,22,0.15); }
+      .plan-badge.pass { background: #f97316; }
+      .plan-btn-pass { display: block; width: 100%; padding: 0.85rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; text-decoration: none; border: 1.5px solid #f97316; background: white; color: #f97316; margin-bottom: 1.75rem; }
+      .plan-btn-pass:hover { background: #fff7ed; }
 
       /* 투자자 플랜 그리드 */
       .inv-plans-grid { grid-template-columns: repeat(2, 1fr); max-width: 800px; margin: 0 auto; }
@@ -186,47 +193,66 @@
             <!-- Free -->
             <div class="plan-card">
               <div class="plan-name">Free</div>
-              <div class="plan-desc">서비스를 처음 시작하는 스타트업을 위한 무료 플랜</div>
+              <div class="plan-desc">로그인 후 매일 1회 간단심사를 무료로 제공합니다</div>
               <div class="plan-price">
-                <div class="amount">₩0<span>/월</span></div>
-                <div class="period">영구 무료</div>
+                <div class="amount">₩0<span>/일</span></div>
+                <div class="period">매일 00:00 자동 충전 · 로그인 필수</div>
               </div>
               <a href="pages/register.html" class="plan-btn plan-btn-outline">무료로 시작</a>
               <ul class="plan-features">
-                <li class="feature-category">프로필</li>
-                <li><i class="fa-solid fa-check"></i> 기본 기업 정보 등록</li>
-                <li class="feature-category">투자자 탐색</li>
-                <li><i class="fa-solid fa-check"></i> 전체 투자사 리스트 열람</li>
-                <li class="feature-category">AI 기능</li>
-                <li><i class="fa-solid fa-check"></i> IR 데크 업로드 및 보관</li>
-                <li class="feature-category">매칭</li>
-                <li><i class="fa-solid fa-check"></i> 수동 매칭 신청</li>
-                <li class="feature-category">데이터</li>
-                <li><i class="fa-solid fa-check"></i> 기본 대시보드</li>
+                <li class="feature-category">크레딧</li>
+                <li><i class="fa-solid fa-check"></i> 간단심사 크레딧 1개 / 일</li>
+                <li><i class="fa-solid fa-check"></i> 매일 00:00 자동 충전</li>
+                <li class="feature-category">리포트</li>
+                <li><i class="fa-solid fa-check"></i> 5대 지표 스코어 제공</li>
+                <li><i class="fa-solid fa-check"></i> 한줄 코멘트 피드백</li>
+                <li class="feature-category">제한</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> 정밀심사 불가</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> 재심사 불가</li>
               </ul>
             </div>
 
-            <!-- Premium -->
+            <!-- 1+1 Pass -->
+            <div class="plan-card pass">
+              <div class="plan-badge pass">⚡ 1+1 혜택</div>
+              <div class="plan-name">1+1 Pass</div>
+              <div class="plan-desc">정밀심사 1회 + 재심사 1회를 건당 결제로 이용하세요</div>
+              <div class="plan-price">
+                <div class="amount">₩2,000<span>/건</span></div>
+                <div class="period">구독 없음 · 유효기간 30일</div>
+              </div>
+              <a href="ir-score.html" class="plan-btn plan-btn-pass">심사 시작하기</a>
+              <ul class="plan-features">
+                <li class="feature-category">크레딧</li>
+                <li><i class="fa-solid fa-check"></i> 정밀심사 크레딧 1개</li>
+                <li><i class="fa-solid fa-check"></i> 재심사 크레딧 1개 (6시간 이내)</li>
+                <li class="feature-category">리포트</li>
+                <li><i class="fa-solid fa-check"></i> 상세 5대 지표 분석</li>
+                <li><i class="fa-solid fa-check"></i> 개선 포인트 피드백</li>
+                <li><i class="fa-solid fa-check"></i> VC 매칭 추천 3곳</li>
+              </ul>
+            </div>
+
+            <!-- 월정액 -->
             <div class="plan-card featured">
               <div class="plan-badge">가장 인기</div>
-              <div class="plan-name">Premium</div>
-              <div class="plan-desc">투자 유치에 진지한 스타트업을 위한 핵심 플랜</div>
+              <div class="plan-name">월정액</div>
+              <div class="plan-desc">정밀심사를 월 20회까지 이용할 수 있는 구독 플랜</div>
               <div class="plan-price">
-                <div class="amount" id="proPrice">₩49,000<span>/월</span></div>
-                <div class="period" id="proPeriod">월 49,000원 청구</div>
+                <div class="amount" id="monthlyPrice">₩20,000<span>/월</span></div>
+                <div class="period" id="monthlyPeriod">월 20,000원 청구 · 20회 제공</div>
               </div>
-              <a href="pages/register.html" class="plan-btn plan-btn-fill">Premium 시작하기</a>
+              <a href="pages/register.html" class="plan-btn plan-btn-fill">월정액 시작하기</a>
               <ul class="plan-features">
-                <li class="feature-category">프로필</li>
-                <li><i class="fa-solid fa-check"></i> 인증 마크 부여 및 상단 노출 지원</li>
-                <li class="feature-category">투자자 탐색</li>
-                <li><i class="fa-solid fa-check"></i> 투자사 상세 포트폴리오 및 선호 섹터 분석</li>
-                <li class="feature-category">AI 기능</li>
-                <li><i class="fa-solid fa-check"></i> AI 기반 IR 요약 및 투자 적합도 리포트</li>
-                <li class="feature-category">매칭</li>
-                <li><i class="fa-solid fa-check"></i> AI 자동 추천 (관심 있을 투자자 발굴)</li>
-                <li class="feature-category">데이터</li>
-                <li class="highlight-feature"><i class="fa-solid fa-eye"></i> 내 기업 프로필 조회 투자사 통계 (Who's viewed)</li>
+                <li class="feature-category">크레딧</li>
+                <li><i class="fa-solid fa-check"></i> 정밀심사 크레딧 20개 / 월</li>
+                <li><i class="fa-solid fa-check"></i> 재심사 포함 (6시간 이내)</li>
+                <li><i class="fa-solid fa-check"></i> 회당 단가 ₩1,000 (최저)</li>
+                <li class="feature-category">리포트</li>
+                <li><i class="fa-solid fa-check"></i> 상세 5대 지표 분석</li>
+                <li><i class="fa-solid fa-check"></i> 개선 포인트 피드백</li>
+                <li><i class="fa-solid fa-check"></i> VC 매칭 추천</li>
+                <li class="highlight-feature"><i class="fa-solid fa-file-arrow-down"></i> 히스토리 관리 + PDF 다운로드</li>
               </ul>
             </div>
 
@@ -346,6 +372,27 @@
             </button>
             <div class="faq-a">위 도입 문의 폼을 작성하시거나 venture@ventureplatform.co.kr 로 문의 주시면 AI 심사역 커스터마이징 제안서와 함께 담당자가 연락드립니다.</div>
           </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              간단심사와 정밀심사의 차이는 무엇인가요?
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-a">간단심사는 빠른 기본 분석으로 5대 지표 스코어와 한줄 코멘트를 제공하며 Free 플랜에서 하루 1회 무료로 이용할 수 있습니다. 정밀심사는 섹션별 상세 분석, 개선 포인트 피드백, VC 매칭 추천까지 제공하는 풀 AI 분석입니다.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              재심사는 어떻게 사용하나요?
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-a">1+1 Pass 또는 월정액 이용 시 정밀심사 완료 후 6시간 이내에 재심사를 이용할 수 있습니다. IR 자료를 수정한 뒤 동일 건을 재분석하는 데 활용하세요. 6시간이 경과하면 재심사 크레딧은 소멸됩니다.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              크레딧이 만료되면 어떻게 되나요?
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-a">Free 크레딧은 매일 00:00에 1개로 초기화됩니다. 1+1 Pass 크레딧은 결제 후 30일 내 사용하지 않으면 소멸됩니다. 월정액 크레딧은 매월 1일 20개로 초기화되며 미사용분은 이월되지 않습니다.</div>
+          </div>
         </div>
 
       </div>
@@ -444,7 +491,7 @@
         currentTab = tab;
         document.getElementById('tabStartup').classList.toggle('active', tab === 'startup');
         document.getElementById('tabInvestor').classList.toggle('active', tab === 'investor');
-        document.getElementById('plansStartup').style.display = tab === 'startup' ? 'grid' : 'none';
+        document.getElementById('plansStartup').style.display = tab === 'startup' ? 'flex' : 'none';
         document.getElementById('plansInvestor').style.display = tab === 'investor' ? 'grid' : 'none';
         document.getElementById('billingWrap').style.display = tab === 'startup' ? 'flex' : 'none';
       }
@@ -458,14 +505,14 @@
         labelM.classList.toggle('active', !isYearly);
         labelY.classList.toggle('active', isYearly);
 
-        const proPrice = document.getElementById('proPrice');
-        const proPeriod = document.getElementById('proPeriod');
+        const monthlyPrice = document.getElementById('monthlyPrice');
+        const monthlyPeriod = document.getElementById('monthlyPeriod');
         if (isYearly) {
-          proPrice.innerHTML = '₩39,200<span>/월</span>';
-          proPeriod.innerHTML = '<span class="original">₩588,000</span> 연 470,400원 청구';
+          monthlyPrice.innerHTML = '₩16,000<span>/월</span>';
+          monthlyPeriod.innerHTML = '<span class="original">₩240,000</span> 연 192,000원 청구 · 20회/월';
         } else {
-          proPrice.innerHTML = '₩49,000<span>/월</span>';
-          proPeriod.textContent = '월 49,000원 청구';
+          monthlyPrice.innerHTML = '₩20,000<span>/월</span>';
+          monthlyPeriod.textContent = '월 20,000원 청구 · 20회 제공';
         }
       }
 
