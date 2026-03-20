@@ -247,7 +247,6 @@ async function updateAuthUI() {
       <div class="user-menu">
         <span class="user-name">${user.name || user.email}님</span>
         ${buildCreditBadgesHTML()}
-        <a href="${dashPath}?tab=myinfo" class="btn-mypage">내정보</a>
         <button class="logout-btn" onclick="logout()">로그아웃</button>
       </div>
     `;
