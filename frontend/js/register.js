@@ -6,6 +6,11 @@ let isEmailChecked = false;
 let emailTimerInterval = null;
 let keywords = [];
 
+// 소셜 로그인 가입 여부 감지
+const _urlParams = new URLSearchParams(window.location.search);
+const isSocialRegister = _urlParams.get('social') === 'true';
+const socialType = _urlParams.get('type'); // 'startup' | 'investor'
+
 // Supabase 클라이언트 (auth.js의 getSupabase 공유)
 function getSB() {
   if (window.supabase && typeof SUPABASE_URL !== 'undefined') {
@@ -44,9 +49,14 @@ function updateStepIndicator(userType) {
 // ===== Step Navigation =====
 
 function goToStep(step) {
+  // 소셜 가입: step 2 스킵 (앞으로 가면 3, 뒤로 가면 1)
+  if (isSocialRegister && step === 2) {
+    step = currentStep > 2 ? 1 : 3;
+  }
+
   if (step > currentStep) {
     if (currentStep === 1 && !validateStep1()) return;
-    if (currentStep === 2 && !validateStep2()) return;
+    if (!isSocialRegister && currentStep === 2 && !validateStep2()) return;
   }
 
   currentStep = step;
@@ -307,6 +317,24 @@ document.getElementById('phone').addEventListener('input', function () {
 // ===== 투자자 형태 기타 직접입력 =====
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 소셜 가입 초기화
+  if (isSocialRegister && socialType) {
+    // 유형 라디오 사전 선택
+    const radio = document.querySelector(`input[name="userType"][value="${socialType}"]`);
+    if (radio) {
+      radio.checked = true;
+      updateStepIndicator(socialType);
+      document.getElementById('btnStep1Next').disabled = false;
+    }
+    // step 2 인디케이터 숨기기
+    const step2ind = document.getElementById('step2Indicator');
+    const stepLine1 = document.getElementById('stepLine1');
+    if (step2ind) step2ind.style.display = 'none';
+    if (stepLine1) stepLine1.style.display = 'none';
+    // step 3으로 자동 이동
+    goToStep(3);
+  }
+
   const invType = document.getElementById('inv_type');
   const invTypeCustom = document.getElementById('inv_type_custom');
   if (invType) {
@@ -402,7 +430,8 @@ document.querySelectorAll('.term-check').forEach(cb => {
 
 async function handleRegisterSubmit(event) {
   event.preventDefault();
-  if (!validateStep1() || !validateStep2()) return;
+  if (!validateStep1()) return;
+  if (!isSocialRegister && !validateStep2()) return;
 
   const userType = getSelectedUserType();
 
@@ -419,10 +448,25 @@ async function handleRegisterSubmit(event) {
   const sb = getSB();
   if (!sb) { alert('인증 모듈 로드 중입니다. 잠시 후 다시 시도해주세요.'); return; }
 
-  const email    = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const userId   = document.getElementById('userId').value.trim();
-  const phone    = document.getElementById('phone').value.replace(/[-\s]/g, '');
+  let email, password, userId, phone;
+
+  if (isSocialRegister) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+      window.location.href = 'login.html';
+      return;
+    }
+    email    = session.user.email;
+    userId   = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email;
+    password = null;
+    phone    = '';
+  } else {
+    email    = document.getElementById('email').value.trim();
+    password = document.getElementById('password').value;
+    userId   = document.getElementById('userId').value.trim();
+    phone    = document.getElementById('phone').value.replace(/[-\s]/g, '');
+  }
 
   // 투자자 추가정보
   const inv_company  = document.getElementById('inv_company')?.value.trim() || null;
@@ -487,11 +531,13 @@ async function handleRegisterSubmit(event) {
       inv_type: invType, inv_role, inv_homepage, inv_sns,
     };
 
-    if (session && session.user.email === email) {
-      const { data, error } = await sb.auth.updateUser({
-        password,
-        data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
-      });
+    if (isSocialRegister || (session && session.user.email === email)) {
+      // 소셜 가입 또는 이미 세션이 있는 경우: 메타데이터만 업데이트
+      const updatePayload = {
+        data: { full_name: userId, username: userId, user_type: userType, userType, phone, company, portfolio, bio, ...extraMeta }
+      };
+      if (!isSocialRegister && password) updatePayload.password = password;
+      const { data, error } = await sb.auth.updateUser(updatePayload);
       if (error) {
         alert('회원가입 처리 중 오류가 발생했습니다: ' + error.message);
         resetBtn();
@@ -503,7 +549,7 @@ async function handleRegisterSubmit(event) {
       const { data, error } = await sb.auth.signUp({
         email, password,
         options: {
-          data: { full_name: userId, username: userId, user_type: userType, phone, company, portfolio, bio, ...extraMeta }
+          data: { full_name: userId, username: userId, user_type: userType, userType, phone, company, portfolio, bio, ...extraMeta }
         }
       });
       if (error) {
@@ -525,7 +571,7 @@ async function handleRegisterSubmit(event) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId, email, password, name: userId, userType,
+          userId, email, name: userId, userType,
           phone: phone || null, company: company || null, portfolio: portfolio || null, bio: bio || null,
           marketingAgree: false, ...extraMeta,
         }),
@@ -536,7 +582,11 @@ async function handleRegisterSubmit(event) {
       const userInfo = { id: userId_, email, name: userId, userType, phone, company, verified: true };
       localStorage.setItem('auth_token', accessToken);
       localStorage.setItem('user_info', JSON.stringify(userInfo));
-      showRegisterComplete(userId, false);
+      if (isSocialRegister) {
+        window.location.href = '../dashboard.html';
+      } else {
+        showRegisterComplete(userId, false);
+      }
     } else {
       showRegisterComplete(userId, true);
     }

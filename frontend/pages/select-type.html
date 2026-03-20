@@ -144,7 +144,7 @@
           userInfo.userType = selectedType;
           localStorage.setItem('user_info', JSON.stringify(userInfo));
 
-          window.location.href = '../dashboard.html';
+          window.location.href = '../pages/register.html?social=true&type=' + selectedType;
         } catch (err) {
           btn.disabled = false;
           document.getElementById('spinner').style.display = 'none';
