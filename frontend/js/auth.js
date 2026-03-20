@@ -214,16 +214,16 @@ function buildCreditBadgesHTML() {
   const now = Date.now();
   const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
   const reanalysisHTML = hasReanalysis ? `
-      <span style="background:#fdf4ff;border:1px solid #e9d5ff;color:#7c3aed;font-size:0.78rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.3rem;">
-        <i class="fa-solid fa-rotate" style="font-size:0.7rem;"></i> 재심사 ${cr.reanalysis}
+      <span style="background:#fdf4ff;border:1px solid #e9d5ff;color:#7c3aed;font-size:0.78rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.25rem;" title="재심사 크레딧">
+        <i class="fa-solid fa-rotate" style="font-size:0.68rem;"></i> ${cr.reanalysis}
       </span>` : '';
   return `
-    <div style="display:inline-flex;align-items:center;gap:0.4rem;margin-right:0.25rem;" title="보유 크레딧">
-      <span style="background:#f0fdf4;border:1px solid #86efac;color:#16a34a;font-size:0.78rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.3rem;">
-        <i class="fa-solid fa-bolt" style="font-size:0.7rem;"></i> 간단 ${cr.simple}
+    <div style="display:inline-flex;align-items:center;gap:0.35rem;margin-right:0.1rem;" title="보유 크레딧 (간단 / 정밀 / 재심사)">
+      <span style="background:#f0fdf4;border:1px solid #86efac;color:#16a34a;font-size:0.78rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.25rem;" title="간단심사 크레딧">
+        <i class="fa-solid fa-bolt" style="font-size:0.68rem;"></i> ${cr.simple}
       </span>
-      <span style="background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb;font-size:0.78rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.3rem;">
-        <i class="fa-solid fa-star" style="font-size:0.7rem;"></i> 정밀 ${cr.premium}
+      <span style="background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb;font-size:0.78rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.25rem;" title="정밀심사 크레딧">
+        <i class="fa-solid fa-star" style="font-size:0.68rem;"></i> ${cr.premium}
       </span>
       ${reanalysisHTML}
     </div>`;

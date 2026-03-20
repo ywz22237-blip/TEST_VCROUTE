@@ -2655,9 +2655,14 @@
         const mins = Math.ceil((new Date(cr.reanalysisExpires).getTime() - now) / 60000);
         document.getElementById('wgtReanalysisCr').textContent = cr.reanalysis;
         document.getElementById('wgtReanalysisInfo').textContent = mins >= 60 ? `${Math.ceil(mins/60)}시간 후 만료` : `${mins}분 후 만료`;
-        document.getElementById('wgtReanalysisBox').style.display = 'flex';
+        document.getElementById('wgtReanalysisBox').style.borderColor = '#e9d5ff';
+        document.getElementById('wgtReanalysisBox').style.opacity = '1';
       } else {
-        document.getElementById('wgtReanalysisBox').style.display = 'none';
+        document.getElementById('wgtReanalysisCr').textContent = '0';
+        document.getElementById('wgtReanalysisInfo').textContent = '정밀심사 후 지급';
+        document.getElementById('wgtReanalysisBox').style.borderColor = '#f3f4f6';
+        document.getElementById('wgtReanalysisBox').style.opacity = '0.5';
+        document.getElementById('wgtReanalysisBox').style.display = 'flex';
       }
     }
     document.addEventListener('DOMContentLoaded', renderCreditWidget);
