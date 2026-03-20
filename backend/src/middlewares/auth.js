@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { users } = require('../models/data');
+const supabase = require('../config/supabase');
 
-// Verify JWT token
+// Verify JWT token (Supabase JWT 우선, 커스텀 JWT fallback)
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -15,6 +16,29 @@ const authenticate = async (req, res, next) => {
 
   const token = authHeader.split(' ')[1];
 
+  // 1. Supabase JWT 검증 시도
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (!error && data.user) {
+      const meta = data.user.user_metadata || {};
+      req.user = {
+        id: data.user.id,
+        userId: meta.username || null,
+        email: data.user.email,
+        name: meta.full_name || meta.name || data.user.email,
+        role: meta.role || 'user',
+        userType: meta.userType || meta.user_type || null,
+        phone: meta.phone || null,
+        company: meta.company || meta.co_name || null,
+        portfolio: meta.portfolio || null,
+        bio: meta.bio || null,
+        marketingAgree: false,
+      };
+      return next();
+    }
+  } catch (_) { /* Supabase 검증 실패 시 커스텀 JWT로 fallback */ }
+
+  // 2. 커스텀 JWT 검증
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
     const user = await users.findById(decoded.userId);
