@@ -201,12 +201,31 @@ async function logout() {
 }
 
 // ── 크레딧 헬퍼 ──────────────────────────────────
-// TODO: API 연동 후 /api/credits 에서 실시간 조회로 교체
 
 function getCredits() {
   try {
     return JSON.parse(localStorage.getItem('vc_credits') || 'null') || { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null };
   } catch { return { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null }; }
+}
+
+async function fetchAndCacheCredits() {
+  const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+  if (!token) return;
+  try {
+    const res = await fetch('/api/credits', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      localStorage.setItem('vc_credits', JSON.stringify({
+        simple: json.data.simple,
+        premium: json.data.premium,
+        reanalysis: json.data.reanalysis,
+        reanalysisExpires: json.data.reanalysisExpires,
+      }));
+    }
+  } catch { /* 네트워크 오류 시 캐시 사용 */ }
 }
 
 function buildCreditBadgesHTML() {
@@ -242,6 +261,7 @@ async function updateAuthUI() {
   const user = await getUserInfo();
 
   if (user) {
+    await fetchAndCacheCredits();
     container.innerHTML = `
       ${langHTML}
       <div class="user-menu">
