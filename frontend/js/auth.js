@@ -200,6 +200,35 @@ async function logout() {
   window.location.href = getHomePath();
 }
 
+// ── 크레딧 헬퍼 ──────────────────────────────────
+// TODO: API 연동 후 /api/credits 에서 실시간 조회로 교체
+
+function getCredits() {
+  try {
+    return JSON.parse(localStorage.getItem('vc_credits') || 'null') || { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null };
+  } catch { return { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null }; }
+}
+
+function buildCreditBadgesHTML() {
+  const cr = getCredits();
+  const now = Date.now();
+  const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
+  const reanalysisHTML = hasReanalysis ? `
+      <span style="background:#fdf4ff;border:1px solid #e9d5ff;color:#7c3aed;font-size:0.78rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.3rem;">
+        <i class="fa-solid fa-rotate" style="font-size:0.7rem;"></i> 재심사 ${cr.reanalysis}
+      </span>` : '';
+  return `
+    <div style="display:inline-flex;align-items:center;gap:0.4rem;margin-right:0.25rem;" title="보유 크레딧">
+      <span style="background:#f0fdf4;border:1px solid #86efac;color:#16a34a;font-size:0.78rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.3rem;">
+        <i class="fa-solid fa-bolt" style="font-size:0.7rem;"></i> 간단 ${cr.simple}
+      </span>
+      <span style="background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb;font-size:0.78rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.3rem;">
+        <i class="fa-solid fa-star" style="font-size:0.7rem;"></i> 정밀 ${cr.premium}
+      </span>
+      ${reanalysisHTML}
+    </div>`;
+}
+
 // ── Auth UI 업데이트 ──────────────────────────────
 
 async function updateAuthUI() {
@@ -209,7 +238,6 @@ async function updateAuthUI() {
   const langToggle = container.querySelector(".lang-toggle");
   const langHTML = langToggle ? langToggle.outerHTML : "";
   const base = getBasePath();
-  const dashPath = window.location.pathname.includes("/pages/") ? "../dashboard.html" : "dashboard.html";
 
   const user = await getUserInfo();
 
@@ -218,7 +246,7 @@ async function updateAuthUI() {
       ${langHTML}
       <div class="user-menu">
         <span class="user-name">${user.name || user.email}님</span>
-        <a href="${dashPath}?tab=basicinfo" class="btn-mypage">내정보</a>
+        ${buildCreditBadgesHTML()}
         <button class="logout-btn" onclick="logout()">로그아웃</button>
       </div>
     `;

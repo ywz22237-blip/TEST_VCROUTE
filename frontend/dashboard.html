@@ -888,6 +888,38 @@
         <p>관심 정보와 개인 설정을 대시보드에서 효율적으로 관리하세요.</p>
       </div>
 
+      <!-- 크레딧 위젯 (로그인 시 표시) -->
+      <div id="creditWidget" style="display:none; max-width:1400px; margin:0 auto 2rem; padding:0 2rem;">
+        <div style="background:white;border:1.5px solid #e2e8f0;border-radius:16px;padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span style="font-size:0.9rem;font-weight:700;color:#374151;">내 IR 심사 크레딧</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <!-- 간단심사 -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.75rem 1.25rem;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;min-width:90px;">
+              <span style="font-size:0.72rem;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.05em;"><i class="fa-solid fa-bolt"></i> 간단심사</span>
+              <span id="wgtSimpleCr" style="font-size:1.6rem;font-weight:900;color:#15803d;line-height:1;">1</span>
+              <span style="font-size:0.7rem;color:#4ade80;">매일 00:00 충전</span>
+            </div>
+            <!-- 정밀심사 -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.75rem 1.25rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;min-width:90px;">
+              <span style="font-size:0.72rem;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.05em;"><i class="fa-solid fa-star"></i> 정밀심사</span>
+              <span id="wgtPremiumCr" style="font-size:1.6rem;font-weight:900;color:#1d4ed8;line-height:1;">0</span>
+              <span style="font-size:0.7rem;color:#93c5fd;" id="wgtPremiumInfo">-</span>
+            </div>
+            <!-- 재심사 -->
+            <div id="wgtReanalysisBox" style="display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.75rem 1.25rem;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:12px;min-width:90px;">
+              <span style="font-size:0.72rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;"><i class="fa-solid fa-rotate"></i> 재심사</span>
+              <span id="wgtReanalysisCr" style="font-size:1.6rem;font-weight:900;color:#6d28d9;line-height:1;">0</span>
+              <span style="font-size:0.7rem;color:#c4b5fd;" id="wgtReanalysisInfo">-</span>
+            </div>
+          </div>
+          <a href="pricing.html" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.25rem;background:#2563eb;color:white;border-radius:10px;font-size:0.85rem;font-weight:700;text-decoration:none;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+            <i class="fa-solid fa-plus"></i> 크레딧 충전
+          </a>
+        </div>
+      </div>
+
       <div class="investors-container">
         <!-- Sidebar - Dashboard Menu -->
         <aside class="category-sidebar">
@@ -2606,6 +2638,30 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // 크레딧 위젯 렌더링 (대시보드 상단)
+    async function renderCreditWidget() {
+      const loggedIn = await isLoggedIn();
+      if (!loggedIn) return;
+      const cr = getCredits();
+      const now = Date.now();
+      document.getElementById('creditWidget').style.display = 'block';
+      document.getElementById('wgtSimpleCr').textContent = cr.simple;
+      document.getElementById('wgtPremiumCr').textContent = cr.premium;
+      document.getElementById('wgtPremiumInfo').textContent = cr.premium > 0 ? `${cr.premium}회 사용 가능` : '충전 필요';
+      const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
+      if (hasReanalysis) {
+        const mins = Math.ceil((new Date(cr.reanalysisExpires).getTime() - now) / 60000);
+        document.getElementById('wgtReanalysisCr').textContent = cr.reanalysis;
+        document.getElementById('wgtReanalysisInfo').textContent = mins >= 60 ? `${Math.ceil(mins/60)}시간 후 만료` : `${mins}분 후 만료`;
+        document.getElementById('wgtReanalysisBox').style.display = 'flex';
+      } else {
+        document.getElementById('wgtReanalysisBox').style.display = 'none';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', renderCreditWidget);
+  </script>
 
   </body>
 </html>

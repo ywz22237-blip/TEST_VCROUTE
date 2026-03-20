@@ -251,6 +251,23 @@
           <p>기업의 자료를 업로드하면 <strong style="color:#2563eb;font-size:1.05em;">AI 심사역 '루트'</strong>가 분석하고, 투자 유치 가능성을 진단합니다.</p>
         </div>
 
+        <!-- 크레딧 바 (로그인 시 표시) -->
+        <div id="irCreditBar" style="display:none; background:white;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.85rem 1.25rem;margin-bottom:1.5rem;display:none;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <span style="font-size:0.85rem;font-weight:700;color:#374151;">보유 크레딧</span>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <span style="background:#f0fdf4;border:1px solid #86efac;color:#16a34a;font-size:0.82rem;font-weight:700;padding:0.3rem 0.75rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.35rem;">
+              <i class="fa-solid fa-bolt" style="font-size:0.72rem;"></i> 간단 <b id="irSimpleCr">1</b>
+            </span>
+            <span style="background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb;font-size:0.82rem;font-weight:700;padding:0.3rem 0.75rem;border-radius:999px;display:inline-flex;align-items:center;gap:0.35rem;">
+              <i class="fa-solid fa-star" style="font-size:0.72rem;"></i> 정밀 <b id="irPremiumCr">0</b>
+            </span>
+            <span id="irReanalysisBar" style="display:none;background:#fdf4ff;border:1px solid #e9d5ff;color:#7c3aed;font-size:0.82rem;font-weight:700;padding:0.3rem 0.75rem;border-radius:999px;display:none;align-items:center;gap:0.35rem;">
+              <i class="fa-solid fa-rotate" style="font-size:0.72rem;"></i> 재심사 <b id="irReanalysisCr">0</b> <span id="irReanalysisTimer" style="font-weight:400;font-size:0.75rem;margin-left:0.2rem;"></span>
+            </span>
+          </div>
+          <a href="pricing.html" style="margin-left:auto;font-size:0.8rem;font-weight:700;color:#2563eb;text-decoration:none;white-space:nowrap;">+ 충전 →</a>
+        </div>
+
         <div class="ir-container">
           <!-- Sidebar -->
           <aside class="ir-sidebar">
@@ -686,5 +703,26 @@
     <script src="js/funds.js"></script>
     <script src="js/investors.js"></script>
     <script src="js/ir-score.js"></script>
+    <script>
+      // 크레딧 바 렌더링 (IR 심사 페이지)
+      async function renderIrCreditBar() {
+        const loggedIn = await isLoggedIn();
+        if (!loggedIn) return;
+        const cr = getCredits();
+        const now = Date.now();
+        const bar = document.getElementById('irCreditBar');
+        bar.style.display = 'flex';
+        document.getElementById('irSimpleCr').textContent = cr.simple;
+        document.getElementById('irPremiumCr').textContent = cr.premium;
+        const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
+        if (hasReanalysis) {
+          const mins = Math.ceil((new Date(cr.reanalysisExpires).getTime() - now) / 60000);
+          document.getElementById('irReanalysisCr').textContent = cr.reanalysis;
+          document.getElementById('irReanalysisTimer').textContent = mins >= 60 ? `(${Math.ceil(mins/60)}시간 후 만료)` : `(${mins}분 후 만료)`;
+          document.getElementById('irReanalysisBar').style.display = 'inline-flex';
+        }
+      }
+      document.addEventListener('DOMContentLoaded', renderIrCreditBar);
+    </script>
   </body>
 </html>
