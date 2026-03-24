@@ -155,6 +155,26 @@ function handleFile(file, slot) {
   }
 }
 
+// ─── PDF 병합 유틸 (pdf-lib 사용) ─────────────────────────────
+async function mergePdfs(files) {
+  const { PDFDocument } = PDFLib;
+  const merged = await PDFDocument.create();
+  for (const file of files) {
+    try {
+      const bytes = await file.arrayBuffer();
+      const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+      const indices = src.getPageIndices();
+      const copied = await merged.copyPages(src, indices);
+      copied.forEach(p => merged.addPage(p));
+    } catch (e) {
+      console.warn(`[mergePdfs] ${file.name} 병합 실패, 건너뜀:`, e);
+    }
+  }
+  const mergedBytes = await merged.save();
+  const names = files.map(f => f.name.replace('.pdf', '')).join('+');
+  return new File([mergedBytes], `merged_${names}.pdf`, { type: 'application/pdf' });
+}
+
 // ─── 분석 시작 ────────────────────────────────────────────────
 const SCORE_CATEGORIES = ["시장성", "팀", "기술력", "BM", "재무"];
 const SCORE_COLORS = ["#6366f1", "#0ea5e9", "#22c55e", "#f59e0b", "#ef4444"];
@@ -168,11 +188,11 @@ async function startAnalysis() {
     return;
   }
 
-  // PDF 파일 확인 (슬롯 1~3 중 첫 번째 PDF 사용)
-  const pdfFile = irFiles[1] || irFiles[2] || irFiles[3];
+  // PDF 파일 확인 (슬롯 1~3 중 업로드된 모든 PDF 수집)
+  const pdfFileList = [irFiles[1], irFiles[2], irFiles[3]].filter(Boolean);
   const desc = document.getElementById("companyDesc")?.value.trim() || "";
 
-  if (!pdfFile && !desc) {
+  if (!pdfFileList.length && !desc) {
     alert("PDF 파일을 업로드하거나 회사 소개를 입력해 주세요.");
     return;
   }
@@ -226,6 +246,15 @@ async function startAnalysis() {
   }, 4000);
 
   try {
+    // ── 여러 PDF 병합 ───────────────────────────────────────────
+    let pdfFile = null;
+    if (pdfFileList.length === 1) {
+      pdfFile = pdfFileList[0];
+    } else if (pdfFileList.length > 1) {
+      statusEl.textContent = `PDF ${pdfFileList.length}개 병합 중...`;
+      pdfFile = await mergePdfs(pdfFileList);
+    }
+
     // ── AI.ROUTE 연동 (PDF 있는 경우) ──────────────────────────
     if (pdfFile) {
       const sector = document.getElementById("sectorSelect")?.value || "기타";
