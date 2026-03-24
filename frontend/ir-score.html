@@ -323,6 +323,9 @@
               <button class="ir-menu-item" data-tab="multi-result" id="menu-multi" disabled>
                 <i class="fa-solid fa-users-viewfinder"></i> 멀티에이전트 결과
               </button>
+              <button class="ir-menu-item" data-tab="examiner" id="menu-examiner" disabled>
+                <i class="fa-solid fa-user-tie"></i> AI 심사역 대화
+              </button>
               <button class="ir-menu-item" data-tab="qa" id="menu-qa" disabled>
                 <i class="fa-solid fa-comments"></i> 자료 피드백
               </button>
@@ -669,6 +672,56 @@
               <div id="ddChecklistWrap" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem;">
                 <div style="font-size:0.9rem;font-weight:700;color:#1e293b;margin-bottom:0.75rem;">📋 Due Diligence 체크리스트</div>
                 <div id="ddChecklist"></div>
+              </div>
+            </div>
+
+            <!-- Tab: AI 심사역 대화 -->
+            <div id="examiner" class="ir-section">
+              <h2>AI 심사역 1:1 대화</h2>
+              <div class="tag-line">10년 차 수석 VC 심사역이 리포트 기반 약점을 집요하게 파고듭니다</div>
+
+              <!-- 시작 전 안내 -->
+              <div id="examinerIntro" style="text-align:center;padding:2rem 1rem;background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;margin-bottom:1.5rem;">
+                <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎙️</div>
+                <div style="font-weight:700;font-size:1rem;color:#1e293b;margin-bottom:0.4rem;">심사역 심층 면접을 시작합니다</div>
+                <div style="font-size:0.85rem;color:#64748b;max-width:400px;margin:0 auto 1.25rem;">
+                  분석 리포트의 취약점을 기반으로 실전 VC 심사 시뮬레이션을 진행합니다.<br>
+                  구체적인 수치(KPI, 금액, 기간)로 답변하세요.
+                </div>
+                <button id="examinerStartBtn" onclick="startExaminerChat()"
+                  style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:0.75rem 2rem;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(37,99,235,0.3);">
+                  <i class="fa-solid fa-user-tie" style="margin-right:0.5rem;"></i>심사 시작
+                </button>
+              </div>
+
+              <!-- 채팅 영역 -->
+              <div id="examinerChatWrap" style="display:none;">
+                <!-- 메시지 목록 -->
+                <div id="examinerMessages" style="
+                  min-height:320px;max-height:520px;overflow-y:auto;
+                  display:flex;flex-direction:column;gap:1rem;
+                  padding:1rem;background:#f8fafc;border-radius:12px;
+                  border:1.5px solid #e2e8f0;margin-bottom:1rem;
+                  scroll-behavior:smooth;
+                "></div>
+
+                <!-- 입력창 -->
+                <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+                  <textarea id="examinerInput"
+                    placeholder="답변을 입력하세요. 구체적인 수치(KPI, 금액, 기간)를 포함할수록 좋습니다..."
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendExaminerMessage();}"
+                    style="flex:1;resize:none;min-height:72px;max-height:200px;border:1.5px solid #cbd5e1;border-radius:10px;padding:0.75rem;font-size:0.88rem;font-family:inherit;line-height:1.6;outline:none;transition:border-color 0.15s;"
+                    onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#cbd5e1'"
+                  ></textarea>
+                  <button id="examinerSendBtn" onclick="sendExaminerMessage()"
+                    style="background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:0.85rem 1.2rem;cursor:pointer;flex-shrink:0;font-size:1.1rem;height:72px;transition:background 0.15s;"
+                    onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </div>
+                <div style="font-size:0.75rem;color:#94a3b8;margin-top:0.4rem;">
+                  Enter 전송 · Shift+Enter 줄바꿈
+                </div>
               </div>
             </div>
 

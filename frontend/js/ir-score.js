@@ -299,6 +299,7 @@ async function startAnalysis() {
       const startData = await startRes.json();
       const taskId = startData.data?.task_id;
       if (!taskId) throw new Error('task_id를 받지 못했습니다.');
+      window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
 
       // 폴링 (최대 5분 — 3 에이전트 + Aggregator)
       statusEl.textContent = "3명의 AI 심사역이 독립 분석 중입니다...";
@@ -340,6 +341,7 @@ async function startAnalysis() {
       const startData = await startRes.json();
       const taskId = startData.data?.task_id;
       if (!taskId) throw new Error('task_id를 받지 못했습니다.');
+      window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
 
       statusEl.textContent = "AI 심사역이 분석 중입니다...";
       const result = await pollAnalysisResult(taskId, 180000);
@@ -359,6 +361,8 @@ async function startAnalysis() {
 
     document.getElementById("menu-score").disabled = false;
     document.getElementById("menu-qa").disabled = false;
+    // 단일 분석 완료 시 AI 심사역 탭 활성화
+    if (window._lastAnalysisTaskId) enableExaminerTab(window._lastAnalysisTaskId);
     switchIrTab("score");
     initQA(irAnalysis);
 
@@ -573,10 +577,15 @@ function renderMultiAgentResult(report) {
   }
 
   // ── 사이드바 메뉴 활성화 ─────────────────────────────────────
-  const menuMulti = document.getElementById('menu-multi');
-  const menuQa    = document.getElementById('menu-qa');
-  if (menuMulti) menuMulti.disabled = false;
-  if (menuQa)    menuQa.disabled    = false;
+  const menuMulti    = document.getElementById('menu-multi');
+  const menuQa       = document.getElementById('menu-qa');
+  const menuExaminer = document.getElementById('menu-examiner');
+  if (menuMulti)    menuMulti.disabled    = false;
+  if (menuQa)       menuQa.disabled       = false;
+  if (menuExaminer) menuExaminer.disabled = false;
+
+  // 멀티에이전트 완료 시 AI 심사역 채팅 활성화
+  if (window._lastAnalysisTaskId) enableExaminerTab(window._lastAnalysisTaskId);
 
   // 멀티 결과 탭으로 이동
   switchIrTab('multi-result');
@@ -588,6 +597,167 @@ function renderMultiAgentResult(report) {
     const menuScore = document.getElementById('menu-score');
     if (menuScore) menuScore.disabled = false;
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 대화형 AI 심사역 채팅
+// ══════════════════════════════════════════════════════════════
+
+let _examinerTaskId   = null;   // 현재 분석 task_id
+let _examinerHistory  = [];     // [{role, content}, ...] 대화 히스토리
+let _examinerStreaming = false;  // 스트리밍 중 여부
+
+/** 심사역 채팅을 활성화합니다 (분석 완료 후 호출). */
+function enableExaminerTab(taskId) {
+  _examinerTaskId = taskId;
+  const menuEl = document.getElementById('menu-examiner');
+  if (menuEl) menuEl.disabled = false;
+}
+
+/** 심사역 메시지 버블을 채팅 영역에 추가합니다. */
+function _appendExaminerBubble(content, role = 'assistant') {
+  const container = document.getElementById('examinerMessages');
+  if (!container) return null;
+
+  const isAI = role === 'assistant';
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = `display:flex;align-items:flex-start;gap:0.6rem;${isAI ? '' : 'flex-direction:row-reverse;'}`;
+
+  const avatar = document.createElement('div');
+  avatar.style.cssText = `
+    width:2rem;height:2rem;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:0.9rem;
+    ${isAI
+      ? 'background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;'
+      : 'background:#e2e8f0;color:#475569;'}
+  `;
+  avatar.innerHTML = isAI ? '<i class="fa-solid fa-user-tie"></i>' : '<i class="fa-solid fa-user"></i>';
+
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `
+    max-width:82%;padding:0.85rem 1rem;border-radius:${isAI ? '4px 12px 12px 12px' : '12px 4px 12px 12px'};
+    font-size:0.88rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;
+    ${isAI
+      ? 'background:#fff;border:1.5px solid #e2e8f0;color:#1e293b;'
+      : 'background:#1d4ed8;color:#fff;'}
+  `;
+  bubble.textContent = content;
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
+
+  return bubble; // 스트리밍 업데이트용 참조 반환
+}
+
+/** SSE fetch 스트리밍을 받아 버블을 타이핑 효과로 채웁니다. */
+async function _streamIntoBubble(url, body, bubble) {
+  _examinerStreaming = true;
+  const sendBtn = document.getElementById('examinerSendBtn');
+  const input   = document.getElementById('examinerInput');
+  if (sendBtn) sendBtn.disabled = true;
+  if (input)   input.disabled   = true;
+
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
+  const fetchOpts = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(body),
+  };
+
+  let fullText = '';
+  try {
+    const res = await fetch(url, fetchOpts);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // 마지막 불완전 줄은 다음 청크로
+
+      for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (payload === '[DONE]') break;
+        try {
+          const { text, error } = JSON.parse(payload);
+          if (error) throw new Error(error);
+          if (text) {
+            fullText += text;
+            bubble.textContent = fullText;
+            const container = document.getElementById('examinerMessages');
+            if (container) container.scrollTop = container.scrollHeight;
+          }
+        } catch (_) { /* 파싱 실패 무시 */ }
+      }
+    }
+  } catch (err) {
+    bubble.textContent = `오류: ${err.message}`;
+    bubble.style.color = '#dc2626';
+  } finally {
+    _examinerStreaming = false;
+    if (sendBtn) sendBtn.disabled = false;
+    if (input)   { input.disabled = false; input.focus(); }
+    // 히스토리에 완료된 AI 응답 저장
+    if (fullText) _examinerHistory.push({ role: 'assistant', content: fullText });
+  }
+}
+
+/** 심사역 첫 질문 시작 */
+async function startExaminerChat() {
+  if (!_examinerTaskId) {
+    alert('분석 완료 후 심사 대화를 시작할 수 있습니다.');
+    return;
+  }
+
+  // 인트로 숨기고 채팅창 표시
+  const intro = document.getElementById('examinerIntro');
+  const chatWrap = document.getElementById('examinerChatWrap');
+  if (intro) intro.style.display = 'none';
+  if (chatWrap) chatWrap.style.display = 'block';
+
+  _examinerHistory = [];
+
+  // 로딩 버블 생성 후 스트리밍
+  const bubble = _appendExaminerBubble('심사역이 리포트를 검토하고 있습니다...', 'assistant');
+  if (bubble) bubble.textContent = '';
+
+  await _streamIntoBubble(
+    `/api/analysis/chat/start/${_examinerTaskId}`,
+    {},
+    bubble,
+  );
+}
+
+/** 사용자 답변 전송 → 피드백 + 다음 질문 수신 */
+async function sendExaminerMessage() {
+  if (_examinerStreaming) return;
+
+  const input = document.getElementById('examinerInput');
+  const text = input?.value.trim();
+  if (!text) return;
+
+  // 사용자 버블 추가
+  _appendExaminerBubble(text, 'user');
+  _examinerHistory.push({ role: 'user', content: text });
+  input.value = '';
+
+  // AI 응답 버블 (빈 채 생성 → 스트리밍)
+  const aiBubble = _appendExaminerBubble('', 'assistant');
+
+  await _streamIntoBubble(
+    '/api/analysis/chat/message',
+    { task_id: _examinerTaskId, messages: [..._examinerHistory] },
+    aiBubble,
+  );
 }
 
 // ── AI.ROUTE 결과 → 기존 UI 포맷 변환 ──────────────────────────

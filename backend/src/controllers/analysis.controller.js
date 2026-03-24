@@ -2,9 +2,11 @@
  * analysis.controller.js
  * AI.ROUTE 연동 프록시 컨트롤러
  *
- * POST /api/analysis/start        → AI.ROUTE /v1/route/analyze        (단일 PDF)
- * POST /api/analysis/start/multi  → AI.ROUTE /v1/route/analyze/multi  (3개 PDF 교차검증)
- * GET  /api/analysis/:taskId      → AI.ROUTE /v1/route/report/:taskId
+ * POST /api/analysis/start           → AI.ROUTE /v1/route/analyze        (단일 PDF)
+ * POST /api/analysis/start/multi     → AI.ROUTE /v1/route/analyze/multi  (3개 PDF 교차검증)
+ * GET  /api/analysis/:taskId         → AI.ROUTE /v1/route/report/:taskId
+ * POST /api/analysis/chat/start/:id  → AI.ROUTE /v1/route/chat/start/:id (SSE 스트리밍)
+ * POST /api/analysis/chat/message    → AI.ROUTE /v1/route/chat/message   (SSE 스트리밍)
  */
 
 const axios = require('axios');
@@ -190,5 +192,96 @@ exports.getResult = async (req, res, next) => {
       });
     }
     next(e);
+  }
+};
+
+// ── POST /api/analysis/chat/start/:taskId ────────────────────────
+// AI 심사역 첫 질문 — AI.ROUTE SSE를 프론트엔드로 그대로 파이프
+exports.startExaminerChat = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+
+    // SSE 헤더 설정
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    const upstream = await axios.post(
+      `${AI_ROUTE_URL}/v1/route/chat/start/${taskId}`,
+      {},
+      {
+        headers: { 'X-API-Key': ROUTE_API_KEY },
+        responseType: 'stream',
+        timeout: 120000,
+      }
+    );
+
+    // AI.ROUTE SSE → 클라이언트로 파이프
+    upstream.data.pipe(res);
+
+    upstream.data.on('end', () => res.end());
+    upstream.data.on('error', (err) => {
+      console.error('[examiner.start] upstream error', err.message);
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+    });
+
+    req.on('close', () => upstream.data.destroy());
+  } catch (e) {
+    console.error('[examiner.start] error', e.message);
+    res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
+};
+
+// ── POST /api/analysis/chat/message ──────────────────────────────
+// AI 심사역 피드백 + 다음 질문 — AI.ROUTE SSE를 프론트엔드로 파이프
+exports.sendExaminerMessage = async (req, res, next) => {
+  try {
+    const { task_id, messages } = req.body;
+    if (!task_id || !messages) {
+      return res.status(400).json({ success: false, message: 'task_id와 messages가 필요합니다.' });
+    }
+
+    // SSE 헤더 설정
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    const upstream = await axios.post(
+      `${AI_ROUTE_URL}/v1/route/chat/message`,
+      { task_id, messages },
+      {
+        headers: {
+          'X-API-Key': ROUTE_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        responseType: 'stream',
+        timeout: 120000,
+      }
+    );
+
+    upstream.data.pipe(res);
+
+    upstream.data.on('end', () => res.end());
+    upstream.data.on('error', (err) => {
+      console.error('[examiner.message] upstream error', err.message);
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+    });
+
+    req.on('close', () => upstream.data.destroy());
+  } catch (e) {
+    console.error('[examiner.message] error', e.message);
+    res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
   }
 };
