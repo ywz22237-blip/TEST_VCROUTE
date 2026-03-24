@@ -190,7 +190,7 @@ function renderNextStepBtn(currentTabId) {
   const isLocked    = nextMenuId && document.getElementById(nextMenuId)?.disabled;
 
   const NEXT_LABELS = {
-    'multi-result': '3단계: AI 심사역 대화 시작',
+    'multi-result': "3단계: AI심사역 '루트'의 피드백 시작",
     'examiner':     '4단계: 펀드 & 투자자 추천 보기',
     'fund-match':   '5단계: 콜드 메일 작성',
   };
@@ -803,7 +803,7 @@ async function startExaminerChat() {
   _examinerHistory = [];
 
   // 로딩 버블 생성 후 스트리밍
-  const bubble = _appendExaminerBubble('심사역이 리포트를 검토하고 있습니다...', 'assistant');
+  const bubble = _appendExaminerBubble('루트가 정밀 심사 결과를 검토하고 있습니다...', 'assistant');
   if (bubble) bubble.textContent = '';
 
   await _streamIntoBubble(
