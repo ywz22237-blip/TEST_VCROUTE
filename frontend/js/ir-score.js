@@ -394,14 +394,30 @@ async function pollAnalysisResult(taskId, timeoutMs = 180000) {
   throw new Error('분석 시간 초과 (3분)');
 }
 
-// ── 멀티에이전트 결과 렌더링 ──────────────────────────────────
+// ── 멀티에이전트 결과 렌더링 (루브릭 스코어링 체계 적용) ──────
+// 배점: 재무(35) + 시장(40) + 운영(25) = 100점 / S~D 등급
 function renderMultiAgentResult(report) {
-  // 판정 배너
-  const verdictBanner = document.getElementById('verdictBanner');
-  const verdictBadge  = document.getElementById('verdictBadge');
+  // ── 루브릭 총점 · 등급 · 판정 배너 ──────────────────────────
+  const rubricTotal = report.rubric_total ?? 0;
+  const grade       = report.grade ?? 'C';
+
+  const gradeMap = {
+    S: { color: '#6d28d9', label: 'S (탁월)', desc: '동종 업계 상위 10%' },
+    A: { color: '#1d4ed8', label: 'A (우수)', desc: '상위 25%' },
+    B: { color: '#0369a1', label: 'B (보통)', desc: '업계 평균 수준' },
+    C: { color: '#b45309', label: 'C (미흡)', desc: '보완 필요' },
+    D: { color: '#b91c1c', label: 'D (위험)', desc: '투자/거래 비추천' },
+  };
+  const gm = gradeMap[grade] || gradeMap.C;
+
+  const verdictBanner    = document.getElementById('verdictBanner');
+  const verdictBadge     = document.getElementById('verdictBadge');
   const verdictRationale = document.getElementById('verdictRationale');
+
   if (verdictBanner && verdictBadge) {
     verdictBanner.style.display = 'block';
+    verdictBanner.style.borderColor = gm.color;
+
     const v = (report.investment_verdict || 'WATCH').toUpperCase();
     const verdictMap = {
       PASS:   { cls: 'verdict-pass',   icon: '✅', label: 'PASS — 투자 추천' },
@@ -410,44 +426,108 @@ function renderMultiAgentResult(report) {
     };
     const vm = verdictMap[v] || verdictMap.WATCH;
     verdictBadge.className = `verdict-badge ${vm.cls}`;
-    verdictBadge.innerHTML = `${vm.icon} ${vm.label}`;
+
+    // 루브릭 총점 + 등급 + 판정을 한 줄에 표시
+    verdictBadge.innerHTML = `
+      <span style="font-size:2rem;font-weight:900;color:${gm.color};margin-right:0.5rem;">${rubricTotal.toFixed(0)}<span style="font-size:1rem;color:#94a3b8;">/100</span></span>
+      <span style="background:${gm.color};color:#fff;padding:0.2rem 0.7rem;border-radius:6px;font-size:1rem;font-weight:700;margin-right:0.75rem;">${gm.label}</span>
+      <span style="font-size:1.1rem;">${vm.icon} ${vm.label}</span>
+    `;
     if (verdictRationale) verdictRationale.textContent = report.verdict_rationale || '';
   }
 
-  // 에이전트 카드 렌더링 헬퍼
+  // ── 루브릭 도메인 점수 요약 (배너 하단 3컬럼) ─────────────────
+  const rubricScores = report.rubric_scores || {};
+  const rubricSummaryWrap = document.getElementById('verdictBanner');
+  if (rubricSummaryWrap) {
+    const existing = rubricSummaryWrap.querySelector('.rubric-domain-summary');
+    if (!existing) {
+      const summaryEl = document.createElement('div');
+      summaryEl.className = 'rubric-domain-summary';
+      summaryEl.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-top:1rem;';
+
+      const domainDefs = [
+        { key: 'financial', label: '재무', max: 35, color: '#3b82f6' },
+        { key: 'market',    label: '시장/BM', max: 40, color: '#22c55e' },
+        { key: 'ops_hr',    label: '운영/인력', max: 25, color: '#f97316' },
+      ];
+
+      summaryEl.innerHTML = domainDefs.map(d => {
+        const sc = rubricScores[d.key]?.score ?? 0;
+        const mx = rubricScores[d.key]?.max  ?? d.max;
+        const pct = mx > 0 ? Math.round(sc / mx * 100) : 0;
+        return `<div style="background:#f8fafc;border-radius:8px;padding:0.6rem;text-align:center;border:1px solid #e2e8f0;">
+          <div style="font-size:0.75rem;color:#64748b;margin-bottom:0.25rem;">${d.label}</div>
+          <div style="font-size:1.3rem;font-weight:800;color:${d.color};">${sc}<span style="font-size:0.75rem;color:#94a3b8;">/${mx}</span></div>
+          <div style="height:4px;background:#f1f5f9;border-radius:2px;margin-top:0.3rem;">
+            <div style="height:100%;width:${pct}%;background:${d.color};border-radius:2px;transition:width 0.6s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+      rubricSummaryWrap.appendChild(summaryEl);
+    }
+  }
+
+  // ── 에이전트 카드 렌더링 헬퍼 (루브릭 실점수 표시) ───────────
+  // 항목별 최대 배점 매핑 (루브릭 기준)
+  const RUBRIC_ITEM_MAX = {
+    financial_health: 10, runway: 15, unit_economics: 10,
+    tam_sam_som: 10, pmf: 15, competitive_moat: 15,
+    clevel_competency: 15, hiring_roadmap: 10,
+  };
+  const RUBRIC_ITEM_LABEL = {
+    financial_health:  '재무 건전성 및 부채',
+    runway:            '생존 기간 (Runway)',
+    unit_economics:    '유닛 이코노믹스 (LTV/CAC)',
+    tam_sam_som:       '타겟 시장 규모 (TAM/SAM/SOM)',
+    pmf:               '제품-시장 적합성 (PMF)',
+    competitive_moat:  '경쟁 우위 및 해자 (Moat)',
+    clevel_competency: '창업진 및 C-Level 역량',
+    hiring_roadmap:    '채용 및 조직 확장 로드맵',
+  };
+
   function renderAgentCard(agentKey, cardId, scoreId, subScoresId, flagsId, barColor) {
     const agent = report.agent_reports?.[agentKey];
     if (!agent) return;
     const card = document.getElementById(cardId);
     if (card) card.style.display = 'block';
 
+    // 도메인 실점수/최대 표시
     const scoreEl = document.getElementById(scoreId);
-    if (scoreEl) scoreEl.textContent = `${agent.overall}점`;
+    if (scoreEl) {
+      const dt  = agent.domain_total ?? agent.overall ?? 0;
+      const dmx = agent.domain_max  ?? 100;
+      scoreEl.textContent = `${dt}/${dmx}`;
+    }
 
-    // 세부 점수 바
+    // 세부 점수 바 (실점수/최대 표시)
     const subEl = document.getElementById(subScoresId);
-    if (subEl && agent.sub_scores) {
-      const labelMap = {
-        bep_clarity: 'BEP 명확성', runway_health: '런웨이', unit_economics: '유닛 이코노믹스', financial_consistency: '재무 일관성',
-        market_size_credibility: '시장 규모', pmf_evidence: 'PMF 증거', competitive_moat: '경쟁 해자', gtm_strategy: 'GTM 전략',
-        team_track_record: '팀 실적', execution_roadmap: '실행 로드맵', key_person_risk: '인력 리스크', org_scalability: '조직 확장성',
-      };
-      subEl.innerHTML = Object.entries(agent.sub_scores).map(([k, v]) => `
-        <div class="sub-score-row">
-          <span style="color:#475569;">${labelMap[k] || k}</span>
-          <span style="font-weight:700;color:#1e293b;">${v}
-            <span class="sub-score-bar"><span class="sub-score-fill" style="width:${v}%;background:${barColor};"></span></span>
-          </span>
-        </div>`).join('');
+    if (subEl && agent.sub_scores && Object.keys(agent.sub_scores).length > 0) {
+      subEl.innerHTML = Object.entries(agent.sub_scores).map(([k, v]) => {
+        const maxPts = RUBRIC_ITEM_MAX[k] || 15;
+        const pct    = Math.round((v / maxPts) * 100);
+        const label  = RUBRIC_ITEM_LABEL[k] || k;
+        return `<div class="sub-score-row" style="margin-bottom:0.5rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+            <span style="font-size:0.78rem;color:#475569;">${label}</span>
+            <span style="font-size:0.82rem;font-weight:700;color:#1e293b;">${v}<span style="font-size:0.7rem;color:#94a3b8;">/${maxPts}점</span></span>
+          </div>
+          <div style="height:6px;background:#f1f5f9;border-radius:3px;">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.6s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+    } else if (subEl) {
+      subEl.innerHTML = '<div style="font-size:0.78rem;color:#94a3b8;">세부 점수 정보 없음</div>';
     }
 
     // RED FLAG / 긍정 신호
     const flagEl = document.getElementById(flagsId);
     if (flagEl) {
       const flags = (agent.red_flags || []).map(f =>
-        `<div style="font-size:0.78rem;color:#dc2626;margin-bottom:2px;">🚩 ${f}</div>`).join('');
+        `<div style="font-size:0.78rem;color:#dc2626;margin-bottom:3px;line-height:1.4;">🚩 ${f}</div>`).join('');
       const pos = (agent.positive_signals || []).slice(0, 2).map(f =>
-        `<div style="font-size:0.78rem;color:#16a34a;margin-bottom:2px;">✓ ${f}</div>`).join('');
+        `<div style="font-size:0.78rem;color:#16a34a;margin-bottom:3px;line-height:1.4;">✓ ${f}</div>`).join('');
       flagEl.innerHTML = flags + pos;
     }
   }
@@ -456,16 +536,16 @@ function renderMultiAgentResult(report) {
   renderAgentCard('market',    'agentMarketCard',    'agentMarketScore',    'agentMarketSubScores',    'agentMarketFlags',    '#22c55e');
   renderAgentCard('ops_hr',    'agentOpsCard',       'agentOpsScore',       'agentOpsSubScores',       'agentOpsFlags',       '#f97316');
 
-  // 교차 검증
+  // ── 교차 검증 ────────────────────────────────────────────────
   const cv = report.cross_validation || {};
   const cvGrid = document.getElementById('crossValidationGrid');
-  if (cvGrid) cvGrid.removeAttribute('style'); // display none 해제
+  if (cvGrid) cvGrid.removeAttribute('style');
 
   const contList = document.getElementById('contradictionsList');
   if (contList) {
     const items = cv.contradictions || [];
     contList.innerHTML = items.length
-      ? items.map(c => `<div class="contradiction-item">⚡ ${c.note || c.description || JSON.stringify(c)}</div>`).join('')
+      ? items.map(c => `<div class="contradiction-item" style="font-size:0.82rem;color:#dc2626;margin-bottom:4px;line-height:1.5;">⚡ ${c.note || c.description || JSON.stringify(c)}</div>`).join('')
       : '<div style="font-size:0.82rem;color:#94a3b8;">감지된 모순 없음</div>';
   }
 
@@ -473,22 +553,26 @@ function renderMultiAgentResult(report) {
   if (consList) {
     const items = cv.consensus || [];
     consList.innerHTML = items.length
-      ? items.map(c => `<div class="consensus-item">✅ ${c}</div>`).join('')
+      ? items.map(c => `<div class="consensus-item" style="font-size:0.82rem;color:#16a34a;margin-bottom:4px;line-height:1.5;">✅ ${c}</div>`).join('')
       : '<div style="font-size:0.82rem;color:#94a3b8;">합의 사항 없음</div>';
   }
 
-  // DD 체크리스트
+  // ── DD 체크리스트 ────────────────────────────────────────────
   const ddWrap = document.getElementById('ddChecklistWrap');
   const ddList = document.getElementById('ddChecklist');
   if (ddWrap && ddList) {
     const items = report.due_diligence_checklist || [];
     if (items.length) {
       ddWrap.style.display = 'block';
-      ddList.innerHTML = items.map(i => `<div class="dd-item">${i}</div>`).join('');
+      ddList.innerHTML = items.map((i, idx) =>
+        `<div class="dd-item" style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid #f1f5f9;font-size:0.83rem;">
+          <span style="min-width:1.4rem;height:1.4rem;background:#e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">${idx + 1}</span>
+          <span style="color:#334155;line-height:1.5;">${i}</span>
+        </div>`).join('');
     }
   }
 
-  // 사이드바 메뉴 활성화
+  // ── 사이드바 메뉴 활성화 ─────────────────────────────────────
   const menuMulti = document.getElementById('menu-multi');
   const menuQa    = document.getElementById('menu-qa');
   if (menuMulti) menuMulti.disabled = false;
