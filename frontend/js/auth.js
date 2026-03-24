@@ -245,6 +245,8 @@ async function handleRegister(event) {
 async function logout() {
   const sb = getSupabase();
   if (sb) await sb.auth.signOut();
+  localStorage.removeItem(getCreditKey());
+  localStorage.removeItem('vc_credits'); // 구버전 키 정리
   localStorage.removeItem(STORAGE_KEYS.TOKEN);
   localStorage.removeItem(STORAGE_KEYS.USER);
   await updateAuthUI();
@@ -253,9 +255,16 @@ async function logout() {
 
 // ── 크레딧 헬퍼 ──────────────────────────────────
 
+function getCreditKey() {
+  try {
+    const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || localStorage.getItem('user_info') || 'null');
+    return user?.id ? `vc_credits_${user.id}` : 'vc_credits_guest';
+  } catch { return 'vc_credits_guest'; }
+}
+
 function getCredits() {
   try {
-    return JSON.parse(localStorage.getItem('vc_credits') || 'null') || { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null };
+    return JSON.parse(localStorage.getItem(getCreditKey()) || 'null') || { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null };
   } catch { return { simple: 1, premium: 0, reanalysis: 0, reanalysisExpires: null }; }
 }
 
@@ -269,7 +278,7 @@ async function fetchAndCacheCredits() {
     if (!res.ok) return;
     const json = await res.json();
     if (json.success && json.data) {
-      localStorage.setItem('vc_credits', JSON.stringify({
+      localStorage.setItem(getCreditKey(), JSON.stringify({
         simple: json.data.simple,
         premium: json.data.premium,
         reanalysis: json.data.reanalysis,

@@ -208,7 +208,8 @@ async function startAnalysis() {
     if (selectedMode === 'simple') cached.simple = Math.max(0, (cached.simple || 1) - 1);
     if (selectedMode === 'premium') cached.premium = Math.max(0, (cached.premium || 0) - 1);
     if (selectedMode === 'reanalysis') cached.reanalysis = Math.max(0, (cached.reanalysis || 0) - 1);
-    localStorage.setItem('vc_credits', JSON.stringify(cached));
+    const creditKey = typeof getCreditKey === 'function' ? getCreditKey() : 'vc_credits';
+    localStorage.setItem(creditKey, JSON.stringify(cached));
     if (typeof renderIrCreditBar === 'function') renderIrCreditBar();
   } catch (_) { /* 차감 실패해도 분석은 계속 */ }
 
