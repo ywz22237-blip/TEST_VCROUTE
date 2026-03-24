@@ -1,3 +1,8 @@
+// ─── AI.ROUTE Railway 직접 연결 설정 ──────────────────────────
+// PDF 업로드는 Vercel(4.5MB 제한)을 우회하여 Railway로 직접 전송
+const ROUTE_API_BASE = 'https://ai-route-production-7b73.up.railway.app';
+const ROUTE_API_KEY  = 'vcroute-745c6e4b9b268d24e779a6488cb097c1';
+
 // ─── 심사 모드 선택 ────────────────────────────────────────────
 
 let selectedMode = null;
@@ -211,6 +216,30 @@ function renderNextStepBtn(currentTabId) {
   sectionEl.appendChild(wrapper);
 }
 
+// ─── 업로드 초기화 ─────────────────────────────────────────────
+function resetUpload() {
+  [1, 2, 3].forEach(slot => {
+    irTexts[slot] = '';
+    irFiles[slot] = null;
+    const nameEl = document.getElementById(`fileName${slot}`);
+    const zoneEl = document.getElementById(`uploadZone${slot}`);
+    const inputEl = document.getElementById(`irFile${slot}`);
+    if (nameEl) nameEl.textContent = 'PDF 파일 업로드';
+    if (zoneEl) zoneEl.classList.remove('has-file', 'dragover');
+    if (inputEl) inputEl.value = '';
+  });
+  selectedMode = null;
+  ['Simple', 'Premium', 'Reanalysis', 'Multi'].forEach(m => {
+    const card = document.getElementById('mode' + m);
+    if (card) card.classList.remove('selected');
+  });
+  const btn = document.getElementById('analyzeBtn');
+  const btnText = document.getElementById('analyzeBtnText');
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.textContent = '모드를 선택해주세요';
+  document.getElementById('companyDesc') && (document.getElementById('companyDesc').value = '');
+}
+
 // ─── 파일 처리 ────────────────────────────────────────────────
 const irTexts = { 1: "", 2: "", 3: "" };
 const irFiles = { 1: null, 2: null, 3: null }; // 실제 File 객체 보관 (PDF용)
@@ -364,20 +393,24 @@ async function startAnalysis() {
       if (companyName) formData.append('company_name', companyName);
 
       statusEl.textContent = "3개 문서 전송 중...";
-      const startRes = await fetch('/api/analysis/start/multi', {
+      // Railway에 직접 업로드 (Vercel 4.5MB 제한 우회)
+      const startRes = await fetch(`${ROUTE_API_BASE}/v1/route/analyze/multi`, {
         method: 'POST',
-        headers: token ? { Authorization: 'Bearer ' + token } : {},
+        headers: { 'X-API-Key': ROUTE_API_KEY },
         body: formData,
       });
 
       if (!startRes.ok) {
-        const err = await startRes.json().catch(() => ({}));
-        throw new Error(err.message || '멀티에이전트 분석 시작 실패');
+        const rawText = await startRes.text().catch(() => '');
+        let errMsg = '멀티에이전트 분석 시작 실패';
+        try { const j = JSON.parse(rawText); errMsg = j.detail || j.message || j.error || rawText.slice(0, 200); } catch (_) { errMsg = rawText.slice(0, 200) || `HTTP ${startRes.status}`; }
+        throw new Error(errMsg);
       }
 
+      // Railway는 {task_id: ...} 직접 반환
       const startData = await startRes.json();
-      const taskId = startData.data?.task_id;
-      if (!taskId) throw new Error('task_id를 받지 못했습니다.');
+      const taskId = startData.task_id || startData.data?.task_id;
+      if (!taskId) throw new Error('task_id를 받지 못했습니다. 응답: ' + JSON.stringify(startData).slice(0, 100));
       window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
 
       // 폴링 (최대 5분 — 3 에이전트 + Aggregator)
@@ -406,9 +439,10 @@ async function startAnalysis() {
       formData.append('mode', selectedMode === 'reanalysis' ? 'premium' : selectedMode);
       if (companyName) formData.append('company_name', companyName);
 
-      const startRes = await fetch('/api/analysis/start', {
+      // Railway에 직접 업로드 (Vercel 4.5MB 제한 우회)
+      const startRes = await fetch(`${ROUTE_API_BASE}/v1/route/analyze`, {
         method: 'POST',
-        headers: token ? { Authorization: 'Bearer ' + token } : {},
+        headers: { 'X-API-Key': ROUTE_API_KEY },
         body: formData,
       });
 
@@ -417,7 +451,7 @@ async function startAnalysis() {
         let errMsg = '분석 시작 실패';
         try {
           const errJson = JSON.parse(rawText);
-          errMsg = errJson.message || errJson.detail || errJson.error || rawText.slice(0, 200);
+          errMsg = errJson.detail || errJson.message || errJson.error || rawText.slice(0, 200);
         } catch (_) {
           errMsg = rawText.slice(0, 200) || `HTTP ${startRes.status}`;
         }
@@ -425,9 +459,10 @@ async function startAnalysis() {
         throw new Error(errMsg);
       }
 
+      // Railway는 {task_id: ...} 직접 반환
       const startData = await startRes.json();
-      const taskId = startData.data?.task_id;
-      if (!taskId) throw new Error('task_id를 받지 못했습니다.');
+      const taskId = startData.task_id || startData.data?.task_id;
+      if (!taskId) throw new Error('task_id를 받지 못했습니다. 응답: ' + JSON.stringify(startData).slice(0, 100));
       window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
 
       statusEl.textContent = "AI 심사역이 분석 중입니다...";
@@ -769,6 +804,13 @@ function enableExaminerTab(taskId) {
   _examinerTaskId = taskId;
   const menuEl = document.getElementById('menu-examiner');
   if (menuEl) menuEl.disabled = false;
+  // 정밀심사 탭 하단 "다음 단계" 버튼 활성화
+  const toExaminerBtn = document.getElementById('toExaminerBtn');
+  if (toExaminerBtn) {
+    toExaminerBtn.disabled = false;
+    toExaminerBtn.style.opacity = '1';
+    toExaminerBtn.style.cursor = 'pointer';
+  }
 }
 
 /** 심사역 메시지 버블을 채팅 영역에 추가합니다. */

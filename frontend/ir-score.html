@@ -561,9 +561,15 @@
                 </div>
               </div>
 
-              <div style="margin-top:1.25rem;text-align:center;">
+              <div style="margin-top:1.25rem;display:flex;align-items:center;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
                 <button class="btn-primary" id="analyzeBtn" onclick="startAnalysis()" disabled>
                   <i class="fa-solid fa-magnifying-glass-chart"></i> &nbsp;<span id="analyzeBtnText">모드를 선택해주세요</span>
+                </button>
+                <button onclick="resetUpload()"
+                  style="background:white;border:1.5px solid #e2e8f0;border-radius:10px;padding:0.85rem 1.4rem;font-size:0.9rem;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.45rem;"
+                  onmouseover="this.style.borderColor='#94a3b8';this.style.color='#1e293b';"
+                  onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b';">
+                  <i class="fa-solid fa-rotate-left"></i> 자료 초기화
                 </button>
               </div>
 
@@ -698,6 +704,19 @@
               <div id="ddChecklistWrap" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem;">
                 <div style="font-size:0.9rem;font-weight:700;color:#1e293b;margin-bottom:0.75rem;">📋 Due Diligence 체크리스트</div>
                 <div id="ddChecklist"></div>
+              </div>
+
+              <!-- 3단계 이동 버튼 (항상 노출, 분석 완료 후 활성화) -->
+              <div style="margin-top:2rem;padding-top:1.5rem;border-top:1.5px solid #e2e8f0;text-align:right;">
+                <button id="toExaminerBtn" onclick="switchIrTab('examiner')" disabled
+                  style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;
+                         border-radius:10px;padding:0.8rem 1.75rem;font-size:0.9rem;font-weight:700;
+                         cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(37,99,235,0.25);
+                         display:inline-flex;align-items:center;gap:0.5rem;
+                         opacity:0.4;transition:opacity 0.2s,transform 0.15s;">
+                  3단계: AI심사역 '루트'의 피드백 시작
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
               </div>
             </div>
 
