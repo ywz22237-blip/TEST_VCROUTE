@@ -2,8 +2,9 @@
  * analysis.controller.js
  * AI.ROUTE 연동 프록시 컨트롤러
  *
- * POST /api/analysis/start  → AI.ROUTE /v1/route/analyze
- * GET  /api/analysis/:taskId → AI.ROUTE /v1/route/report/:taskId
+ * POST /api/analysis/start        → AI.ROUTE /v1/route/analyze        (단일 PDF)
+ * POST /api/analysis/start/multi  → AI.ROUTE /v1/route/analyze/multi  (3개 PDF 교차검증)
+ * GET  /api/analysis/:taskId      → AI.ROUTE /v1/route/report/:taskId
  */
 
 const axios = require('axios');
@@ -81,6 +82,85 @@ exports.startAnalysis = async (req, res, next) => {
       return res.status(e.response.status).json({
         success: false,
         message: e.response.data?.detail || 'AI 심사 서버 오류',
+      });
+    }
+    next(e);
+  }
+};
+
+// ── POST /api/analysis/start/multi ──────────────────────────────
+// 3개 PDF를 받아 AI.ROUTE 멀티에이전트 분석 시작
+exports.startMultiAnalysis = async (req, res, next) => {
+  const filePaths = [];
+  try {
+    const user = await getUserFromToken(req);
+    if (!user) {
+      return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
+    }
+
+    // multer fields: ir_deck (필수), biz_plan (선택), financials (선택)
+    const irDeckFile   = req.files?.ir_deck?.[0];
+    const bizPlanFile  = req.files?.biz_plan?.[0];
+    const financialsFile = req.files?.financials?.[0];
+
+    if (!irDeckFile) {
+      return res.status(400).json({ success: false, message: '회사소개서(ir_deck) PDF가 필요합니다.' });
+    }
+
+    if (irDeckFile.path)    filePaths.push(irDeckFile.path);
+    if (bizPlanFile?.path)  filePaths.push(bizPlanFile.path);
+    if (financialsFile?.path) filePaths.push(financialsFile.path);
+
+    const { sector = '기타', stage = 'Seed', company_name } = req.body;
+
+    // AI.ROUTE multi 엔드포인트로 보낼 FormData 구성
+    const form = new FormData();
+
+    form.append('ir_deck', fs.createReadStream(irDeckFile.path), {
+      filename: irDeckFile.originalname || 'ir_deck.pdf',
+      contentType: 'application/pdf',
+    });
+
+    if (bizPlanFile) {
+      form.append('biz_plan', fs.createReadStream(bizPlanFile.path), {
+        filename: bizPlanFile.originalname || 'biz_plan.pdf',
+        contentType: 'application/pdf',
+      });
+    }
+
+    if (financialsFile) {
+      form.append('financials', fs.createReadStream(financialsFile.path), {
+        filename: financialsFile.originalname || 'financials.pdf',
+        contentType: 'application/pdf',
+      });
+    }
+
+    form.append('sector', sector);
+    form.append('stage', stage);
+    if (company_name) form.append('company_name', company_name);
+
+    const response = await axios.post(
+      `${AI_ROUTE_URL}/v1/route/analyze/multi`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          'X-API-Key': ROUTE_API_KEY,
+        },
+        timeout: 30000,
+      }
+    );
+
+    // 임시 파일 정리
+    filePaths.forEach(p => fs.unlink(p, () => {}));
+
+    res.json({ success: true, data: response.data });
+  } catch (e) {
+    filePaths.forEach(p => fs.unlink(p, () => {}));
+    if (e.response) {
+      return res.status(e.response.status).json({
+        success: false,
+        message: e.response.data?.detail || 'AI 멀티에이전트 심사 서버 오류',
       });
     }
     next(e);

@@ -3,18 +3,18 @@
 let selectedMode = null;
 
 function selectMode(mode) {
-  // 재심사 크레딧 유효성 체크
   const cr = typeof getCredits === 'function' ? getCredits() : { simple: 0, premium: 0, reanalysis: 0 };
   const now = Date.now();
   const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
 
-  if (mode === 'reanalysis' && !hasReanalysis) return; // 비활성 카드 클릭 무시
+  if (mode === 'reanalysis' && !hasReanalysis) return;
 
   selectedMode = mode;
 
-  // 카드 선택 표시
-  ['simple', 'premium', 'reanalysis'].forEach(m => {
-    const card = document.getElementById('mode' + m.charAt(0).toUpperCase() + m.slice(1));
+  // 카드 선택 표시 (multi 포함)
+  ['simple', 'premium', 'reanalysis', 'multi'].forEach(m => {
+    const id = 'mode' + m.charAt(0).toUpperCase() + m.slice(1);
+    const card = document.getElementById(id);
     if (card) card.classList.toggle('selected', m === mode);
   });
 
@@ -24,7 +24,12 @@ function selectMode(mode) {
   const hasFile = Object.values(irTexts).some(t => t);
   btn.disabled = !hasFile;
 
-  const labels = { simple: '간단심사 시작', premium: '정밀심사 시작', reanalysis: '재심사 시작' };
+  const labels = {
+    simple: '간단심사 시작',
+    premium: '정밀심사 시작',
+    reanalysis: '재심사 시작',
+    multi: '멀티에이전트 심사 시작',
+  };
   if (btnText) btnText.textContent = labels[mode] || '분석 시작';
 }
 
@@ -37,12 +42,16 @@ function initModeCards() {
   const simpleEl = document.getElementById('modeCreditSimple');
   const premiumEl = document.getElementById('modeCreditPremium');
   const reanalysisEl = document.getElementById('modeCreditReanalysis');
+  const multiEl = document.getElementById('modeCreditMulti');
   if (simpleEl) simpleEl.textContent = `잔여 ${cr.simple}회 · 매일 충전`;
   if (premiumEl) premiumEl.textContent = `잔여 ${cr.premium}개`;
+  if (multiEl) multiEl.textContent = `잔여 ${Math.floor((cr.premium || 0) / 3)}회 가능`;
   if (reanalysisEl) {
     if (hasReanalysis) {
       const mins = Math.ceil((new Date(cr.reanalysisExpires).getTime() - now) / 60000);
-      reanalysisEl.textContent = mins >= 60 ? `잔여 ${cr.reanalysis}개 · ${Math.ceil(mins/60)}시간 후 만료` : `잔여 ${cr.reanalysis}개 · ${mins}분 후 만료`;
+      reanalysisEl.textContent = mins >= 60
+        ? `잔여 ${cr.reanalysis}개 · ${Math.ceil(mins / 60)}시간 후 만료`
+        : `잔여 ${cr.reanalysis}개 · ${mins}분 후 만료`;
     } else {
       reanalysisEl.textContent = '정밀심사 후 지급';
     }
@@ -200,8 +209,8 @@ async function startAnalysis() {
   // 크레딧 확인
   const cr = typeof getCredits === 'function' ? getCredits() : { simple: 1, premium: 0, reanalysis: 0 };
   const now = Date.now();
-  const creditMap = { simple: cr.simple, premium: cr.premium, reanalysis: cr.reanalysis };
-  const modeLabel = { simple: '간단심사', premium: '정밀심사', reanalysis: '재심사' };
+  const creditMap = { simple: cr.simple, premium: cr.premium, reanalysis: cr.reanalysis, multi: cr.premium };
+  const modeLabel = { simple: '간단심사', premium: '정밀심사', reanalysis: '재심사', multi: '멀티에이전트 심사' };
 
   if (selectedMode === 'reanalysis') {
     const valid = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
@@ -209,7 +218,10 @@ async function startAnalysis() {
       showCreditModal('재심사 크레딧이 없거나 만료되었습니다.\n정밀심사 완료 후 6시간 이내에 사용 가능합니다.');
       return;
     }
-  } else if (creditMap[selectedMode] <= 0) {
+  } else if (selectedMode === 'multi' && (cr.premium || 0) < 3) {
+    showCreditModal('멀티에이전트 심사는 정밀심사 크레딧 3개가 필요합니다.');
+    return;
+  } else if (selectedMode !== 'multi' && creditMap[selectedMode] <= 0) {
     showCreditModal(`${modeLabel[selectedMode]} 크레딧이 부족합니다.\n크레딧을 충전하고 심사를 진행하세요.`);
     return;
   }
@@ -225,9 +237,10 @@ async function startAnalysis() {
       });
     }
     const cached = typeof getCredits === 'function' ? getCredits() : cr;
-    if (selectedMode === 'simple') cached.simple = Math.max(0, (cached.simple || 1) - 1);
-    if (selectedMode === 'premium') cached.premium = Math.max(0, (cached.premium || 0) - 1);
+    if (selectedMode === 'simple')     cached.simple    = Math.max(0, (cached.simple    || 1) - 1);
+    if (selectedMode === 'premium')    cached.premium   = Math.max(0, (cached.premium   || 0) - 1);
     if (selectedMode === 'reanalysis') cached.reanalysis = Math.max(0, (cached.reanalysis || 0) - 1);
+    if (selectedMode === 'multi')      cached.premium   = Math.max(0, (cached.premium   || 0) - 3);
     const creditKey = typeof getCreditKey === 'function' ? getCreditKey() : 'vc_credits';
     localStorage.setItem(creditKey, JSON.stringify(cached));
     if (typeof renderIrCreditBar === 'function') renderIrCreditBar();
@@ -237,16 +250,66 @@ async function startAnalysis() {
   document.getElementById("analyzing").style.display = "block";
 
   const statusEl = document.getElementById("analyzeStatus");
-  const stepsSimple = ["IR 파일 전송 중...", "AI 심사 중...", "스코어 산출 중..."];
+  const stepsSimple  = ["IR 파일 전송 중...", "AI 심사 중...", "스코어 산출 중..."];
   const stepsPremium = ["IR 파일 전송 중...", "공공데이터 수집 중...", "AI 심사역 분석 중...", "레이더 차트 생성 중..."];
-  const steps = selectedMode === 'simple' ? stepsSimple : stepsPremium;
+  const stepsMulti   = ["문서 전송 중...", "재무 심사역 분석 중...", "시장/BM 분석가 분석 중...", "운영/인력 평가자 분석 중...", "투자위원회 취합 중...", "최종 판정 산출 중..."];
+  const steps = selectedMode === 'simple' ? stepsSimple
+              : selectedMode === 'multi'  ? stepsMulti
+              : stepsPremium;
   let step = 0;
   const interval = setInterval(() => {
     statusEl.textContent = steps[Math.min(step++, steps.length - 1)];
-  }, 4000);
+  }, 5000);
 
   try {
-    // ── 여러 PDF 병합 ───────────────────────────────────────────
+    const sector = document.getElementById("sectorSelect")?.value || "기타";
+    const stage  = document.getElementById("stageSelect")?.value  || "Seed";
+    const companyName = desc.slice(0, 50);
+
+    // ── 멀티에이전트 모드 ────────────────────────────────────────
+    if (selectedMode === 'multi') {
+      if (!pdfFileList.length) {
+        throw new Error('멀티에이전트 심사는 최소 1개의 PDF 파일이 필요합니다.');
+      }
+
+      // 슬롯별 파일을 각각 전송 (병합 안 함)
+      // 슬롯1=회사소개서(ir_deck), 슬롯2=사업계획서(biz_plan), 슬롯3=재무제표(financials)
+      const formData = new FormData();
+      if (irFiles[1]) formData.append('ir_deck',    irFiles[1]);
+      else if (irFiles[2]) formData.append('ir_deck', irFiles[2]); // fallback
+      else if (irFiles[3]) formData.append('ir_deck', irFiles[3]);
+      if (irFiles[2]) formData.append('biz_plan',   irFiles[2]);
+      if (irFiles[3]) formData.append('financials',  irFiles[3]);
+      formData.append('sector', sector);
+      formData.append('stage', stage);
+      if (companyName) formData.append('company_name', companyName);
+
+      statusEl.textContent = "3개 문서 전송 중...";
+      const startRes = await fetch('/api/analysis/start/multi', {
+        method: 'POST',
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+        body: formData,
+      });
+
+      if (!startRes.ok) {
+        const err = await startRes.json().catch(() => ({}));
+        throw new Error(err.message || '멀티에이전트 분석 시작 실패');
+      }
+
+      const startData = await startRes.json();
+      const taskId = startData.data?.task_id;
+      if (!taskId) throw new Error('task_id를 받지 못했습니다.');
+
+      // 폴링 (최대 5분 — 3 에이전트 + Aggregator)
+      statusEl.textContent = "3명의 AI 심사역이 독립 분석 중입니다...";
+      const result = await pollAnalysisResult(taskId, 300000);
+
+      clearInterval(interval);
+      renderMultiAgentResult(result);
+      return; // 멀티 결과 렌더 후 일반 score 탭은 건너뜀
+    }
+
+    // ── 단일 PDF 모드 (simple / premium / reanalysis) ────────────
     let pdfFile = null;
     if (pdfFileList.length === 1) {
       pdfFile = pdfFileList[0];
@@ -255,13 +318,7 @@ async function startAnalysis() {
       pdfFile = await mergePdfs(pdfFileList);
     }
 
-    // ── AI.ROUTE 연동 (PDF 있는 경우) ──────────────────────────
     if (pdfFile) {
-      const sector = document.getElementById("sectorSelect")?.value || "기타";
-      const stage  = document.getElementById("stageSelect")?.value  || "Seed";
-      const companyName = desc.slice(0, 50);
-
-      // 1단계: 분석 시작 (task_id 받기)
       const formData = new FormData();
       formData.append('file', pdfFile);
       formData.append('sector', sector);
@@ -284,7 +341,6 @@ async function startAnalysis() {
       const taskId = startData.data?.task_id;
       if (!taskId) throw new Error('task_id를 받지 못했습니다.');
 
-      // 2단계: 결과 폴링 (완료까지 최대 3분)
       statusEl.textContent = "AI 심사역이 분석 중입니다...";
       const result = await pollAnalysisResult(taskId, 180000);
 
@@ -293,10 +349,9 @@ async function startAnalysis() {
       renderScore(irAnalysis);
 
     } else {
-      // PDF 없으면 기존 텍스트 방식 (데모)
+      // PDF 없으면 텍스트 기반 데모
       await new Promise(r => setTimeout(r, 3000));
-      const textToAnalyze = desc;
-      const result = getDemoAnalysis(textToAnalyze);
+      const result = getDemoAnalysis(desc);
       clearInterval(interval);
       irAnalysis = result;
       renderScore(result);
@@ -310,7 +365,6 @@ async function startAnalysis() {
   } catch (err) {
     clearInterval(interval);
     console.error('[AI.ROUTE 연동 오류]', err);
-    // 에러 시 데모 결과로 폴백
     const result = getDemoAnalysis(desc || "분석 실패");
     irAnalysis = result;
     renderScore(result);
@@ -338,6 +392,118 @@ async function pollAnalysisResult(taskId, timeoutMs = 180000) {
     if (report?.status === 'failed') throw new Error(report.error_message || '분석 실패');
   }
   throw new Error('분석 시간 초과 (3분)');
+}
+
+// ── 멀티에이전트 결과 렌더링 ──────────────────────────────────
+function renderMultiAgentResult(report) {
+  // 판정 배너
+  const verdictBanner = document.getElementById('verdictBanner');
+  const verdictBadge  = document.getElementById('verdictBadge');
+  const verdictRationale = document.getElementById('verdictRationale');
+  if (verdictBanner && verdictBadge) {
+    verdictBanner.style.display = 'block';
+    const v = (report.investment_verdict || 'WATCH').toUpperCase();
+    const verdictMap = {
+      PASS:   { cls: 'verdict-pass',   icon: '✅', label: 'PASS — 투자 추천' },
+      WATCH:  { cls: 'verdict-watch',  icon: '⚠️', label: 'WATCH — 조건부 검토' },
+      REJECT: { cls: 'verdict-reject', icon: '❌', label: 'REJECT — 투자 불가' },
+    };
+    const vm = verdictMap[v] || verdictMap.WATCH;
+    verdictBadge.className = `verdict-badge ${vm.cls}`;
+    verdictBadge.innerHTML = `${vm.icon} ${vm.label}`;
+    if (verdictRationale) verdictRationale.textContent = report.verdict_rationale || '';
+  }
+
+  // 에이전트 카드 렌더링 헬퍼
+  function renderAgentCard(agentKey, cardId, scoreId, subScoresId, flagsId, barColor) {
+    const agent = report.agent_reports?.[agentKey];
+    if (!agent) return;
+    const card = document.getElementById(cardId);
+    if (card) card.style.display = 'block';
+
+    const scoreEl = document.getElementById(scoreId);
+    if (scoreEl) scoreEl.textContent = `${agent.overall}점`;
+
+    // 세부 점수 바
+    const subEl = document.getElementById(subScoresId);
+    if (subEl && agent.sub_scores) {
+      const labelMap = {
+        bep_clarity: 'BEP 명확성', runway_health: '런웨이', unit_economics: '유닛 이코노믹스', financial_consistency: '재무 일관성',
+        market_size_credibility: '시장 규모', pmf_evidence: 'PMF 증거', competitive_moat: '경쟁 해자', gtm_strategy: 'GTM 전략',
+        team_track_record: '팀 실적', execution_roadmap: '실행 로드맵', key_person_risk: '인력 리스크', org_scalability: '조직 확장성',
+      };
+      subEl.innerHTML = Object.entries(agent.sub_scores).map(([k, v]) => `
+        <div class="sub-score-row">
+          <span style="color:#475569;">${labelMap[k] || k}</span>
+          <span style="font-weight:700;color:#1e293b;">${v}
+            <span class="sub-score-bar"><span class="sub-score-fill" style="width:${v}%;background:${barColor};"></span></span>
+          </span>
+        </div>`).join('');
+    }
+
+    // RED FLAG / 긍정 신호
+    const flagEl = document.getElementById(flagsId);
+    if (flagEl) {
+      const flags = (agent.red_flags || []).map(f =>
+        `<div style="font-size:0.78rem;color:#dc2626;margin-bottom:2px;">🚩 ${f}</div>`).join('');
+      const pos = (agent.positive_signals || []).slice(0, 2).map(f =>
+        `<div style="font-size:0.78rem;color:#16a34a;margin-bottom:2px;">✓ ${f}</div>`).join('');
+      flagEl.innerHTML = flags + pos;
+    }
+  }
+
+  renderAgentCard('financial', 'agentFinancialCard', 'agentFinancialScore', 'agentFinancialSubScores', 'agentFinancialFlags', '#3b82f6');
+  renderAgentCard('market',    'agentMarketCard',    'agentMarketScore',    'agentMarketSubScores',    'agentMarketFlags',    '#22c55e');
+  renderAgentCard('ops_hr',    'agentOpsCard',       'agentOpsScore',       'agentOpsSubScores',       'agentOpsFlags',       '#f97316');
+
+  // 교차 검증
+  const cv = report.cross_validation || {};
+  const cvGrid = document.getElementById('crossValidationGrid');
+  if (cvGrid) cvGrid.removeAttribute('style'); // display none 해제
+
+  const contList = document.getElementById('contradictionsList');
+  if (contList) {
+    const items = cv.contradictions || [];
+    contList.innerHTML = items.length
+      ? items.map(c => `<div class="contradiction-item">⚡ ${c.note || c.description || JSON.stringify(c)}</div>`).join('')
+      : '<div style="font-size:0.82rem;color:#94a3b8;">감지된 모순 없음</div>';
+  }
+
+  const consList = document.getElementById('consensusList');
+  if (consList) {
+    const items = cv.consensus || [];
+    consList.innerHTML = items.length
+      ? items.map(c => `<div class="consensus-item">✅ ${c}</div>`).join('')
+      : '<div style="font-size:0.82rem;color:#94a3b8;">합의 사항 없음</div>';
+  }
+
+  // DD 체크리스트
+  const ddWrap = document.getElementById('ddChecklistWrap');
+  const ddList = document.getElementById('ddChecklist');
+  if (ddWrap && ddList) {
+    const items = report.due_diligence_checklist || [];
+    if (items.length) {
+      ddWrap.style.display = 'block';
+      ddList.innerHTML = items.map(i => `<div class="dd-item">${i}</div>`).join('');
+    }
+  }
+
+  // 사이드바 메뉴 활성화
+  const menuMulti = document.getElementById('menu-multi');
+  const menuQa    = document.getElementById('menu-qa');
+  if (menuMulti) menuMulti.disabled = false;
+  if (menuQa)    menuQa.disabled    = false;
+
+  // 멀티 결과 탭으로 이동
+  switchIrTab('multi-result');
+
+  // 기존 score 탭도 채워두기 (5대 지표 공통 사용)
+  if (report.scores) {
+    irAnalysis = convertAiRouteResult(report);
+    renderScore(irAnalysis);
+    const menuScore = document.getElementById('menu-score');
+    if (menuScore) menuScore.disabled = false;
+  }
 }
 
 // ── AI.ROUTE 결과 → 기존 UI 포맷 변환 ──────────────────────────

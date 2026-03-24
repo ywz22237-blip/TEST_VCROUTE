@@ -56,9 +56,31 @@
       .mode-icon-simple { background: #f0fdf4; color: #16a34a; }
       .mode-icon-premium { background: #eff6ff; color: #2563eb; }
       .mode-icon-reanalysis { background: #fdf4ff; color: #7c3aed; }
+      .mode-icon-multi { background: #fff7ed; color: #ea580c; }
       .mode-card.selected.mode-simple { border-color: #16a34a; background: #f0fdf4; }
       .mode-card.selected.mode-premium { border-color: #2563eb; background: #eff6ff; }
       .mode-card.selected.mode-reanalysis { border-color: #7c3aed; background: #fdf4ff; }
+      .mode-card.selected.mode-multi { border-color: #ea580c; background: #fff7ed; }
+
+      /* 멀티에이전트 결과 UI */
+      .verdict-badge { display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1.2rem;border-radius:999px;font-size:1rem;font-weight:800; }
+      .verdict-pass { background:#dcfce7;color:#15803d; }
+      .verdict-watch { background:#fef3c7;color:#b45309; }
+      .verdict-reject { background:#fee2e2;color:#b91c1c; }
+      .agent-card { border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;background:white; }
+      .agent-card-header { display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem; }
+      .agent-badge { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0; }
+      .agent-financial { background:#dbeafe;color:#1d4ed8; }
+      .agent-market { background:#dcfce7;color:#15803d; }
+      .agent-opshr { background:#fde8d8;color:#c2410c; }
+      .sub-score-row { display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;border-bottom:1px solid #f1f5f9;font-size:0.82rem; }
+      .sub-score-row:last-child { border-bottom:none; }
+      .sub-score-bar { width:60px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;display:inline-block;margin-left:6px; }
+      .sub-score-fill { height:100%;border-radius:3px; }
+      .contradiction-item { background:#fef9ec;border:1px solid #fde68a;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.82rem;color:#92400e;margin-bottom:0.4rem; }
+      .consensus-item { background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.82rem;color:#166534;margin-bottom:0.4rem; }
+      .dd-item { display:flex;gap:0.5rem;align-items:flex-start;padding:0.4rem 0;font-size:0.84rem;color:#334155; }
+      .dd-item::before { content:"☐";flex-shrink:0;color:#64748b; }
       .mode-name { font-size: 0.9rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; }
       .mode-credit { font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.3rem; }
       .mode-desc { font-size: 0.72rem; color: #94a3b8; line-height: 1.4; }
@@ -298,6 +320,9 @@
                 <i class="fa-solid fa-chart-radar" style="font-family:'Font Awesome 6 Free';"></i>
                 <i class="fa-solid fa-bullseye"></i> 스코어링 결과
               </button>
+              <button class="ir-menu-item" data-tab="multi-result" id="menu-multi" disabled>
+                <i class="fa-solid fa-users-viewfinder"></i> 멀티에이전트 결과
+              </button>
               <button class="ir-menu-item" data-tab="qa" id="menu-qa" disabled>
                 <i class="fa-solid fa-comments"></i> 자료 피드백
               </button>
@@ -417,10 +442,10 @@
                 </div>
                 <input type="file" id="irFile1" accept=".pdf,.txt" style="display:none;" onchange="onFileSelect(this,1)" />
 
-                <!-- 2. IR 자료 -->
+                <!-- 2. 사업계획서 / IR 자료 -->
                 <div class="upload-zone upload-zone-sm" id="uploadZone2" onclick="document.getElementById('irFile2').click()">
                   <i class="fa-solid fa-file-chart-column"></i>
-                  <p class="uz-label">IR 자료</p>
+                  <p class="uz-label">사업계획서 <span style="font-size:0.7rem;color:#94a3b8;">(멀티 전용)</span></p>
                   <p class="uz-name" id="fileName2">PDF 파일 업로드</p>
                   <p class="hint">최대 20MB</p>
                 </div>
@@ -450,7 +475,7 @@
               <!-- 심사 모드 선택 -->
               <div style="margin-top:1.5rem;">
                 <label style="display:block;font-size:0.9rem;font-weight:600;color:#475569;margin-bottom:0.75rem;">심사 모드 선택</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;" id="modeSelector">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;" id="modeSelector">
                   <!-- 간단심사 -->
                   <div class="mode-card mode-simple" id="modeSimple" onclick="selectMode('simple')">
                     <div class="mode-icon-wrap mode-icon-simple"><i class="fa-solid fa-bolt"></i></div>
@@ -471,6 +496,13 @@
                     <div class="mode-name">재심사</div>
                     <div class="mode-credit" id="modeCreditReanalysis">정밀심사 후 지급</div>
                     <div class="mode-desc">이전 결과 기반 재분석</div>
+                  </div>
+                  <!-- 멀티에이전트 심층분석 -->
+                  <div class="mode-card mode-multi" id="modeMulti" onclick="selectMode('multi')">
+                    <div class="mode-icon-wrap mode-icon-multi"><i class="fa-solid fa-users-viewfinder"></i></div>
+                    <div class="mode-name">멀티에이전트</div>
+                    <div class="mode-credit" id="modeCreditMulti">크레딧 3개 필요</div>
+                    <div class="mode-desc">3인 AI 교차검증 · 투자 판정</div>
                   </div>
                 </div>
               </div>
@@ -560,6 +592,83 @@
                 <button class="btn-primary" onclick="switchIrTab('qa')">
                   자료 피드백 시작하기 <i class="fa-solid fa-arrow-right"></i>
                 </button>
+              </div>
+            </div>
+
+            <!-- Tab 4: 멀티에이전트 결과 -->
+            <div id="multi-result" class="ir-section">
+              <h2>멀티에이전트 교차 검증</h2>
+              <div class="tag-line">3명의 독립 AI 심사역이 각각 분석 · 투자위원회 최종 판정</div>
+
+              <!-- 투자 판정 배너 -->
+              <div id="verdictBanner" style="display:none;text-align:center;padding:1.5rem;background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;margin-bottom:1.5rem;">
+                <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.5rem;">투자위원회 최종 판정</div>
+                <div id="verdictBadge" class="verdict-badge" style="justify-content:center;font-size:1.3rem;"></div>
+                <div id="verdictRationale" style="margin-top:0.75rem;font-size:0.88rem;color:#475569;line-height:1.6;max-width:600px;margin-left:auto;margin-right:auto;"></div>
+              </div>
+
+              <!-- 에이전트별 점수 카드 (3개) -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem;" id="agentCardsGrid">
+
+                <!-- Financial Auditor -->
+                <div class="agent-card" id="agentFinancialCard" style="display:none;">
+                  <div class="agent-card-header">
+                    <div class="agent-badge agent-financial"><i class="fa-solid fa-chart-line"></i></div>
+                    <div>
+                      <div style="font-size:0.88rem;font-weight:700;color:#1e293b;">재무 심사역</div>
+                      <div style="font-size:0.75rem;color:#64748b;">Financial Auditor</div>
+                    </div>
+                    <div id="agentFinancialScore" style="margin-left:auto;font-size:1.4rem;font-weight:800;color:#1d4ed8;"></div>
+                  </div>
+                  <div id="agentFinancialSubScores"></div>
+                  <div id="agentFinancialFlags" style="margin-top:0.75rem;"></div>
+                </div>
+
+                <!-- Market & BM Analyst -->
+                <div class="agent-card" id="agentMarketCard" style="display:none;">
+                  <div class="agent-card-header">
+                    <div class="agent-badge agent-market"><i class="fa-solid fa-globe"></i></div>
+                    <div>
+                      <div style="font-size:0.88rem;font-weight:700;color:#1e293b;">시장/BM 분석가</div>
+                      <div style="font-size:0.75rem;color:#64748b;">Market & BM Analyst</div>
+                    </div>
+                    <div id="agentMarketScore" style="margin-left:auto;font-size:1.4rem;font-weight:800;color:#15803d;"></div>
+                  </div>
+                  <div id="agentMarketSubScores"></div>
+                  <div id="agentMarketFlags" style="margin-top:0.75rem;"></div>
+                </div>
+
+                <!-- Ops & HR Evaluator -->
+                <div class="agent-card" id="agentOpsCard" style="display:none;">
+                  <div class="agent-card-header">
+                    <div class="agent-badge agent-opshr"><i class="fa-solid fa-people-group"></i></div>
+                    <div>
+                      <div style="font-size:0.88rem;font-weight:700;color:#1e293b;">운영/인력 평가자</div>
+                      <div style="font-size:0.75rem;color:#64748b;">Ops & HR Evaluator</div>
+                    </div>
+                    <div id="agentOpsScore" style="margin-left:auto;font-size:1.4rem;font-weight:800;color:#c2410c;"></div>
+                  </div>
+                  <div id="agentOpsSubScores"></div>
+                  <div id="agentOpsFlags" style="margin-top:0.75rem;"></div>
+                </div>
+              </div>
+
+              <!-- 교차 검증 결과 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;" id="crossValidationGrid" style="display:none;">
+                <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem;">
+                  <div style="font-size:0.85rem;font-weight:700;color:#1e293b;margin-bottom:0.75rem;">⚡ 에이전트 간 모순</div>
+                  <div id="contradictionsList"></div>
+                </div>
+                <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem;">
+                  <div style="font-size:0.85rem;font-weight:700;color:#1e293b;margin-bottom:0.75rem;">✅ 합의 사항</div>
+                  <div id="consensusList"></div>
+                </div>
+              </div>
+
+              <!-- DD 체크리스트 -->
+              <div id="ddChecklistWrap" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem;">
+                <div style="font-size:0.9rem;font-weight:700;color:#1e293b;margin-bottom:0.75rem;">📋 Due Diligence 체크리스트</div>
+                <div id="ddChecklist"></div>
               </div>
             </div>
 

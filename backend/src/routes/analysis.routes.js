@@ -1,25 +1,45 @@
 const express = require('express');
 const multer = require('multer');
 const router = express.Router();
-const { startAnalysis, getResult } = require('../controllers/analysis.controller');
+const { startAnalysis, startMultiAnalysis, getResult } = require('../controllers/analysis.controller');
 
-// PDF 파일을 임시 저장 (uploads/ 폴더)
-const upload = multer({
+// 공통 multer 설정 (PDF 전용)
+const pdfFilter = (req, file, cb) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('PDF 파일만 업로드 가능합니다.'));
+  }
+};
+
+const uploadSingle = multer({
   dest: '/tmp/uploads/',
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB 제한
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('PDF 파일만 업로드 가능합니다.'));
-    }
-  },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: pdfFilter,
 });
 
-// POST /api/analysis/start  — PDF 업로드 + 분석 시작
-router.post('/start', upload.single('file'), startAnalysis);
+// 멀티에이전트용: ir_deck(필수) + biz_plan(선택) + financials(선택)
+const uploadMulti = multer({
+  dest: '/tmp/uploads/',
+  limits: { fileSize: 50 * 1024 * 1024 }, // 각 파일 50MB
+  fileFilter: pdfFilter,
+});
 
-// GET  /api/analysis/:taskId — 결과 조회 (폴링)
+// POST /api/analysis/start       — 단일 PDF 분석 (기존)
+router.post('/start', uploadSingle.single('file'), startAnalysis);
+
+// POST /api/analysis/start/multi — 3개 PDF 멀티에이전트 분석
+router.post(
+  '/start/multi',
+  uploadMulti.fields([
+    { name: 'ir_deck',    maxCount: 1 },
+    { name: 'biz_plan',   maxCount: 1 },
+    { name: 'financials', maxCount: 1 },
+  ]),
+  startMultiAnalysis
+);
+
+// GET  /api/analysis/:taskId     — 결과 조회 (폴링, 단일/멀티 공통)
 router.get('/:taskId', getResult);
 
 module.exports = router;
