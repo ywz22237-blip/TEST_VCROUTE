@@ -357,17 +357,24 @@ async function startAnalysis() {
   document.getElementById("analyzeBtn").disabled = true;
   document.getElementById("analyzing").style.display = "block";
 
-  const statusEl = document.getElementById("analyzeStatus");
-  const stepsSimple  = ["IR 파일 전송 중...", "AI 심사 중...", "스코어 산출 중..."];
-  const stepsPremium = ["IR 파일 전송 중...", "공공데이터 수집 중...", "AI 심사역 분석 중...", "레이더 차트 생성 중..."];
-  const stepsMulti   = ["문서 전송 중...", "재무 심사역 분석 중...", "시장/BM 분석가 분석 중...", "운영/인력 평가자 분석 중...", "투자위원회 취합 중...", "최종 판정 산출 중..."];
-  const steps = selectedMode === 'simple' ? stepsSimple
-              : selectedMode === 'multi'  ? stepsMulti
-              : stepsPremium;
+  const statusEl  = document.getElementById("analyzeStatus");
+  const hintEl    = document.getElementById("analyzeTimeHint");
+  const modeHints = {
+    simple:     '간단심사 약 1~3분 소요',
+    premium:    '정밀심사 약 3~5분 소요',
+    reanalysis: '재심사 약 3~5분 소요',
+    multi:      '멀티에이전트 심사 약 5~10분 소요 · 3명이 독립 분석합니다',
+  };
+  if (hintEl) hintEl.textContent = modeHints[selectedMode] || '분석 중...';
+
+  // 업로드 직후 단계 메시지 (폴링 시작 전)
+  const uploadSteps = selectedMode === 'multi'
+    ? ["3개 문서 전송 중...", "분석 서버 준비 중..."]
+    : ["PDF 전송 중...", "분석 서버 준비 중..."];
   let step = 0;
   const interval = setInterval(() => {
-    statusEl.textContent = steps[Math.min(step++, steps.length - 1)];
-  }, 5000);
+    if (step < uploadSteps.length) statusEl.textContent = uploadSteps[step++];
+  }, 3000);
 
   try {
     const sector = document.getElementById("sectorSelect")?.value || "기타";
@@ -413,9 +420,9 @@ async function startAnalysis() {
       if (!taskId) throw new Error('task_id를 받지 못했습니다. 응답: ' + JSON.stringify(startData).slice(0, 100));
       window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
 
-      // 폴링 (최대 5분 — 3 에이전트 + Aggregator)
+      // 폴링 (최대 12분 — 3 에이전트 + Aggregator)
       statusEl.textContent = "3명의 AI 심사역이 독립 분석 중입니다...";
-      const result = await pollAnalysisResult(taskId, 300000);
+      const result = await pollAnalysisResult(taskId, 720000);
 
       clearInterval(interval);
       renderMultiAgentResult(result);
@@ -466,7 +473,7 @@ async function startAnalysis() {
       window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
 
       statusEl.textContent = "AI 심사역이 분석 중입니다...";
-      const result = await pollAnalysisResult(taskId, 180000);
+      const result = await pollAnalysisResult(taskId, 480000); // 8분
 
       clearInterval(interval);
       irAnalysis = convertAiRouteResult(result);
@@ -507,18 +514,45 @@ async function startAnalysis() {
 }
 
 // ── AI.ROUTE 결과 폴링 ─────────────────────────────────────────
+// Railway 직접 폴링 (Vercel 10초 서버리스 타임아웃 우회 + 더 빠른 응답)
 async function pollAnalysisResult(taskId, timeoutMs = 180000) {
-  const start = Date.now();
+  const start    = Date.now();
+  let   attempt  = 0;
+  const statusEl = document.getElementById('analyzeStatus');
+
   while (Date.now() - start < timeoutMs) {
-    await new Promise(r => setTimeout(r, 3000));
-    const res = await fetch(`/api/analysis/${taskId}`);
-    if (!res.ok) continue;
-    const data = await res.json();
-    const report = data.data;
-    if (report?.status === 'completed') return report;
-    if (report?.status === 'failed') throw new Error(report.error_message || '분석 실패');
+    const elapsed = Math.round((Date.now() - start) / 1000);
+    attempt++;
+
+    // 경과 시간별 상태 메시지
+    if (statusEl) {
+      if      (elapsed < 20)  statusEl.textContent = 'AI 심사역이 자료를 읽고 있습니다...';
+      else if (elapsed < 50)  statusEl.textContent = `분석 중... (${elapsed}초 경과)`;
+      else if (elapsed < 100) statusEl.textContent = `심층 분석 중입니다. 잠시만 기다려주세요... (${elapsed}초)`;
+      else                    statusEl.textContent = `거의 다 됐습니다! (${elapsed}초)`;
+    }
+
+    await new Promise(r => setTimeout(r, 5000)); // 5초 간격
+
+    try {
+      // Railway 직접 폴링 (Vercel 10초 제한 우회, CORS 허용)
+      const res = await fetch(
+        `${ROUTE_API_BASE}/v1/route/report/${taskId}`,
+        { headers: { 'X-API-Key': ROUTE_API_KEY } }
+      );
+      if (!res.ok) continue;
+      const report = await res.json();
+      if (report?.status === 'completed') return report;
+      if (report?.status === 'failed')    throw new Error(report.error_message || '분석 실패');
+    } catch (e) {
+      if (e.message === '분석 실패' || e.message?.includes('failed')) throw e;
+      // 네트워크 오류 등은 재시도
+      console.warn(`[poll] attempt ${attempt} error:`, e.message);
+    }
   }
-  throw new Error('분석 시간 초과 (3분)');
+
+  const mins = Math.round(timeoutMs / 60000);
+  throw new Error(`분석 시간 초과 (${mins}분). 잠시 후 다시 시도해주세요.`);
 }
 
 // ── 단일 분석 결과를 multi-result 탭에 요약 표시 ─────────────
