@@ -1,3 +1,58 @@
+// ─── 심사 모드 선택 ────────────────────────────────────────────
+
+let selectedMode = null;
+
+function selectMode(mode) {
+  // 재심사 크레딧 유효성 체크
+  const cr = typeof getCredits === 'function' ? getCredits() : { simple: 0, premium: 0, reanalysis: 0 };
+  const now = Date.now();
+  const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
+
+  if (mode === 'reanalysis' && !hasReanalysis) return; // 비활성 카드 클릭 무시
+
+  selectedMode = mode;
+
+  // 카드 선택 표시
+  ['simple', 'premium', 'reanalysis'].forEach(m => {
+    const card = document.getElementById('mode' + m.charAt(0).toUpperCase() + m.slice(1));
+    if (card) card.classList.toggle('selected', m === mode);
+  });
+
+  // 분석 버튼 활성화 및 텍스트 변경
+  const btn = document.getElementById('analyzeBtn');
+  const btnText = document.getElementById('analyzeBtnText');
+  const hasFile = Object.values(irTexts).some(t => t);
+  btn.disabled = !hasFile;
+
+  const labels = { simple: '간단심사 시작', premium: '정밀심사 시작', reanalysis: '재심사 시작' };
+  if (btnText) btnText.textContent = labels[mode] || '분석 시작';
+}
+
+function initModeCards() {
+  const cr = typeof getCredits === 'function' ? getCredits() : { simple: 1, premium: 0, reanalysis: 0 };
+  const now = Date.now();
+  const hasReanalysis = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
+
+  // 크레딧 잔량 표시
+  const simpleEl = document.getElementById('modeCreditSimple');
+  const premiumEl = document.getElementById('modeCreditPremium');
+  const reanalysisEl = document.getElementById('modeCreditReanalysis');
+  if (simpleEl) simpleEl.textContent = `잔여 ${cr.simple}회 · 매일 충전`;
+  if (premiumEl) premiumEl.textContent = `잔여 ${cr.premium}개`;
+  if (reanalysisEl) {
+    if (hasReanalysis) {
+      const mins = Math.ceil((new Date(cr.reanalysisExpires).getTime() - now) / 60000);
+      reanalysisEl.textContent = mins >= 60 ? `잔여 ${cr.reanalysis}개 · ${Math.ceil(mins/60)}시간 후 만료` : `잔여 ${cr.reanalysis}개 · ${mins}분 후 만료`;
+    } else {
+      reanalysisEl.textContent = '정밀심사 후 지급';
+    }
+  }
+
+  // 재심사 카드 비활성화
+  const reanalysisCard = document.getElementById('modeReanalysis');
+  if (reanalysisCard) reanalysisCard.classList.toggle('disabled', !hasReanalysis);
+}
+
 // ─── VC 심사 질문 풀 (20개) ────────────────────────────────────
 const VC_QUESTION_POOL = [
   "경쟁사가 가격을 50% 인하한다면 어떻게 대응하시겠습니까?",
@@ -29,7 +84,16 @@ function pickRandomQuestions() {
 }
 
 // ─── IR Score 탭 전환 ─────────────────────────────────────────
+function showCreditModal(msg) {
+  const modal = document.getElementById('creditModal');
+  const msgEl = document.getElementById('creditModalMsg');
+  if (msgEl) msgEl.textContent = msg;
+  if (modal) modal.style.display = 'flex';
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  initModeCards();
+
   document.querySelectorAll(".ir-menu-item").forEach(btn => {
     btn.addEventListener("click", () => {
       if (btn.disabled) return;
@@ -77,7 +141,7 @@ function handleFile(file, slot) {
   reader.onload = e => {
     irTexts[slot] = e.target.result;
     const hasAny = Object.values(irTexts).some(t => t.trim());
-    document.getElementById("analyzeBtn").disabled = !hasAny;
+    document.getElementById("analyzeBtn").disabled = !(hasAny && selectedMode);
   };
   reader.readAsText(file, "utf-8");
 }
@@ -90,6 +154,11 @@ let radarChart = null;
 let irAnalysis = null;
 
 async function startAnalysis() {
+  if (!selectedMode) {
+    alert("심사 모드를 선택해주세요.");
+    return;
+  }
+
   const desc = document.getElementById("companyDesc").value.trim();
   const combinedText = [
     irTexts[1] ? `[회사소개서]\n${irTexts[1]}` : "",
@@ -102,6 +171,43 @@ async function startAnalysis() {
     alert("파일을 업로드하거나 회사 소개를 입력해 주세요.");
     return;
   }
+
+  // 크레딧 확인
+  const cr = typeof getCredits === 'function' ? getCredits() : { simple: 1, premium: 0, reanalysis: 0 };
+  const now = Date.now();
+  const creditMap = { simple: cr.simple, premium: cr.premium, reanalysis: cr.reanalysis };
+  const modeLabel = { simple: '간단심사', premium: '정밀심사', reanalysis: '재심사' };
+
+  if (selectedMode === 'reanalysis') {
+    const valid = cr.reanalysis > 0 && cr.reanalysisExpires && new Date(cr.reanalysisExpires).getTime() > now;
+    if (!valid) {
+      showCreditModal('재심사 크레딧이 없거나 만료되었습니다.\n정밀심사 완료 후 6시간 이내에 사용 가능합니다.');
+      return;
+    }
+  } else if (creditMap[selectedMode] <= 0) {
+    showCreditModal(`${modeLabel[selectedMode]} 크레딧이 부족합니다.\n크레딧을 충전하고 심사를 진행하세요.`);
+    return;
+  }
+
+  // 크레딧 차감
+  try {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
+    if (token) {
+      await fetch('/api/credits/use', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ mode: selectedMode }),
+      });
+    }
+    // localStorage 즉시 반영
+    const cached = typeof getCredits === 'function' ? getCredits() : cr;
+    if (selectedMode === 'simple') cached.simple = Math.max(0, (cached.simple || 1) - 1);
+    if (selectedMode === 'premium') cached.premium = Math.max(0, (cached.premium || 0) - 1);
+    if (selectedMode === 'reanalysis') cached.reanalysis = Math.max(0, (cached.reanalysis || 0) - 1);
+    localStorage.setItem('vc_credits', JSON.stringify(cached));
+    if (typeof renderIrCreditBar === 'function') renderIrCreditBar();
+  } catch (_) { /* 차감 실패해도 분석은 계속 */ }
+
 
   document.getElementById("analyzeBtn").disabled = true;
   document.getElementById("analyzing").style.display = "block";

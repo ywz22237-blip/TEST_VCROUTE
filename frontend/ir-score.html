@@ -48,6 +48,21 @@
       .btn-primary:hover { background: #1d4ed8; }
       .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
 
+      /* 심사 모드 카드 */
+      .mode-card { border: 2px solid #e2e8f0; border-radius: 14px; padding: 1.1rem 0.75rem; cursor: pointer; transition: all 0.2s; text-align: center; user-select: none; }
+      .mode-card:hover { border-color: #94a3b8; transform: translateY(-2px); }
+      .mode-card.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+      .mode-icon-wrap { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; margin: 0 auto 0.6rem; }
+      .mode-icon-simple { background: #f0fdf4; color: #16a34a; }
+      .mode-icon-premium { background: #eff6ff; color: #2563eb; }
+      .mode-icon-reanalysis { background: #fdf4ff; color: #7c3aed; }
+      .mode-card.selected.mode-simple { border-color: #16a34a; background: #f0fdf4; }
+      .mode-card.selected.mode-premium { border-color: #2563eb; background: #eff6ff; }
+      .mode-card.selected.mode-reanalysis { border-color: #7c3aed; background: #fdf4ff; }
+      .mode-name { font-size: 0.9rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; }
+      .mode-credit { font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.3rem; }
+      .mode-desc { font-size: 0.72rem; color: #94a3b8; line-height: 1.4; }
+
       /* Score Cards */
       .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 2rem; }
       @media (max-width: 900px) { .score-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -432,10 +447,51 @@
                 <input type="text" id="companyDesc" placeholder="예: B2B SaaS 기반 HR 자동화 솔루션" style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:0.9rem;box-sizing:border-box;" />
               </div>
 
+              <!-- 심사 모드 선택 -->
+              <div style="margin-top:1.5rem;">
+                <label style="display:block;font-size:0.9rem;font-weight:600;color:#475569;margin-bottom:0.75rem;">심사 모드 선택</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;" id="modeSelector">
+                  <!-- 간단심사 -->
+                  <div class="mode-card mode-simple" id="modeSimple" onclick="selectMode('simple')">
+                    <div class="mode-icon-wrap mode-icon-simple"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="mode-name">간단심사</div>
+                    <div class="mode-credit" id="modeCreditSimple">무료 · 매일 1회</div>
+                    <div class="mode-desc">5대 점수 + 핵심 지적</div>
+                  </div>
+                  <!-- 정밀심사 -->
+                  <div class="mode-card mode-premium" id="modePremium" onclick="selectMode('premium')">
+                    <div class="mode-icon-wrap mode-icon-premium"><i class="fa-solid fa-star"></i></div>
+                    <div class="mode-name">정밀심사</div>
+                    <div class="mode-credit" id="modeCreditPremium">크레딧 1개 필요</div>
+                    <div class="mode-desc">공공데이터 + 레이더 차트</div>
+                  </div>
+                  <!-- 재심사 -->
+                  <div class="mode-card mode-reanalysis" id="modeReanalysis" onclick="selectMode('reanalysis')">
+                    <div class="mode-icon-wrap mode-icon-reanalysis"><i class="fa-solid fa-rotate"></i></div>
+                    <div class="mode-name">재심사</div>
+                    <div class="mode-credit" id="modeCreditReanalysis">정밀심사 후 지급</div>
+                    <div class="mode-desc">이전 결과 기반 재분석</div>
+                  </div>
+                </div>
+              </div>
+
               <div style="margin-top:1.5rem;text-align:center;">
                 <button class="btn-primary" id="analyzeBtn" onclick="startAnalysis()" disabled>
-                  <i class="fa-solid fa-magnifying-glass-chart"></i> &nbsp;AI 분석 시작
+                  <i class="fa-solid fa-magnifying-glass-chart"></i> &nbsp;<span id="analyzeBtnText">모드를 선택해주세요</span>
                 </button>
+              </div>
+
+              <!-- 크레딧 부족 모달 -->
+              <div id="creditModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                <div style="background:white;border-radius:20px;padding:2rem 2.5rem;width:360px;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,0.22);text-align:center;">
+                  <div style="width:56px;height:56px;background:linear-gradient(135deg,#fef9c3,#fef08a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.5rem;">⚡</div>
+                  <h3 style="margin:0 0 0.5rem;font-size:1.1rem;font-weight:800;color:#1e293b;">크레딧이 부족합니다</h3>
+                  <p style="margin:0 0 1.5rem;font-size:0.9rem;color:#64748b;line-height:1.6;" id="creditModalMsg">크레딧을 충전하고 심사를 진행하세요.</p>
+                  <div style="display:flex;gap:0.75rem;justify-content:center;">
+                    <button onclick="document.getElementById('creditModal').style.display='none'" style="padding:0.65rem 1.25rem;border:1.5px solid #e2e8f0;border-radius:10px;background:white;color:#64748b;font-size:0.9rem;font-weight:700;cursor:pointer;">취소</button>
+                    <a href="pricing.html" style="padding:0.65rem 1.5rem;background:#2563eb;color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;text-decoration:none;">크레딧 충전</a>
+                  </div>
+                </div>
               </div>
 
               <div id="analyzing" style="display:none;text-align:center;padding:2rem;">
