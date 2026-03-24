@@ -125,11 +125,90 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// 탭 → 단계 번호 매핑 (새 흐름)
+const TAB_STEP = {
+  'upload':       1,
+  'multi-result': 2,
+  'examiner':     3,
+  'fund-match':   4,
+  'cold-mail':    5,
+};
+// 단계 → 다음 탭
+const NEXT_TAB = {
+  'upload':       'multi-result',
+  'multi-result': 'examiner',
+  'examiner':     'fund-match',
+  'fund-match':   'cold-mail',
+};
+// 각 단계의 버튼 메뉴 ID
+const TAB_MENU_ID = {
+  'upload':       null,
+  'multi-result': 'menu-multi',
+  'examiner':     'menu-examiner',
+  'fund-match':   'menu-fund',
+  'cold-mail':    'menu-mail',
+};
+
+let _completedSteps = new Set(['upload']); // 업로드는 항상 완료 상태
+
 function switchIrTab(tabId) {
-  document.querySelectorAll(".ir-section").forEach(s => s.classList.remove("active"));
-  document.querySelectorAll(".ir-menu-item").forEach(b => b.classList.remove("active"));
-  document.getElementById(tabId)?.classList.add("active");
-  document.querySelector(`[data-tab="${tabId}"]`)?.classList.add("active");
+  document.querySelectorAll('.ir-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.ir-menu-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId)?.classList.add('active');
+  document.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
+}
+
+/** 단계 완료 처리 — 메뉴 체크 표시 + 다음 단계 버튼 활성화 */
+function completeStep(tabId) {
+  _completedSteps.add(tabId);
+  const menuEl = document.querySelector(`[data-tab="${tabId}"]`);
+  if (menuEl) menuEl.classList.add('step-done');
+
+  // 다음 탭 메뉴 활성화
+  const nextTab = NEXT_TAB[tabId];
+  if (nextTab) {
+    const nextMenuId = TAB_MENU_ID[nextTab];
+    if (nextMenuId) {
+      const nextMenu = document.getElementById(nextMenuId);
+      if (nextMenu) nextMenu.disabled = false;
+    }
+  }
+}
+
+/** 섹션 하단 "다음 단계" 버튼을 렌더링/업데이트합니다. */
+function renderNextStepBtn(currentTabId) {
+  const nextTabId = NEXT_TAB[currentTabId];
+  if (!nextTabId) return;
+
+  const sectionEl = document.getElementById(currentTabId);
+  if (!sectionEl) return;
+
+  const btnId = `nextStepBtn_${currentTabId}`;
+  if (document.getElementById(btnId)) return; // 이미 있으면 스킵
+
+  const nextMenuId  = TAB_MENU_ID[nextTabId];
+  const isLocked    = nextMenuId && document.getElementById(nextMenuId)?.disabled;
+
+  const NEXT_LABELS = {
+    'multi-result': '3단계: AI 심사역 대화 시작',
+    'examiner':     '4단계: 펀드 & 투자자 추천 보기',
+    'fund-match':   '5단계: 콜드 메일 작성',
+  };
+  const label = NEXT_LABELS[nextTabId] || '다음 단계';
+
+  const wrapper = document.createElement('div');
+  wrapper.id = btnId;
+  wrapper.style.cssText = 'margin-top:2rem;padding-top:1.5rem;border-top:1.5px solid #e2e8f0;text-align:right;';
+  wrapper.innerHTML = `
+    <button onclick="switchIrTab('${nextTabId}')"
+      style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;
+             border-radius:10px;padding:0.75rem 1.75rem;font-size:0.9rem;font-weight:700;
+             cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(37,99,235,0.25);
+             display:inline-flex;align-items:center;gap:0.5rem;">
+      ${label} <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  `;
+  sectionEl.appendChild(wrapper);
 }
 
 // ─── 파일 처리 ────────────────────────────────────────────────
@@ -359,12 +438,12 @@ async function startAnalysis() {
       renderScore(result);
     }
 
-    document.getElementById("menu-score").disabled = false;
-    document.getElementById("menu-qa").disabled = false;
-    // 단일 분석 완료 시 AI 심사역 탭 활성화
+    // 단일 분석 완료 → 2단계(멀티에이전트) 활성화 + AI 심사역 탭 준비
+    document.getElementById("menu-multi").disabled = false;
+    completeStep('upload');
     if (window._lastAnalysisTaskId) enableExaminerTab(window._lastAnalysisTaskId);
-    switchIrTab("score");
-    initQA(irAnalysis);
+    switchIrTab("multi-result");
+    renderNextStepBtn('multi-result');
 
   } catch (err) {
     clearInterval(interval);
@@ -372,10 +451,9 @@ async function startAnalysis() {
     const result = getDemoAnalysis(desc || "분석 실패");
     irAnalysis = result;
     renderScore(result);
-    document.getElementById("menu-score").disabled = false;
-    document.getElementById("menu-qa").disabled = false;
-    switchIrTab("score");
-    initQA(result);
+    document.getElementById("menu-multi").disabled = false;
+    completeStep('upload');
+    switchIrTab("multi-result");
     alert(`심사 중 오류가 발생했습니다: ${err.message}`);
   } finally {
     document.getElementById("analyzing").style.display = "none";
@@ -576,26 +654,24 @@ function renderMultiAgentResult(report) {
     }
   }
 
-  // ── 사이드바 메뉴 활성화 ─────────────────────────────────────
-  const menuMulti    = document.getElementById('menu-multi');
-  const menuQa       = document.getElementById('menu-qa');
-  const menuExaminer = document.getElementById('menu-examiner');
-  if (menuMulti)    menuMulti.disabled    = false;
-  if (menuQa)       menuQa.disabled       = false;
-  if (menuExaminer) menuExaminer.disabled = false;
+  // ── 단계 완료 처리 ──────────────────────────────────────────
+  completeStep('upload');
+  completeStep('multi-result');
 
-  // 멀티에이전트 완료 시 AI 심사역 채팅 활성화
+  // 3단계(AI 심사역) 활성화
+  const menuExaminer = document.getElementById('menu-examiner');
+  if (menuExaminer) menuExaminer.disabled = false;
   if (window._lastAnalysisTaskId) enableExaminerTab(window._lastAnalysisTaskId);
 
-  // 멀티 결과 탭으로 이동
+  // 멀티 결과 탭으로 이동 + 다음 단계 버튼
   switchIrTab('multi-result');
+  renderNextStepBtn('multi-result');
 
   // 기존 score 탭도 채워두기 (5대 지표 공통 사용)
   if (report.scores) {
     irAnalysis = convertAiRouteResult(report);
     renderScore(irAnalysis);
-    const menuScore = document.getElementById('menu-score');
-    if (menuScore) menuScore.disabled = false;
+    // 스코어링은 멀티에이전트 결과 탭에 통합 — 별도 탭 비활성 유지
   }
 }
 
@@ -735,6 +811,10 @@ async function startExaminerChat() {
     {},
     bubble,
   );
+
+  // Q1이 나오면 심사역 대화 단계 완료로 간주 (다음 단계 버튼 표시)
+  completeStep('examiner');
+  renderNextStepBtn('examiner');
 }
 
 /** 사용자 답변 전송 → 피드백 + 다음 질문 수신 */
