@@ -17,6 +17,7 @@ const noticeRoutes = require('./routes/notice.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const creditsRoutes = require('./routes/credits.routes');
 const sessionsRoutes = require('./routes/sessions.routes');
+const analysisRoutes = require('./routes/analysis.routes');
 
 // Import middlewares
 const errorHandler = require('./middlewares/errorHandler');
@@ -40,6 +41,7 @@ app.use('/api/notices', noticeRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/credits', creditsRoutes);
 app.use('/api/sessions', sessionsRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

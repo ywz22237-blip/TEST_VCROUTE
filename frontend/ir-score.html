@@ -475,7 +475,39 @@
                 </div>
               </div>
 
-              <div style="margin-top:1.5rem;text-align:center;">
+              <!-- 섹터 / 투자단계 선택 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1.25rem;">
+                <div>
+                  <label style="font-size:0.8rem;font-weight:600;color:#475569;display:block;margin-bottom:0.3rem;">섹터</label>
+                  <select id="sectorSelect" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;color:#1e293b;background:white;">
+                    <option value="AI/ML">AI/ML</option>
+                    <option value="SaaS">SaaS</option>
+                    <option value="바이오/헬스케어">바이오/헬스케어</option>
+                    <option value="핀테크">핀테크</option>
+                    <option value="딥테크">딥테크</option>
+                    <option value="이커머스">이커머스</option>
+                    <option value="모빌리티">모빌리티</option>
+                    <option value="에너지/클린텍">에너지/클린텍</option>
+                    <option value="콘텐츠/미디어">콘텐츠/미디어</option>
+                    <option value="교육/에듀테크">교육/에듀테크</option>
+                    <option value="기타" selected>기타</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:0.8rem;font-weight:600;color:#475569;display:block;margin-bottom:0.3rem;">투자단계</label>
+                  <select id="stageSelect" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;color:#1e293b;background:white;">
+                    <option value="아이디어">아이디어</option>
+                    <option value="Pre-Seed">Pre-Seed</option>
+                    <option value="Seed" selected>Seed</option>
+                    <option value="Pre-A">Pre-A</option>
+                    <option value="Series A">Series A</option>
+                    <option value="Series B">Series B</option>
+                    <option value="Series C+">Series C+</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:1.25rem;text-align:center;">
                 <button class="btn-primary" id="analyzeBtn" onclick="startAnalysis()" disabled>
                   <i class="fa-solid fa-magnifying-glass-chart"></i> &nbsp;<span id="analyzeBtnText">모드를 선택해주세요</span>
                 </button>
@@ -499,7 +531,7 @@
                   <div class="dot-spin"><span></span><span></span><span></span></div>
                   <span id="analyzeStatus">IR 덱을 분석하고 있습니다...</span>
                 </div>
-                <p style="color:#94a3b8;font-size:0.8rem;margin-top:0.5rem;">약 10~20초 소요됩니다</p>
+                <p style="color:#94a3b8;font-size:0.8rem;margin-top:0.5rem;" id="analyzeTimeHint">간단심사 약 20~40초 · 정밀심사 약 1~2분 소요됩니다</p>
               </div>
             </div>
 

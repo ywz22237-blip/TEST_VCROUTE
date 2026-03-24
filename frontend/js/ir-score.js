@@ -125,6 +125,7 @@ function switchIrTab(tabId) {
 
 // ─── 파일 처리 ────────────────────────────────────────────────
 const irTexts = { 1: "", 2: "", 3: "" };
+const irFiles = { 1: null, 2: null, 3: null }; // 실제 File 객체 보관 (PDF용)
 
 function onFileSelect(input, slot) {
   const file = input.files[0];
@@ -137,13 +138,21 @@ function handleFile(file, slot) {
   if (nameEl) nameEl.textContent = `✅ ${file.name}`;
   if (zoneEl) zoneEl.classList.add("has-file");
 
-  const reader = new FileReader();
-  reader.onload = e => {
-    irTexts[slot] = e.target.result;
+  // PDF는 File 객체 보관, 텍스트 파일은 기존대로 읽기
+  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+    irFiles[slot] = file;
+    irTexts[slot] = `[PDF: ${file.name}]`; // 표시용 더미 텍스트
     const hasAny = Object.values(irTexts).some(t => t.trim());
     document.getElementById("analyzeBtn").disabled = !(hasAny && selectedMode);
-  };
-  reader.readAsText(file, "utf-8");
+  } else {
+    const reader = new FileReader();
+    reader.onload = e => {
+      irTexts[slot] = e.target.result;
+      const hasAny = Object.values(irTexts).some(t => t.trim());
+      document.getElementById("analyzeBtn").disabled = !(hasAny && selectedMode);
+    };
+    reader.readAsText(file, "utf-8");
+  }
 }
 
 // ─── 분석 시작 ────────────────────────────────────────────────
@@ -159,16 +168,12 @@ async function startAnalysis() {
     return;
   }
 
-  const desc = document.getElementById("companyDesc").value.trim();
-  const combinedText = [
-    irTexts[1] ? `[회사소개서]\n${irTexts[1]}` : "",
-    irTexts[2] ? `[IR 자료]\n${irTexts[2]}` : "",
-    irTexts[3] ? `[재무제표]\n${irTexts[3]}` : "",
-  ].filter(Boolean).join("\n\n");
-  const textToAnalyze = (combinedText || "") + (desc ? `\n회사 소개: ${desc}` : "");
+  // PDF 파일 확인 (슬롯 1~3 중 첫 번째 PDF 사용)
+  const pdfFile = irFiles[1] || irFiles[2] || irFiles[3];
+  const desc = document.getElementById("companyDesc")?.value.trim() || "";
 
-  if (!textToAnalyze.trim()) {
-    alert("파일을 업로드하거나 회사 소개를 입력해 주세요.");
+  if (!pdfFile && !desc) {
+    alert("PDF 파일을 업로드하거나 회사 소개를 입력해 주세요.");
     return;
   }
 
@@ -190,8 +195,8 @@ async function startAnalysis() {
   }
 
   // 크레딧 차감
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
   try {
-    const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
     if (token) {
       await fetch('/api/credits/use', {
         method: 'POST',
@@ -199,7 +204,6 @@ async function startAnalysis() {
         body: JSON.stringify({ mode: selectedMode }),
       });
     }
-    // localStorage 즉시 반영
     const cached = typeof getCredits === 'function' ? getCredits() : cr;
     if (selectedMode === 'simple') cached.simple = Math.max(0, (cached.simple || 1) - 1);
     if (selectedMode === 'premium') cached.premium = Math.max(0, (cached.premium || 0) - 1);
@@ -208,52 +212,130 @@ async function startAnalysis() {
     if (typeof renderIrCreditBar === 'function') renderIrCreditBar();
   } catch (_) { /* 차감 실패해도 분석은 계속 */ }
 
-
   document.getElementById("analyzeBtn").disabled = true;
   document.getElementById("analyzing").style.display = "block";
 
   const statusEl = document.getElementById("analyzeStatus");
-  const steps = ["IR 덱을 분석하고 있습니다...", "VC 심사역 프레임워크 적용 중...", "스코어 산출 중...", "피드백 생성 중..."];
+  const stepsSimple = ["IR 파일 전송 중...", "AI 심사 중...", "스코어 산출 중..."];
+  const stepsPremium = ["IR 파일 전송 중...", "공공데이터 수집 중...", "AI 심사역 분석 중...", "레이더 차트 생성 중..."];
+  const steps = selectedMode === 'simple' ? stepsSimple : stepsPremium;
   let step = 0;
   const interval = setInterval(() => {
     statusEl.textContent = steps[Math.min(step++, steps.length - 1)];
-  }, 3000);
+  }, 4000);
 
   try {
-    const apiKey = window.ANTHROPIC_API_KEY || window.CLAUDE_API_KEY || "";
+    // ── AI.ROUTE 연동 (PDF 있는 경우) ──────────────────────────
+    if (pdfFile) {
+      const sector = document.getElementById("sectorSelect")?.value || "기타";
+      const stage  = document.getElementById("stageSelect")?.value  || "Seed";
+      const companyName = desc.slice(0, 50);
 
-    let result;
-    if (apiKey) {
-      result = await callClaudeAPI(textToAnalyze, apiKey);
+      // 1단계: 분석 시작 (task_id 받기)
+      const formData = new FormData();
+      formData.append('file', pdfFile);
+      formData.append('sector', sector);
+      formData.append('stage', stage);
+      formData.append('mode', selectedMode === 'reanalysis' ? 'premium' : selectedMode);
+      if (companyName) formData.append('company_name', companyName);
+
+      const startRes = await fetch('/api/analysis/start', {
+        method: 'POST',
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+        body: formData,
+      });
+
+      if (!startRes.ok) {
+        const err = await startRes.json().catch(() => ({}));
+        throw new Error(err.message || '분석 시작 실패');
+      }
+
+      const startData = await startRes.json();
+      const taskId = startData.data?.task_id;
+      if (!taskId) throw new Error('task_id를 받지 못했습니다.');
+
+      // 2단계: 결과 폴링 (완료까지 최대 3분)
+      statusEl.textContent = "AI 심사역이 분석 중입니다...";
+      const result = await pollAnalysisResult(taskId, 180000);
+
+      clearInterval(interval);
+      irAnalysis = convertAiRouteResult(result);
+      renderScore(irAnalysis);
+
     } else {
-      // API 키 없으면 데모 분석
+      // PDF 없으면 기존 텍스트 방식 (데모)
       await new Promise(r => setTimeout(r, 3000));
-      result = getDemoAnalysis(textToAnalyze);
+      const textToAnalyze = desc;
+      const result = getDemoAnalysis(textToAnalyze);
+      clearInterval(interval);
+      irAnalysis = result;
+      renderScore(result);
     }
 
-    clearInterval(interval);
-    irAnalysis = result;
-    renderScore(result);
-
     document.getElementById("menu-score").disabled = false;
     document.getElementById("menu-qa").disabled = false;
     switchIrTab("score");
-    initQA(result);
+    initQA(irAnalysis);
+
   } catch (err) {
     clearInterval(interval);
-    console.error(err);
-    // 에러 시 데모 결과 표시
-    const result = getDemoAnalysis(textToAnalyze);
+    console.error('[AI.ROUTE 연동 오류]', err);
+    // 에러 시 데모 결과로 폴백
+    const result = getDemoAnalysis(desc || "분석 실패");
     irAnalysis = result;
     renderScore(result);
     document.getElementById("menu-score").disabled = false;
     document.getElementById("menu-qa").disabled = false;
     switchIrTab("score");
     initQA(result);
+    alert(`심사 중 오류가 발생했습니다: ${err.message}`);
   } finally {
     document.getElementById("analyzing").style.display = "none";
     document.getElementById("analyzeBtn").disabled = false;
   }
+}
+
+// ── AI.ROUTE 결과 폴링 ─────────────────────────────────────────
+async function pollAnalysisResult(taskId, timeoutMs = 180000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    await new Promise(r => setTimeout(r, 3000));
+    const res = await fetch(`/api/analysis/${taskId}`);
+    if (!res.ok) continue;
+    const data = await res.json();
+    const report = data.data;
+    if (report?.status === 'completed') return report;
+    if (report?.status === 'failed') throw new Error(report.error_message || '분석 실패');
+  }
+  throw new Error('분석 시간 초과 (3분)');
+}
+
+// ── AI.ROUTE 결과 → 기존 UI 포맷 변환 ──────────────────────────
+// AI.ROUTE: 0~100점, 영어 키 → VC.ROUTE: 0~20점, 한국어 카테고리명
+function convertAiRouteResult(report) {
+  const s = report.scores || {};
+  const toTwenty = (v) => Math.round((v ?? 60) / 5); // 100점 → 20점 환산
+
+  return {
+    scores: {
+      "시장성": toTwenty(s.market),
+      "팀":     toTwenty(s.team),
+      "기술력": toTwenty(s.tech),
+      "BM":     toTwenty(s.bm),
+      "재무":   toTwenty(s.exit),
+    },
+    feedback: [
+      report.critical_feedback ? { type: 'warn', text: report.critical_feedback } : null,
+      ...(report.missing_items    || []).map(t => ({ type: 'bad',  text: `누락: ${t}` })),
+      ...(report.suggested_actions|| []).map(t => ({ type: 'good', text: t })),
+    ].filter(Boolean),
+    rationale: report.score_rationale || {},
+    benchmarks: report.benchmarks || null,
+    radar_chart: report.radar_chart || null,
+    report_type: report.report_type || 'simple',
+    task_id: report.task_id,
+    reanalysis_expires_at: report.reanalysis_expires_at,
+  };
 }
 
 async function callClaudeAPI(text, apiKey) {
