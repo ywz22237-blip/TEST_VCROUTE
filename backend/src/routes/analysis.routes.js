@@ -5,7 +5,7 @@ const { startAnalysis, getResult } = require('../controllers/analysis.controller
 
 // PDF 파일을 임시 저장 (uploads/ 폴더)
 const upload = multer({
-  dest: 'uploads/',
+  dest: '/tmp/uploads/',
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB 제한
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
