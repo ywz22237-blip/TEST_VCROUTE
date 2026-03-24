@@ -275,7 +275,10 @@ async function fetchAndCacheCredits() {
     const res = await fetch('/api/credits', {
       headers: { Authorization: 'Bearer ' + token },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      console.warn('[credits] API error', res.status, await res.text().catch(() => ''));
+      return;
+    }
     const json = await res.json();
     if (json.success && json.data) {
       localStorage.setItem(getCreditKey(), JSON.stringify({
@@ -285,7 +288,7 @@ async function fetchAndCacheCredits() {
         reanalysisExpires: json.data.reanalysisExpires,
       }));
     }
-  } catch { /* 네트워크 오류 시 캐시 사용 */ }
+  } catch (e) { console.warn('[credits] fetch failed', e); }
 }
 
 function buildCreditBadgesHTML() {
