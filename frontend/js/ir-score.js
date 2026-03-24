@@ -438,9 +438,10 @@ async function startAnalysis() {
       renderScore(result);
     }
 
-    // 단일 분석 완료 → 2단계(멀티에이전트) 활성화 + AI 심사역 탭 준비
+    // 단일 분석 완료 → 2단계(멀티에이전트 결과) 탭에 요약 표시 후 이동
     document.getElementById("menu-multi").disabled = false;
     completeStep('upload');
+    renderSingleAnalysisSummary(irAnalysis);  // multi-result 탭에 단일 분석 요약 채우기
     if (window._lastAnalysisTaskId) enableExaminerTab(window._lastAnalysisTaskId);
     switchIrTab("multi-result");
     renderNextStepBtn('multi-result');
@@ -453,6 +454,7 @@ async function startAnalysis() {
     renderScore(result);
     document.getElementById("menu-multi").disabled = false;
     completeStep('upload');
+    renderSingleAnalysisSummary(irAnalysis);
     switchIrTab("multi-result");
     alert(`심사 중 오류가 발생했습니다: ${err.message}`);
   } finally {
@@ -476,9 +478,80 @@ async function pollAnalysisResult(taskId, timeoutMs = 180000) {
   throw new Error('분석 시간 초과 (3분)');
 }
 
+// ── 단일 분석 결과를 multi-result 탭에 요약 표시 ─────────────
+// single/premium/reanalysis 완료 후 multi-result 탭이 비어 있지 않도록 채워줌
+function renderSingleAnalysisSummary(analysis) {
+  if (!analysis) return;
+
+  // 플레이스홀더 숨기기
+  const ph = document.getElementById('multiResultPlaceholder');
+  if (ph) ph.style.display = 'none';
+
+  // 총점 계산 (5개 항목 × 0~20 → 0~100)
+  const total = Object.values(analysis.scores || {}).reduce((a, b) => a + b, 0);
+  const grade = total >= 90 ? 'S' : total >= 80 ? 'A' : total >= 70 ? 'B' : total >= 60 ? 'C' : 'D';
+  const gradeColor = { S: '#6d28d9', A: '#1d4ed8', B: '#0369a1', C: '#b45309', D: '#b91c1c' }[grade] || '#b45309';
+  const modeLabel = analysis.report_type === 'premium' ? '정밀심사' : '간단심사';
+
+  const verdictBanner    = document.getElementById('verdictBanner');
+  const verdictBadge     = document.getElementById('verdictBadge');
+  const verdictRationale = document.getElementById('verdictRationale');
+
+  if (verdictBanner && verdictBadge) {
+    verdictBanner.style.display = 'block';
+    verdictBanner.style.borderColor = gradeColor;
+    verdictBadge.className = 'verdict-badge';
+    verdictBadge.style.justifyContent = 'center';
+    verdictBadge.innerHTML = `
+      <span style="font-size:2rem;font-weight:900;color:${gradeColor};margin-right:0.5rem;">${total}<span style="font-size:1rem;color:#94a3b8;">/100</span></span>
+      <span style="background:${gradeColor};color:#fff;padding:0.2rem 0.7rem;border-radius:6px;font-size:1rem;font-weight:700;margin-right:0.75rem;">${grade}등급</span>
+      <span style="font-size:0.88rem;color:#64748b;">${modeLabel} 결과</span>
+    `;
+    if (verdictRationale) {
+      const topFeedback = (analysis.feedback || []).slice(0, 3)
+        .map(f => {
+          const color = f.type === 'bad' ? '#dc2626' : f.type === 'warn' ? '#b45309' : '#16a34a';
+          const icon  = f.type === 'bad' ? '🚩' : f.type === 'warn' ? '⚠️' : '✓';
+          return `<div style="font-size:0.83rem;color:${color};margin-bottom:0.3rem;line-height:1.45;">${icon} ${f.text}</div>`;
+        }).join('');
+      verdictRationale.innerHTML = `
+        <div style="margin-bottom:0.75rem;">${topFeedback || '<div style="font-size:0.83rem;color:#94a3b8;">피드백 정보 없음</div>'}</div>
+        <div style="padding:0.7rem 1rem;background:#eff6ff;border-radius:8px;font-size:0.82rem;color:#1e40af;border:1px solid #bfdbfe;">
+          💡 3인 AI 교차검증이 필요하시면 <strong>멀티에이전트 모드</strong>로 다시 심사하세요
+        </div>
+      `;
+    }
+  }
+
+  // 5대 점수 도메인 요약도 채워줌 (간이 버전)
+  const rubricSummaryWrap = document.getElementById('verdictBanner');
+  if (rubricSummaryWrap && !rubricSummaryWrap.querySelector('.rubric-domain-summary')) {
+    const summaryEl = document.createElement('div');
+    summaryEl.className = 'rubric-domain-summary';
+    summaryEl.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;margin-top:1rem;';
+    const SCORE_COLORS_MAP = { '시장성': '#6366f1', '팀': '#0ea5e9', '기술력': '#22c55e', 'BM': '#f59e0b', '재무': '#ef4444' };
+    summaryEl.innerHTML = Object.entries(analysis.scores || {}).map(([k, v]) => {
+      const color = SCORE_COLORS_MAP[k] || '#2563eb';
+      const pct = Math.round(v / 20 * 100);
+      return `<div style="background:#f8fafc;border-radius:8px;padding:0.5rem;text-align:center;border:1px solid #e2e8f0;">
+        <div style="font-size:0.7rem;color:#64748b;margin-bottom:0.2rem;">${k}</div>
+        <div style="font-size:1.15rem;font-weight:800;color:${color};">${v}<span style="font-size:0.65rem;color:#94a3b8;">/20</span></div>
+        <div style="height:3px;background:#f1f5f9;border-radius:2px;margin-top:0.25rem;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:2px;"></div>
+        </div>
+      </div>`;
+    }).join('');
+    rubricSummaryWrap.appendChild(summaryEl);
+  }
+}
+
 // ── 멀티에이전트 결과 렌더링 (루브릭 스코어링 체계 적용) ──────
 // 배점: 재무(35) + 시장(40) + 운영(25) = 100점 / S~D 등급
 function renderMultiAgentResult(report) {
+  // 플레이스홀더 숨기기
+  const ph = document.getElementById('multiResultPlaceholder');
+  if (ph) ph.style.display = 'none';
+
   // ── 루브릭 총점 · 등급 · 판정 배너 ──────────────────────────
   const rubricTotal = report.rubric_total ?? 0;
   const grade       = report.grade ?? 'C';

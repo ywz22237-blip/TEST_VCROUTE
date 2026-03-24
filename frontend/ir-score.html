@@ -253,6 +253,8 @@
       .route-start-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: white; border: none; border-radius: 10px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; margin-top: 1.5rem; }
       .route-start-btn:hover { background: #1d4ed8; }
       .route-menu-badge { display: inline-block; background: linear-gradient(90deg,#2563eb,#7c3aed); color: white; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; margin-left: 0.35rem; vertical-align: middle; letter-spacing: 0.02em; }
+      /* 2줄 메뉴 라벨 */
+      .menu-label-wrap { display: inline-flex; flex-direction: column; line-height: 1.25; flex: 1; }
     </style>
   </head>
   <body>
@@ -331,13 +333,15 @@
               <!-- Step 2 -->
               <button class="ir-menu-item" data-tab="multi-result" id="menu-multi" disabled>
                 <span class="step-badge">2</span>
-                <i class="fa-solid fa-users-viewfinder"></i> AI심사역 '루트'의 정밀 심사
+                <i class="fa-solid fa-users-viewfinder"></i>
+                <span class="menu-label-wrap">AI심사역 '루트'의<br><span style="font-size:0.82em;opacity:0.85;">정밀 심사</span></span>
               </button>
 
               <!-- Step 3 -->
               <button class="ir-menu-item" data-tab="examiner" id="menu-examiner" disabled>
                 <span class="step-badge">3</span>
-                <i class="fa-solid fa-user-tie"></i> AI심사역 '루트'의 피드백
+                <i class="fa-solid fa-user-tie"></i>
+                <span class="menu-label-wrap">AI심사역 '루트'의<br><span style="font-size:0.82em;opacity:0.85;">피드백</span></span>
               </button>
 
               <!-- Step 4 -->
@@ -617,6 +621,13 @@
             <div id="multi-result" class="ir-section">
               <h2>AI심사역 '루트'의 정밀 심사</h2>
               <div class="tag-line">3명의 독립 AI 심사역이 각각 분석 · 투자위원회 최종 판정</div>
+
+              <!-- 분석 전 안내 플레이스홀더 -->
+              <div id="multiResultPlaceholder" style="text-align:center;padding:3rem 1rem;color:#94a3b8;">
+                <i class="fa-solid fa-users-viewfinder" style="font-size:2.5rem;margin-bottom:1rem;display:block;opacity:0.35;"></i>
+                <div style="font-size:0.95rem;font-weight:600;margin-bottom:0.4rem;color:#64748b;">심사를 먼저 완료해주세요</div>
+                <div style="font-size:0.82rem;">1단계 &ldquo;심사 받기&rdquo;에서 분석을 시작하면 이 곳에 결과가 표시됩니다.</div>
+              </div>
 
               <!-- 투자 판정 배너 -->
               <div id="verdictBanner" style="display:none;text-align:center;padding:1.5rem;background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;margin-bottom:1.5rem;">
