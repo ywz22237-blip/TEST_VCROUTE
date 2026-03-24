@@ -966,6 +966,10 @@
                 <i class="fa-solid fa-gear" style="width: 20px"></i>
                 <span>설정</span>
               </label>
+              <label class="filter-item" onclick="switchSection('sessions')">
+                <i class="fa-solid fa-shield-halved" style="width: 20px"></i>
+                <span>보안·세션</span>
+              </label>
             </div>
           </div>
         </aside>
@@ -2206,6 +2210,31 @@
                   </button>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <!-- Sessions Section -->
+          <section id="sessionsSection" class="dashboard-section" style="display:none;">
+            <h2 style="margin:0 0 0.25rem;font-size:1.3rem;font-weight:800;color:#1e293b;">보안 · 세션 관리</h2>
+            <p style="margin:0 0 1.5rem;font-size:0.9rem;color:#64748b;">현재 로그인된 기기를 확인하고 관리하세요. 최대 3개 기기까지 동시 로그인 가능합니다.</p>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <span style="font-size:0.95rem;font-weight:700;color:#1e293b;">활성 세션</span>
+              <button onclick="revokeAllOthers()" style="padding:0.5rem 1rem;background:white;border:1.5px solid #fca5a5;color:#ef4444;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;">
+                <i class="fa-solid fa-right-from-bracket"></i> 다른 기기 모두 로그아웃
+              </button>
+            </div>
+
+            <div id="sessionsList">
+              <p style="color:#94a3b8;font-size:0.9rem;">불러오는 중...</p>
+            </div>
+
+            <div style="margin-top:1.5rem;padding:1rem;background:#fefce8;border:1px solid #fef08a;border-radius:12px;">
+              <p style="margin:0;font-size:0.82rem;color:#92400e;line-height:1.6;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <strong>보안 안내</strong> — 낯선 기기나 IP에서 로그인된 세션이 보이면 즉시 로그아웃하고 비밀번호를 변경하세요.
+                동일 계정 3개 기기 초과 시 가장 오래된 세션이 자동 만료됩니다.
+              </p>
             </div>
           </section>
 

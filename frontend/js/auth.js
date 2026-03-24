@@ -19,6 +19,28 @@ function getHomePath() {
   return window.location.pathname.includes("/pages/") ? "../index.html" : "index.html";
 }
 
+// ── 세션 관리 ──────────────────────────────────────
+
+function getOrCreateSessionId() {
+  let sid = localStorage.getItem('vc_session_id');
+  if (!sid) {
+    sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+    localStorage.setItem('vc_session_id', sid);
+  }
+  return sid;
+}
+
+async function registerSession(token) {
+  try {
+    const sessionId = getOrCreateSessionId();
+    await fetch('/api/sessions/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ sessionId }),
+    });
+  } catch (_) { /* 세션 등록 실패해도 로그인은 진행 */ }
+}
+
 // ── 유저 정보 변환 ─────────────────────────────────
 
 function supabaseUserToLocal(user) {
@@ -179,6 +201,7 @@ async function handleLogin(event) {
   const userInfo = supabaseUserToLocal(data.user);
   localStorage.setItem(STORAGE_KEYS.TOKEN, data.session.access_token);
   localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userInfo));
+  await registerSession(data.session.access_token);
   window.location.href = getHomePath();
 }
 
@@ -209,6 +232,7 @@ async function handleRegister(event) {
     const userInfo = supabaseUserToLocal(data.user);
     localStorage.setItem(STORAGE_KEYS.TOKEN, data.session.access_token);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userInfo));
+    await registerSession(data.session.access_token);
     window.location.href = getHomePath();
   } else {
     alert("이메일 인증 링크를 발송했습니다. 이메일을 확인해주세요.");

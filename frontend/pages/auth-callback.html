@@ -119,6 +119,22 @@
         localStorage.setItem("auth_token", session.access_token);
         localStorage.setItem("user_info", JSON.stringify(userInfo));
 
+        // 세션 등록
+        (async () => {
+          try {
+            let sid = localStorage.getItem('vc_session_id');
+            if (!sid) {
+              sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+              localStorage.setItem('vc_session_id', sid);
+            }
+            await fetch('/api/sessions/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+              body: JSON.stringify({ sessionId: sid }),
+            });
+          } catch (_) {}
+        })();
+
         // 소셜 로그인 최초 가입 시 userType 미설정 → 유형 선택 페이지로
         if (!meta.userType) {
           window.location.href = "select-type.html";

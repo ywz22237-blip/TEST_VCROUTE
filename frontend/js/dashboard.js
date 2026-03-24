@@ -509,6 +509,11 @@ function switchSection(sectionId) {
     initSupportCalendar();
   }
 
+  // 세션 관리 섹션 진입 시 로드
+  if (sectionId === 'sessions') {
+    loadSessions();
+  }
+
   // 개발중 배너 (지원사업/자료보관함/투자히스토리)
   const devBanner = document.getElementById('devNoticeBanner');
   if (devBanner) {
@@ -2489,3 +2494,81 @@ document.addEventListener('click', e => {
   const modal = document.getElementById('addContactModal');
   if (modal && e.target === modal) closeAddContactModal();
 });
+
+// ─── 세션 관리 ────────────────────────────────────────────────
+
+async function loadSessions() {
+  const container = document.getElementById('sessionsList');
+  if (!container) return;
+  container.innerHTML = '<p style="color:#94a3b8;font-size:0.9rem;">불러오는 중...</p>';
+
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
+  const sessionId = localStorage.getItem('vc_session_id') || '';
+
+  try {
+    const res = await fetch('/api/sessions', {
+      headers: { Authorization: 'Bearer ' + token, 'x-session-id': sessionId }
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message);
+
+    const sessions = json.data || [];
+    if (!sessions.length) {
+      container.innerHTML = '<p style="color:#94a3b8;font-size:0.9rem;">활성 세션이 없습니다.</p>';
+      return;
+    }
+
+    container.innerHTML = sessions.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem;background:${s.isCurrent ? '#f0f9ff' : 'white'};border:1.5px solid ${s.isCurrent ? '#bae6fd' : '#e2e8f0'};border-radius:12px;margin-bottom:0.75rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <div style="width:40px;height:40px;background:${s.isCurrent ? '#0ea5e9' : '#f1f5f9'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;color:${s.isCurrent ? 'white' : '#64748b'};">
+            <i class="fa-solid fa-${s.device === 'mobile' ? 'mobile-screen' : 'laptop'}"></i>
+          </div>
+          <div>
+            <div style="font-size:0.9rem;font-weight:700;color:#1e293b;">${s.browser} · ${s.device === 'mobile' ? '모바일' : 'PC'} ${s.isCurrent ? '<span style="background:#0ea5e9;color:white;font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:20px;margin-left:0.4rem;">현재 기기</span>' : ''}</div>
+            <div style="font-size:0.78rem;color:#94a3b8;margin-top:0.15rem;">IP: ${s.ip} · 마지막 접속: ${formatTimeAgo(s.lastSeenAt)}</div>
+          </div>
+        </div>
+        ${!s.isCurrent ? `<button onclick="revokeSession('${s.id}')" style="padding:0.4rem 0.85rem;border:1.5px solid #fca5a5;background:white;color:#ef4444;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">로그아웃</button>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = '<p style="color:#ef4444;font-size:0.9rem;">세션 정보를 불러올 수 없습니다.</p>';
+  }
+}
+
+async function revokeSession(sessionId) {
+  if (!confirm('해당 기기에서 로그아웃하시겠습니까?')) return;
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
+  try {
+    await fetch(`/api/sessions/${sessionId}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    loadSessions();
+  } catch (_) {}
+}
+
+async function revokeAllOthers() {
+  if (!confirm('현재 기기를 제외한 모든 기기에서 로그아웃하시겠습니까?')) return;
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('vc_token') || '';
+  const sessionId = localStorage.getItem('vc_session_id') || '';
+  try {
+    await fetch('/api/sessions/others', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ sessionId })
+    });
+    loadSessions();
+  } catch (_) {}
+}
+
+function formatTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return '방금 전';
+  if (m < 60) return `${m}분 전`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}시간 전`;
+  return `${Math.floor(h / 24)}일 전`;
+}
