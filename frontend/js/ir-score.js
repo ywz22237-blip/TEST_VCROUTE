@@ -413,8 +413,16 @@ async function startAnalysis() {
       });
 
       if (!startRes.ok) {
-        const err = await startRes.json().catch(() => ({}));
-        throw new Error(err.message || '분석 시작 실패');
+        const rawText = await startRes.text().catch(() => '');
+        let errMsg = '분석 시작 실패';
+        try {
+          const errJson = JSON.parse(rawText);
+          errMsg = errJson.message || errJson.detail || errJson.error || rawText.slice(0, 200);
+        } catch (_) {
+          errMsg = rawText.slice(0, 200) || `HTTP ${startRes.status}`;
+        }
+        console.error('[startAnalysis] HTTP', startRes.status, rawText);
+        throw new Error(errMsg);
       }
 
       const startData = await startRes.json();
@@ -456,7 +464,7 @@ async function startAnalysis() {
     completeStep('upload');
     renderSingleAnalysisSummary(irAnalysis);
     switchIrTab("multi-result");
-    alert(`심사 중 오류가 발생했습니다: ${err.message}`);
+    alert(`심사 중 오류가 발생했습니다.\n\n${err.message}`);
   } finally {
     document.getElementById("analyzing").style.display = "none";
     document.getElementById("analyzeBtn").disabled = false;

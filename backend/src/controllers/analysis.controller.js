@@ -11,11 +11,11 @@
 
 const axios = require('axios');
 const FormData = require('form-data');
-const fs = require('fs');
 const supabase = require('../config/supabase');
 
-const AI_ROUTE_URL = process.env.AI_ROUTE_URL;
-const ROUTE_API_KEY = process.env.ROUTE_API_KEY;
+// env 없을 경우 Railway 기본값 fallback
+const AI_ROUTE_URL = process.env.AI_ROUTE_URL || 'https://ai-route-production-7b73.up.railway.app';
+const ROUTE_API_KEY = process.env.ROUTE_API_KEY || 'vcroute-745c6e4b9b268d24e779a6488cb097c1';
 
 // Supabase JWT로 유저 추출
 async function getUserFromToken(req) {
@@ -30,7 +30,6 @@ async function getUserFromToken(req) {
 // ── POST /api/analysis/start ─────────────────────────────────────
 // 프론트엔드에서 PDF + 섹터/단계/모드를 받아 AI.ROUTE에 전달
 exports.startAnalysis = async (req, res, next) => {
-  let filePath = null;
   try {
     // 로그인 확인
     const user = await getUserFromToken(req);
@@ -38,20 +37,20 @@ exports.startAnalysis = async (req, res, next) => {
       return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
     }
 
-    // 파일 확인
+    // 파일 확인 (memoryStorage: file.buffer 사용)
     const file = req.file;
     if (!file) {
       return res.status(400).json({ success: false, message: 'PDF 파일이 없습니다.' });
     }
-    filePath = file.path;
 
     const { sector = '기타', stage = 'Seed', mode = 'simple', company_name } = req.body;
 
-    // AI.ROUTE로 보낼 FormData 구성
+    // AI.ROUTE로 보낼 FormData 구성 (buffer 직접 전달)
     const form = new FormData();
-    form.append('file', fs.createReadStream(file.path), {
+    form.append('file', file.buffer, {
       filename: file.originalname || 'ir.pdf',
       contentType: file.mimetype || 'application/pdf',
+      knownLength: file.buffer.length,
     });
     form.append('sector', sector);
     form.append('stage', stage);
@@ -71,13 +70,8 @@ exports.startAnalysis = async (req, res, next) => {
       }
     );
 
-    // 임시 업로드 파일 삭제
-    fs.unlink(filePath, () => {});
-
     res.json({ success: true, data: response.data });
   } catch (e) {
-    // 임시 파일 정리
-    if (filePath) fs.unlink(filePath, () => {});
 
     // AI.ROUTE 에러 메시지 전달
     if (e.response) {
@@ -93,47 +87,45 @@ exports.startAnalysis = async (req, res, next) => {
 // ── POST /api/analysis/start/multi ──────────────────────────────
 // 3개 PDF를 받아 AI.ROUTE 멀티에이전트 분석 시작
 exports.startMultiAnalysis = async (req, res, next) => {
-  const filePaths = [];
   try {
     const user = await getUserFromToken(req);
     if (!user) {
       return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
     }
 
-    // multer fields: ir_deck (필수), biz_plan (선택), financials (선택)
-    const irDeckFile   = req.files?.ir_deck?.[0];
-    const bizPlanFile  = req.files?.biz_plan?.[0];
+    // multer fields: ir_deck (필수), biz_plan (선택), financials (선택) — memoryStorage
+    const irDeckFile     = req.files?.ir_deck?.[0];
+    const bizPlanFile    = req.files?.biz_plan?.[0];
     const financialsFile = req.files?.financials?.[0];
 
     if (!irDeckFile) {
       return res.status(400).json({ success: false, message: '회사소개서(ir_deck) PDF가 필요합니다.' });
     }
 
-    if (irDeckFile.path)    filePaths.push(irDeckFile.path);
-    if (bizPlanFile?.path)  filePaths.push(bizPlanFile.path);
-    if (financialsFile?.path) filePaths.push(financialsFile.path);
-
     const { sector = '기타', stage = 'Seed', company_name } = req.body;
 
-    // AI.ROUTE multi 엔드포인트로 보낼 FormData 구성
+    // AI.ROUTE multi 엔드포인트로 보낼 FormData 구성 (buffer 직접 전달)
     const form = new FormData();
 
-    form.append('ir_deck', fs.createReadStream(irDeckFile.path), {
+    form.append('ir_deck', irDeckFile.buffer, {
       filename: irDeckFile.originalname || 'ir_deck.pdf',
       contentType: 'application/pdf',
+      knownLength: irDeckFile.buffer.length,
     });
 
     if (bizPlanFile) {
-      form.append('biz_plan', fs.createReadStream(bizPlanFile.path), {
+      form.append('biz_plan', bizPlanFile.buffer, {
         filename: bizPlanFile.originalname || 'biz_plan.pdf',
         contentType: 'application/pdf',
+        knownLength: bizPlanFile.buffer.length,
       });
     }
 
     if (financialsFile) {
-      form.append('financials', fs.createReadStream(financialsFile.path), {
+      form.append('financials', financialsFile.buffer, {
         filename: financialsFile.originalname || 'financials.pdf',
         contentType: 'application/pdf',
+        knownLength: financialsFile.buffer.length,
       });
     }
 
@@ -153,12 +145,8 @@ exports.startMultiAnalysis = async (req, res, next) => {
       }
     );
 
-    // 임시 파일 정리
-    filePaths.forEach(p => fs.unlink(p, () => {}));
-
     res.json({ success: true, data: response.data });
   } catch (e) {
-    filePaths.forEach(p => fs.unlink(p, () => {}));
     if (e.response) {
       return res.status(e.response.status).json({
         success: false,

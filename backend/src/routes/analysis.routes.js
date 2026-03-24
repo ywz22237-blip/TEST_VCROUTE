@@ -9,7 +9,7 @@ const {
   sendExaminerMessage,
 } = require('../controllers/analysis.controller');
 
-// 공통 multer 설정 (PDF 전용)
+// 공통 multer 설정 (PDF 전용) — memoryStorage로 /tmp 의존 제거
 const pdfFilter = (req, file, cb) => {
   if (file.mimetype === 'application/pdf') {
     cb(null, true);
@@ -18,15 +18,17 @@ const pdfFilter = (req, file, cb) => {
   }
 };
 
+const memStorage = multer.memoryStorage();
+
 const uploadSingle = multer({
-  dest: '/tmp/uploads/',
+  storage: memStorage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: pdfFilter,
 });
 
 // 멀티에이전트용: ir_deck(필수) + biz_plan(선택) + financials(선택)
 const uploadMulti = multer({
-  dest: '/tmp/uploads/',
+  storage: memStorage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 각 파일 50MB
   fileFilter: pdfFilter,
 });
