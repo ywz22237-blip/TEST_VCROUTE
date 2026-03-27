@@ -518,6 +518,7 @@ async function startAnalysis() {
 async function pollAnalysisResult(taskId, timeoutMs = 180000) {
   const start    = Date.now();
   let   attempt  = 0;
+  let   notFoundCount = 0; // 연속 404 카운트
   const statusEl = document.getElementById('analyzeStatus');
 
   while (Date.now() - start < timeoutMs) {
@@ -540,12 +541,18 @@ async function pollAnalysisResult(taskId, timeoutMs = 180000) {
         `${ROUTE_API_BASE}/v1/route/report/${taskId}`,
         { headers: { 'X-API-Key': ROUTE_API_KEY } }
       );
+      if (res.status === 404) {
+        notFoundCount++;
+        if (notFoundCount >= 3) throw new Error('서버가 재시작되어 태스크가 초기화됐습니다. 다시 시도해주세요.');
+        continue;
+      }
       if (!res.ok) continue;
+      notFoundCount = 0;
       const report = await res.json();
       if (report?.status === 'completed') return report;
       if (report?.status === 'failed')    throw new Error(report.error_message || '분석 실패');
     } catch (e) {
-      if (e.message === '분석 실패' || e.message?.includes('failed')) throw e;
+      if (e.message?.includes('태스크가 초기화') || e.message?.includes('failed') || e.message === '분석 실패') throw e;
       // 네트워크 오류 등은 재시도
       console.warn(`[poll] attempt ${attempt} error:`, e.message);
     }
