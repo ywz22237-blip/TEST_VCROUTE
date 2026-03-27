@@ -446,34 +446,62 @@ async function startAnalysis() {
       formData.append('mode', selectedMode === 'reanalysis' ? 'premium' : selectedMode);
       if (companyName) formData.append('company_name', companyName);
 
-      // Railway에 직접 업로드 (Vercel 4.5MB 제한 우회)
-      const startRes = await fetch(`${ROUTE_API_BASE}/v1/route/analyze`, {
-        method: 'POST',
-        headers: { 'X-API-Key': ROUTE_API_KEY },
-        body: formData,
-      });
+      let result;
 
-      if (!startRes.ok) {
-        const rawText = await startRes.text().catch(() => '');
-        let errMsg = '분석 시작 실패';
-        try {
-          const errJson = JSON.parse(rawText);
-          errMsg = errJson.detail || errJson.message || errJson.error || rawText.slice(0, 200);
-        } catch (_) {
-          errMsg = rawText.slice(0, 200) || `HTTP ${startRes.status}`;
+      if (selectedMode === 'simple') {
+        // ── 간단심사: 동기 엔드포인트로 직접 결과 수신 (폴링 없음) ──
+        statusEl.textContent = 'AI 심사역이 분석 중입니다...';
+        const syncRes = await fetch(`${ROUTE_API_BASE}/v1/route/analyze/sync`, {
+          method: 'POST',
+          headers: { 'X-API-Key': ROUTE_API_KEY },
+          body: formData,
+        });
+
+        if (!syncRes.ok) {
+          const rawText = await syncRes.text().catch(() => '');
+          let errMsg = '분석 실패';
+          try {
+            const errJson = JSON.parse(rawText);
+            errMsg = errJson.detail || errJson.message || errJson.error || rawText.slice(0, 200);
+          } catch (_) {
+            errMsg = rawText.slice(0, 200) || `HTTP ${syncRes.status}`;
+          }
+          console.error('[analyze/sync] HTTP', syncRes.status, rawText);
+          throw new Error(errMsg);
         }
-        console.error('[startAnalysis] HTTP', startRes.status, rawText);
-        throw new Error(errMsg);
+
+        result = await syncRes.json();
+        window._lastAnalysisTaskId = result.task_id || null;
+
+      } else {
+        // ── 정밀/재심사: 비동기 + 폴링 ────────────────────────────
+        const startRes = await fetch(`${ROUTE_API_BASE}/v1/route/analyze`, {
+          method: 'POST',
+          headers: { 'X-API-Key': ROUTE_API_KEY },
+          body: formData,
+        });
+
+        if (!startRes.ok) {
+          const rawText = await startRes.text().catch(() => '');
+          let errMsg = '분석 시작 실패';
+          try {
+            const errJson = JSON.parse(rawText);
+            errMsg = errJson.detail || errJson.message || errJson.error || rawText.slice(0, 200);
+          } catch (_) {
+            errMsg = rawText.slice(0, 200) || `HTTP ${startRes.status}`;
+          }
+          console.error('[startAnalysis] HTTP', startRes.status, rawText);
+          throw new Error(errMsg);
+        }
+
+        const startData = await startRes.json();
+        const taskId = startData.task_id || startData.data?.task_id;
+        if (!taskId) throw new Error('task_id를 받지 못했습니다. 응답: ' + JSON.stringify(startData).slice(0, 100));
+        window._lastAnalysisTaskId = taskId;
+
+        statusEl.textContent = 'AI 심사역이 분석 중입니다...';
+        result = await pollAnalysisResult(taskId, 480000); // 8분
       }
-
-      // Railway는 {task_id: ...} 직접 반환
-      const startData = await startRes.json();
-      const taskId = startData.task_id || startData.data?.task_id;
-      if (!taskId) throw new Error('task_id를 받지 못했습니다. 응답: ' + JSON.stringify(startData).slice(0, 100));
-      window._lastAnalysisTaskId = taskId; // AI 심사역 채팅 연결용
-
-      statusEl.textContent = "AI 심사역이 분석 중입니다...";
-      const result = await pollAnalysisResult(taskId, 480000); // 8분
 
       clearInterval(interval);
       irAnalysis = convertAiRouteResult(result);
